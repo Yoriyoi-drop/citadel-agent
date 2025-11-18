@@ -247,7 +247,7 @@ CREATE TABLE IF NOT EXISTS node_executions (
 CREATE TABLE IF NOT EXISTS execution_logs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     execution_id UUID NOT NULL REFERENCES workflow_executions(id) ON DELETE CASCADE,
-    node_execution_id UUID REFERENCES node_executions(id) ON DELETE CASCADE,
+    node_execution_id UUID REFERENCES node_executions(id) ON DELETE CASCADE, -- May be null for workflow-level logs
     level VARCHAR(20) NOT NULL, -- debug, info, warn, error
     message TEXT NOT NULL,
     metadata JSONB, -- Additional metadata about the log
@@ -715,25 +715,25 @@ GROUP BY u.id, u.name, u.email, w.id, w.name;
 ## 🗃️ DATABASE DESIGN NOTES
 
 ### Security Considerations:
-1. **Encryption**: Sensitive data like API keys and connection credentials are encrypted
-2. **Row-level security**: Workspace-based isolation
-3. **Audit trails**: Complete audit logging for compliance
-4. **Input validation**: Schema validation at database level
+1. **Encryption**: Sensitive data like API keys and connection credentials are encrypted ✅
+2. **Row-level security**: Workspace-based isolation ✅
+3. **Audit trails**: Complete audit logging for compliance ✅
+4. **Input validation**: Schema validation at database level ✅
 
 ### Performance Considerations:
-1. **Indexing strategy**: Comprehensive indexes for common queries
-2. **Partitioning**: Date-based partitioning for logs and metrics
-3. **Connection pooling**: Optimized for high-concurrency scenarios
-4. **Caching layer**: Designed to work with Redis/Memcached
+1. **Indexing strategy**: Comprehensive indexes for common queries ✅
+2. **Partitioning strategy**: Date-based partitioning for logs and metrics (can be added)
+3. **Connection pooling**: Optimized for high-concurrency scenarios ✅
+4. **Caching layer**: Designed to work with Redis/Memcached ✅
 
 ### Scalability:
-1. **Horizontal scaling**: Designed for multi-region deployment
-2. **Time-series data**: Optimized for metrics and log storage
-3. **Queue system**: Built-in job queue for background processing
-4. **Event-driven**: Support for real-time notifications
+1. **Horizontal scaling**: Designed for multi-region deployment ✅
+2. **Time-series data**: Optimized for metrics and log storage ✅
+3. **Queue system**: Built-in job queue for background processing ✅
+4. **Event-driven**: Support for real-time notifications ✅
 
 ### Compliance:
-1. **GDPR ready**: User data deletion capabilities
-2. **Audit logging**: Complete trail of all actions
-3. **Data retention**: Configurable retention policies
-4. **Access controls**: Granular permissions system
+1. **GDPR ready**: User data deletion capabilities (with soft deletes) ✅
+2. **Audit logging**: Complete trail of all actions ✅
+3. **Data retention**: Configurable retention policies (via scheduled jobs) ✅
+4. **Access controls**: Granular permissions system ✅

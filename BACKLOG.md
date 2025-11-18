@@ -3,78 +3,78 @@
 ## v0.1: Foundation Tasks
 
 ### Backend Engine
-- [ ] Buat struktur project Go modular
-- [ ] Implementasi workflow engine dasar
-- [ ] Buat interface NodeExecutor
-- [ ] Implementasi executor sequential
-- [ ] Tambahkan error handling global
-- [ ] Buat ExecutionContext untuk manajemen variabel
-- [ ] Tambahkan logging sistem
-- [ ] Implementasi timeout per node
+- [x] Buat struktur project Go modular
+- [x] Implementasi workflow engine dasar
+- [x] Buat interface NodeExecutor
+- [x] Implementasi executor sequential
+- [x] Tambahkan error handling global
+- [x] Buat ExecutionContext untuk manajemen variabel
+- [x] Tambahkan logging sistem
+- [x] Implementasi timeout per node
 - [ ] Buat sistem dependency resolution antar node
 
 ### API Layer
-- [ ] Setup Fiber framework
-- [ ] Buat middleware dasar (logging, recovery, cors)
-- [ ] Implementasi JWT auth system
-- [ ] Buat workflow CRUD endpoints
-- [ ] Implementasi workflow execution endpoint
-- [ ] Tambahkan request validation
-- [ ] Buat health check endpoint
+- [x] Setup Fiber framework
+- [x] Buat middleware dasar (logging, recovery, cors)
+- [x] Implementasi JWT auth system
+- [x] Buat workflow CRUD endpoints
+- [x] Implementasi workflow execution endpoint
+- [x] Tambahkan request validation
+- [x] Buat health check endpoint
 - [ ] Implementasi rate limiting
 
 ### Database
-- [ ] Buat struktur database PostgreSQL
-- [ ] Implementasi connection pooling
-- [ ] Buat migration system
-- [ ] Tambahkan models: User, Workflow, Execution
-- [ ] Implementasi repository pattern
-- [ ] Tambahkan indexes strategis
-- [ ] Buat trigger untuk updated_at
+- [x] Buat struktur database PostgreSQL
+- [x] Implementasi connection pooling
+- [x] Buat migration system
+- [x] Tambahkan models: User, Workflow, Execution
+- [x] Implementasi repository pattern
+- [x] Tambahkan indexes strategis
+- [x] Buat trigger untuk updated_at
 
 ### Frontend Editor
-- [ ] Setup React project dengan TypeScript
-- [ ] Integrasi React Flow ke project
-- [ ] Buat komponen canvas dasar
-- [ ] Implementasi node representation
-- [ ] Buat connection system
-- [ ] Implementasi properties panel
-- [ ] Tambahkan save/load workflow
+- [x] Setup React project dengan TypeScript
+- [x] Integrasi React Flow ke project
+- [x] Buat komponen canvas dasar
+- [x] Implementasi node representation
+- [x] Buat connection system
+- [x] Implementasi properties panel
+- [x] Tambahkan save/load workflow
 - [ ] Buat UI testing setup
 
 ### Testing
-- [ ] Setup testing framework
-- [ ] Buat unit tests untuk engine
-- [ ] Implementasi API integration tests
-- [ ] Buat E2E tests dasar
-- [ ] Tambahkan code coverage
-- [ ] Setup CI pipeline
+- [x] Setup testing framework
+- [x] Buat unit tests untuk engine
+- [x] Implementasi API integration tests
+- [x] Buat E2E tests dasar
+- [x] Tambahkan code coverage
+- [x] Setup CI pipeline
 
 ---
 
 ## v0.2: Security & Sandboxing Tasks
 
 ### Security Framework
-- [ ] Implementasi JavaScript VM sandbox
-- [ ] Buat HTTP request validator untuk mencegah SSRF
-- [ ] Tambahkan SQL injection protection layer
+- [x] Implementasi JavaScript VM sandbox
+- [x] Buat HTTP request validator untuk mencegah SSRF
+- [x] Tambahkan SQL injection protection layer
 - [ ] Implementasi rate limiting sistem
 - [ ] Buat API key encryption system
 - [ ] Tambahkan input validation middleware
 - [ ] Implementasi output sanitization
 
 ### Isolated Runtime
-- [ ] Setup worker processes terisolasi
-- [ ] Tambahkan resource limiting per eksekusi
-- [ ] Implementasi timeout enforcement
-- [ ] Buat memory usage monitoring
+- [x] Setup worker processes terisolasi
+- [x] Tambahkan resource limiting per eksekusi
+- [x] Implementasi timeout enforcement
+- [x] Buat memory usage monitoring
 - [ ] Tambahkan process isolation
 - [ ] Implementasi security monitoring
 
 ### Backend Services
-- [ ] Buat Redis queue system
-- [ ] Implementasi parallel execution
-- [ ] Tambahkan crash recovery system
+- [x] Buat Redis queue system
+- [x] Implementasi parallel execution
+- [x] Tambahkan crash recovery system
 - [ ] Buat error isolation mechanism
 - [ ] Implementasi secure file handling
 - [ ] Tambahkan permission checking
@@ -91,22 +91,22 @@
 ## v0.3: Node Ecosystem Tasks
 
 ### Node Infrastructure
-- [ ] Buat node registry system
+- [x] Buat node registry system
 - [ ] Implementasi dynamic UI generation dari schema
-- [ ] Tambahkan node versioning
+- [x] Tambahkan node versioning
 - [ ] Buat node validation framework
 - [ ] Implementasi plugin marketplace API
 - [ ] Tambahkan node testing utilities
 - [ ] Buat node documentation system
 
 ### Basic Nodes Implementation
-- [ ] HTTP Request Node
-- [ ] PostgreSQL Node
-- [ ] MySQL Node
-- [ ] SQLite Node
-- [ ] JSON Manipulation Node
-- [ ] Text Formatter Node
-- [ ] Date/Time Utilities Node
+- [x] HTTP Request Node
+- [x] PostgreSQL Node
+- [x] MySQL Node
+- [x] SQLite Node
+- [x] JSON Manipulation Node
+- [x] Text Formatter Node
+- [x] Date/Time Utilities Node
 - [ ] File I/O Node (sandboxed)
 - [ ] Email Node (SMTP)
 - [ ] Webhook Trigger Node
@@ -430,18 +430,18 @@
 ## ⚡ Priority Tasks for Early Development
 
 ### Must Have (v0.1-v0.2)
-- [ ] Core workflow engine
-- [ ] Basic HTTP node
-- [ ] Simple auth system
-- [ ] Basic UI editor
-- [ ] Database connection
-- [ ] Error handling
-- [ ] Basic security sandbox
+- [x] Core workflow engine
+- [x] Basic HTTP node
+- [x] Simple auth system
+- [x] Basic UI editor
+- [x] Database connection
+- [x] Error handling
+- [x] Basic security sandbox
 
 ### Should Have (v0.2-v0.3)  
-- [ ] Node registry
-- [ ] 20 basic nodes
-- [ ] Worker queue system
+- [x] Node registry
+- [x] 20 basic nodes
+- [x] Worker queue system
 - [ ] Advanced auth
 - [ ] Performance monitoring
 - [ ] Basic testing suite

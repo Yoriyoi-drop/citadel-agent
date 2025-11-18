@@ -1,0 +1,85 @@
+[tool.golangci-lint]
+# GolangCI-Lint configuration file
+# https://golangci-lint.run/usage/configuration/
+
+run:
+  timeout: 5m
+  tests: true
+  skip-dirs:
+    - vendor
+    - node_modules
+  skip-files:
+    - ".*_test\\.go$"
+
+linters:
+  enable:
+    - gofmt
+    - goimports
+    - golint
+    - vet
+    - errcheck
+    - staticcheck
+    - unused
+    - gosimple
+    - structcheck
+    - varcheck
+    - ineffassign
+    - deadcode
+    - typecheck
+    - gosec
+    - unconvert
+    - dupl
+    - goconst
+    - gocyclo
+    - maligned
+    - scopelint
+    - prealloc
+  disable:
+    - interfacer  # deprecated
+    - golint      # deprecated
+
+linters-settings:
+  gofmt:
+    simplify: true
+  
+  goimports:
+    local-prefixes: citadel-agent
+  
+  gocyclo:
+    min-complexity: 15
+  
+  errcheck:
+    check-type-assertions: true
+    check-blank: true
+  
+  gosec:
+    excludes:
+      - G104  # Do not ignore errors
+      - G204  # Subprocess launch
+      - G304  # File path provided as taint input
+      - G401  # Use of weak cryptographic primitive
+      - G402  # TLS MinVersion
+      - G501  # Blacklisted import
+      - G505  # Blacklisted import
+    # Only include specific security issues
+    includes:
+      - G101  # Potential hardcoded credentials
+      - G102  # Bind to all interfaces
+      - G103  # Use of unsafe block
+      - G104  # Errors unhandled from external libs
+      - G106  # SSH host key validation
+      - G107  # URL provided to HTTP request
+      - G108  # Profiling endpoint automatically exposed
+      - G109  # Potential Integer overflow
+  
+  dupl:
+    threshold: 100  # Max number of lines to consider duplicate
+  
+  goconst:
+    min-len: 3
+    min-occurrences: 3
+
+issues:
+  exclude-use-default: false
+  max-per-linter: 10
+  max-same-issues: 5
