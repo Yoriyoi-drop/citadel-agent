@@ -1,0 +1,6144 @@
+{
+  "nodes": [
+    {
+      "id": "string_replace",
+      "name": "String Replace",
+      "description": "Ganti teks otomatis",
+      "type": "basic",
+      "category": "text",
+      "icon": "text",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "input": {
+            "type": "string",
+            "description": "Input string"
+          },
+          "find": {
+            "type": "string",
+            "description": "Teks yang dicari"
+          },
+          "replace": {
+            "type": "string",
+            "description": "Teks pengganti"
+          },
+          "global": {
+            "type": "boolean",
+            "description": "Ganti semua kemunculan",
+            "default": true
+          }
+        },
+        "required": ["input", "find", "replace"]
+      }
+    },
+    {
+      "id": "string_split_merge",
+      "name": "String Split Merge",
+      "description": "Pisah & gabung teks",
+      "type": "basic",
+      "category": "text",
+      "icon": "text",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "input": {
+            "type": "string",
+            "description": "Input string"
+          },
+          "delimiter": {
+            "type": "string",
+            "description": "Pemisah untuk split",
+            "default": ","
+          },
+          "operation": {
+            "type": "string",
+            "enum": ["split", "merge"],
+            "description": "Operasi yang akan dilakukan"
+          }
+        },
+        "required": ["input", "operation"]
+      }
+    },
+    {
+      "id": "math_basic",
+      "name": "Math Basic",
+      "description": "Operasi + - × ÷",
+      "type": "basic",
+      "category": "math",
+      "icon": "calculator",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "operation": {
+            "type": "string",
+            "enum": ["add", "subtract", "multiply", "divide"],
+            "description": "Operasi matematika"
+          },
+          "operand1": {
+            "type": "number",
+            "description": "Operand pertama"
+          },
+          "operand2": {
+            "type": "number",
+            "description": "Operand kedua"
+          }
+        },
+        "required": ["operation", "operand1", "operand2"]
+      }
+    },
+    {
+      "id": "date_formatter_plus",
+      "name": "Date Formatter+",
+      "description": "Format tanggal lebih lengkap",
+      "type": "basic",
+      "category": "date",
+      "icon": "calendar",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "date_input": {
+            "type": "string",
+            "description": "Input tanggal",
+            "format": "date-time"
+          },
+          "format": {
+            "type": "string",
+            "description": "Format output tanggal",
+            "default": "YYYY-MM-DD HH:mm:ss"
+          }
+        },
+        "required": ["date_input"]
+      }
+    },
+    {
+      "id": "file_rename",
+      "name": "File Rename",
+      "description": "Ubah nama file otomatis",
+      "type": "basic",
+      "category": "file",
+      "icon": "file",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "source_path": {
+            "type": "string",
+            "description": "Path file sumber"
+          },
+          "destination_path": {
+            "type": "string",
+            "description": "Path file tujuan"
+          }
+        },
+        "required": ["source_path", "destination_path"]
+      }
+    },
+    {
+      "id": "folder_watcher",
+      "name": "Folder Watcher",
+      "description": "Trigger saat folder berubah",
+      "type": "basic",
+      "category": "trigger",
+      "icon": "folder",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "watch_path": {
+            "type": "string",
+            "description": "Path folder yang diawasi"
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["create", "update", "delete"]
+            },
+            "description": "Jenis event yang dipantau",
+            "default": ["create"]
+          }
+        },
+        "required": ["watch_path"]
+      }
+    },
+    {
+      "id": "file_type_detector",
+      "name": "File Type Detector",
+      "description": "Deteksi file dari MIME",
+      "type": "basic",
+      "category": "file",
+      "icon": "file",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "file_path": {
+            "type": "string",
+            "description": "Path file untuk dideteksi"
+          }
+        },
+        "required": ["file_path"]
+      }
+    },
+    {
+      "id": "url_cleaner",
+      "name": "URL Cleaner",
+      "description": "Bersihkan tracking link",
+      "type": "basic",
+      "category": "url",
+      "icon": "link",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "URL untuk dibersihkan",
+            "format": "uri"
+          },
+          "remove_params": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Parameter untuk dihapus",
+            "default": ["utm_source", "utm_medium", "utm_campaign"]
+          }
+        },
+        "required": ["url"]
+      }
+    },
+    {
+      "id": "user_agent_generator",
+      "name": "User Agent Generator",
+      "description": "Generate random UA",
+      "type": "basic",
+      "category": "utility",
+      "icon": "device",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "device_type": {
+            "type": "string",
+            "enum": ["desktop", "mobile", "tablet"],
+            "description": "Tipe device untuk UA",
+            "default": "desktop"
+          },
+          "browser": {
+            "type": "string",
+            "enum": ["chrome", "firefox", "safari", "edge"],
+            "description": "Browser untuk UA"
+          }
+        }
+      }
+    },
+    {
+      "id": "emoji_parser",
+      "name": "Emoji Parser",
+      "description": "Konversi emoji → text",
+      "type": "basic",
+      "category": "text",
+      "icon": "smile",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "input": {
+            "type": "string",
+            "description": "Input dengan emoji"
+          },
+          "conversion_type": {
+            "type": "string",
+            "enum": ["to_text", "to_unicode", "to_shortcode"],
+            "description": "Jenis konversi",
+            "default": "to_text"
+          }
+        },
+        "required": ["input"]
+      }
+    },
+    {
+      "id": "slug_generator",
+      "name": "Slug Generator",
+      "description": "Buat slug ramah SEO",
+      "type": "basic",
+      "category": "text",
+      "icon": "text",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "input": {
+            "type": "string",
+            "description": "Input teks untuk slug"
+          },
+          "separator": {
+            "type": "string",
+            "description": "Pemisah dalam slug",
+            "default": "-"
+          }
+        },
+        "required": ["input"]
+      }
+    },
+    {
+      "id": "random_data_node",
+      "name": "Random Data Node",
+      "description": "Generate value random",
+      "type": "basic",
+      "category": "utility",
+      "icon": "shuffle",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "data_type": {
+            "type": "string",
+            "enum": ["string", "number", "boolean", "date", "email"],
+            "description": "Tipe data yang digenerate",
+            "default": "string"
+          },
+          "length": {
+            "type": "integer",
+            "description": "Panjang data untuk string",
+            "default": 10
+          }
+        },
+        "required": ["data_type"]
+      }
+    },
+    {
+      "id": "phone_normalizer",
+      "name": "Phone Normalizer",
+      "description": "Format nomor telepon",
+      "type": "basic",
+      "category": "text",
+      "icon": "phone",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "phone_number": {
+            "type": "string",
+            "description": "Nomor telepon untuk diformat"
+          },
+          "country_code": {
+            "type": "string",
+            "description": "Kode negara",
+            "default": "ID"
+          }
+        },
+        "required": ["phone_number"]
+      }
+    },
+    {
+      "id": "currency_converter_basic",
+      "name": "Currency Converter Basic",
+      "description": "Konversi kurs dasar",
+      "type": "basic",
+      "category": "math",
+      "icon": "dollar",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "number",
+            "description": "Jumlah uang"
+          },
+          "from_currency": {
+            "type": "string",
+            "description": "Mata uang asal",
+            "default": "USD"
+          },
+          "to_currency": {
+            "type": "string",
+            "description": "Mata uang tujuan",
+            "default": "IDR"
+          }
+        },
+        "required": ["amount", "from_currency", "to_currency"]
+      }
+    },
+    {
+      "id": "csv_validator",
+      "name": "CSV Validator",
+      "description": "Validasi struktur CSV",
+      "type": "basic",
+      "category": "file",
+      "icon": "file",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "csv_content": {
+            "type": "string",
+            "description": "Isi CSV untuk divalidasi"
+          },
+          "expected_columns": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Kolom yang diharapkan"
+          },
+          "delimiter": {
+            "type": "string",
+            "description": "Pemisah dalam CSV",
+            "default": ","
+          }
+        },
+        "required": ["csv_content"]
+      }
+    },
+    {
+      "id": "xml_to_table",
+      "name": "XML to Table",
+      "description": "Parse XML cepat",
+      "type": "basic",
+      "category": "data",
+      "icon": "table",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "xml_content": {
+            "type": "string",
+            "description": "Isi XML untuk diparse"
+          },
+          "xpath": {
+            "type": "string",
+            "description": "XPath untuk mengambil data"
+          }
+        },
+        "required": ["xml_content"]
+      }
+    },
+    {
+      "id": "html_cleaner",
+      "name": "HTML Cleaner",
+      "description": "Hapus tag HTML kotor",
+      "type": "basic",
+      "category": "text",
+      "icon": "clean",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "html_content": {
+            "type": "string",
+            "description": "Isi HTML untuk dibersihkan"
+          },
+          "allowed_tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Tag HTML yang diizinkan",
+            "default": ["p", "br", "strong", "em"]
+          }
+        },
+        "required": ["html_content"]
+      }
+    },
+    {
+      "id": "case_converter",
+      "name": "Case Converter",
+      "description": "UPPER/lower/Title",
+      "type": "basic",
+      "category": "text",
+      "icon": "text",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "input": {
+            "type": "string",
+            "description": "Input teks"
+          },
+          "case_type": {
+            "type": "string",
+            "enum": ["upper", "lower", "title", "sentence", "camel", "pascal", "snake", "kebab"],
+            "description": "Tipe case yang diinginkan",
+            "default": "upper"
+          }
+        },
+        "required": ["input", "case_type"]
+      }
+    },
+    {
+      "id": "audio_duration_reader",
+      "name": "Audio Duration Reader",
+      "description": "Baca durasi audio",
+      "type": "basic",
+      "category": "file",
+      "icon": "audio",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "audio_path": {
+            "type": "string",
+            "description": "Path file audio"
+          }
+        },
+        "required": ["audio_path"]
+      }
+    },
+    {
+      "id": "image_metadata_reader",
+      "name": "Image Metadata Reader",
+      "description": "EXIF reader",
+      "type": "basic",
+      "category": "file",
+      "icon": "image",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "image_path": {
+            "type": "string",
+            "description": "Path file gambar"
+          }
+        },
+        "required": ["image_path"]
+      }
+    },
+    {
+      "id": "simple_logger",
+      "name": "Simple Logger",
+      "description": "Untuk debugging",
+      "type": "basic",
+      "category": "utility",
+      "icon": "log",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "Pesan yang akan dilog"
+          },
+          "level": {
+            "type": "string",
+            "enum": ["info", "warn", "error", "debug"],
+            "description": "Level log",
+            "default": "info"
+          }
+        },
+        "required": ["message"]
+      }
+    },
+    {
+      "id": "stopwatch_node",
+      "name": "Stopwatch Node",
+      "description": "Hitung waktu eksekusi",
+      "type": "basic",
+      "category": "utility",
+      "icon": "time",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": ["start", "stop"],
+            "description": "Aksi stopwatch",
+            "default": "start"
+          },
+          "timer_id": {
+            "type": "string",
+            "description": "ID timer untuk mengidentifikasi stopwatch"
+          }
+        },
+        "required": ["action"]
+      }
+    },
+    {
+      "id": "merge_objects",
+      "name": "Merge Objects",
+      "description": "Gabungkan 2 objek",
+      "type": "basic",
+      "category": "data",
+      "icon": "merge",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "object1": {
+            "type": "object",
+            "description": "Objek pertama"
+          },
+          "object2": {
+            "type": "object",
+            "description": "Objek kedua"
+          },
+          "merge_strategy": {
+            "type": "string",
+            "enum": ["replace", "deep_merge", "shallow_merge"],
+            "description": "Strategi penggabungan",
+            "default": "replace"
+          }
+        }
+      }
+    },
+    {
+      "id": "mask_sensitive_text",
+      "name": "Mask Sensitive Text",
+      "description": "Masking email, telp",
+      "type": "basic",
+      "category": "security",
+      "icon": "shield",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "input": {
+            "type": "string",
+            "description": "Input teks yang akan dimask"
+          },
+          "mask_patterns": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["email", "phone", "credit_card", "ssn", "custom"]
+            },
+            "description": "Pola yang akan dimask",
+            "default": ["email", "phone"]
+          },
+          "mask_char": {
+            "type": "string",
+            "description": "Karakter untuk masking",
+            "default": "*"
+          }
+        },
+        "required": ["input"]
+      }
+    },
+    {
+      "id": "file_hasher",
+      "name": "File Hasher",
+      "description": "MD5/SHA256",
+      "type": "basic",
+      "category": "file",
+      "icon": "hash",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "file_path": {
+            "type": "string",
+            "description": "Path file untuk dihash"
+          },
+          "algorithm": {
+            "type": "string",
+            "enum": ["md5", "sha1", "sha256", "sha512"],
+            "description": "Algoritma hashing",
+            "default": "sha256"
+          }
+        },
+        "required": ["file_path", "algorithm"]
+      }
+    },
+    {
+      "id": "file_size_filter",
+      "name": "File Size Filter",
+      "description": "Filter file besar",
+      "type": "basic",
+      "category": "file",
+      "icon": "filter",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "file_path": {
+            "type": "string",
+            "description": "Path file untuk difilter"
+          },
+          "size_limit": {
+            "type": "number",
+            "description": "Limit ukuran file dalam bytes"
+          },
+          "comparison": {
+            "type": "string",
+            "enum": ["greater_than", "less_than", "equal_to"],
+            "description": "Jenis perbandingan",
+            "default": "greater_than"
+          }
+        },
+        "required": ["file_path", "size_limit"]
+      }
+    },
+    {
+      "id": "deduplicate_list",
+      "name": "Deduplicate List",
+      "description": "Hapus duplikat",
+      "type": "basic",
+      "category": "data",
+      "icon": "duplicate",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "input_list": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "List input untuk dihapus duplikatnya"
+          },
+          "key_field": {
+            "type": "string",
+            "description": "Field untuk membandingkan dalam objek"
+          }
+        },
+        "required": ["input_list"]
+      }
+    },
+    {
+      "id": "unique_id_generator",
+      "name": "Unique ID Generator",
+      "description": "UUID/XID/NanoID",
+      "type": "basic",
+      "category": "utility",
+      "icon": "id",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "id_type": {
+            "type": "string",
+            "enum": ["uuid", "xid", "nanoid", "snowflake"],
+            "description": "Tipe ID yang digenerate",
+            "default": "uuid"
+          },
+          "length": {
+            "type": "integer",
+            "description": "Panjang ID untuk xid/nanoid"
+          }
+        },
+        "required": ["id_type"]
+      }
+    },
+    {
+      "id": "countdown_timer",
+      "name": "Countdown Timer",
+      "description": "Delay dengan countdown",
+      "type": "basic",
+      "category": "utility",
+      "icon": "timer",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "duration": {
+            "type": "number",
+            "description": "Durasi delay dalam detik",
+            "default": 10
+          },
+          "countdown": {
+            "type": "boolean",
+            "description": "Tampilkan countdown",
+            "default": true
+          }
+        },
+        "required": ["duration"]
+      }
+    },
+    {
+      "id": "boolean_logic_node",
+      "name": "Boolean Logic Node",
+      "description": "AND/OR/XOR",
+      "type": "basic",
+      "category": "logic",
+      "icon": "logic",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "operation": {
+            "type": "string",
+            "enum": ["and", "or", "xor", "not"],
+            "description": "Operasi boolean",
+            "default": "and"
+          },
+          "inputs": {
+            "type": "array",
+            "items": {
+              "type": "boolean"
+            },
+            "description": "Input boolean",
+            "minItems": 1
+          }
+        },
+        "required": ["operation", "inputs"]
+      }
+    },
+    {
+      "id": "array_sorter",
+      "name": "Array Sorter",
+      "description": "Urutkan ascending/descending",
+      "type": "basic",
+      "category": "data",
+      "icon": "sort",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "input_array": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Array untuk diurutkan"
+          },
+          "sort_order": {
+            "type": "string",
+            "enum": ["asc", "desc"],
+            "description": "Urutan pengurutan",
+            "default": "asc"
+          },
+          "sort_by": {
+            "type": "string",
+            "description": "Field untuk sorting dalam objek"
+          }
+        },
+        "required": ["input_array"]
+      }
+    },
+    {
+      "id": "text_similarity_basic",
+      "name": "Text Similarity Basic",
+      "description": "Cek kemiripan teks",
+      "type": "basic",
+      "category": "text",
+      "icon": "similarity",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "text1": {
+            "type": "string",
+            "description": "Teks pertama"
+          },
+          "text2": {
+            "type": "string",
+            "description": "Teks kedua"
+          },
+          "algorithm": {
+            "type": "string",
+            "enum": ["levenshtein", "jaccard", "cosine"],
+            "description": "Algoritma kemiripan",
+            "default": "levenshtein"
+          }
+        },
+        "required": ["text1", "text2"]
+      }
+    },
+    {
+      "id": "http_quick_ping",
+      "name": "HTTP Quick Ping",
+      "description": "Cek status server",
+      "type": "basic",
+      "category": "http",
+      "icon": "ping",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "URL untuk diping",
+            "format": "uri"
+          },
+          "timeout": {
+            "type": "number",
+            "description": "Timeout dalam detik",
+            "default": 10
+          }
+        },
+        "required": ["url"]
+      }
+    },
+    {
+      "id": "regex_extract_pro",
+      "name": "Regex Extract Pro",
+      "description": "Regex modular",
+      "type": "basic",
+      "category": "text",
+      "icon": "regex",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "input": {
+            "type": "string",
+            "description": "Input teks"
+          },
+          "pattern": {
+            "type": "string",
+            "description": "Polanya regex"
+          },
+          "flags": {
+            "type": "string",
+            "description": "Flag regex seperti g, i, m",
+            "default": "g"
+          }
+        },
+        "required": ["input", "pattern"]
+      }
+    },
+    {
+      "id": "form_builder_basic",
+      "name": "Form Builder Basic",
+      "description": "Buat form sederhana",
+      "type": "basic",
+      "category": "ui",
+      "icon": "form",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "form_fields": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "Nama field"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": ["text", "email", "number", "password", "select", "checkbox", "radio"],
+                  "description": "Tipe field"
+                },
+                "label": {
+                  "type": "string",
+                  "description": "Label field"
+                },
+                "required": {
+                  "type": "boolean",
+                  "description": "Wajib diisi",
+                  "default": false
+                }
+              },
+              "required": ["name", "type"]
+            },
+            "description": "Field-field form"
+          }
+        },
+        "required": ["form_fields"]
+      }
+    },
+    {
+      "id": "webhook_quick_response",
+      "name": "Webhook Quick Response",
+      "description": "Respon cepat auto",
+      "type": "basic",
+      "category": "http",
+      "icon": "webhook",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "status_code": {
+            "type": "integer",
+            "description": "Kode status HTTP",
+            "default": 200
+          },
+          "response_body": {
+            "type": "string",
+            "description": "Body response"
+          },
+          "response_headers": {
+            "type": "object",
+            "description": "Header response"
+          }
+        },
+        "required": ["status_code"]
+      }
+    },
+    {
+      "id": "base64_tools",
+      "name": "Base64 Tools",
+      "description": "Encode/Decode",
+      "type": "basic",
+      "category": "utility",
+      "icon": "base64",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "operation": {
+            "type": "string",
+            "enum": ["encode", "decode"],
+            "description": "Operasi yang akan dilakukan",
+            "default": "encode"
+          },
+          "input": {
+            "type": "string",
+            "description": "Input string"
+          }
+        },
+        "required": ["operation", "input"]
+      }
+    },
+    {
+      "id": "simple_cache",
+      "name": "Simple Cache",
+      "description": "Cache kecil di memory",
+      "type": "basic",
+      "category": "utility",
+      "icon": "cache",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "operation": {
+            "type": "string",
+            "enum": ["set", "get", "delete"],
+            "description": "Operasi cache",
+            "default": "get"
+          },
+          "key": {
+            "type": "string",
+            "description": "Kunci cache"
+          },
+          "value": {
+            "type": "string",
+            "description": "Nilai untuk disimpan"
+          },
+          "ttl": {
+            "type": "number",
+            "description": "Time to live dalam detik"
+          }
+        },
+        "required": ["operation", "key"]
+      }
+    },
+    {
+      "id": "data_sampler",
+      "name": "Data Sampler",
+      "description": "Sampling data random",
+      "type": "basic",
+      "category": "data",
+      "icon": "sample",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "input_data": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            },
+            "description": "Data untuk disampling"
+          },
+          "sample_size": {
+            "type": "integer",
+            "description": "Jumlah sample",
+            "default": 10
+          },
+          "sampling_method": {
+            "type": "string",
+            "enum": ["random", "stratified", "systematic"],
+            "description": "Metode sampling",
+            "default": "random"
+          }
+        },
+        "required": ["input_data"]
+      }
+    },
+    {
+      "id": "cron_preset_node",
+      "name": "Cron Preset Node",
+      "description": "Cron template",
+      "type": "basic",
+      "category": "schedule",
+      "icon": "cron",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "preset": {
+            "type": "string",
+            "enum": ["every_minute", "hourly", "daily", "weekly", "monthly", "custom"],
+            "description": "Preset cron",
+            "default": "hourly"
+          },
+          "custom_expression": {
+            "type": "string",
+            "description": "Ekspresi cron custom jika preset=custom"
+          }
+        },
+        "required": ["preset"]
+      }
+    },
+    {
+      "id": "email_validator",
+      "name": "Email Validator",
+      "description": "Cek format email",
+      "type": "basic",
+      "category": "text",
+      "icon": "email",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "Email untuk divalidasi",
+            "format": "email"
+          },
+          "check_mx": {
+            "type": "boolean",
+            "description": "Cek record MX",
+            "default": false
+          }
+        },
+        "required": ["email"]
+      }
+    },
+    {
+      "id": "jwt_decoder",
+      "name": "JWT Decoder",
+      "description": "Decode token",
+      "type": "basic",
+      "category": "security",
+      "icon": "jwt",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "jwt_token": {
+            "type": "string",
+            "description": "Token JWT untuk didecode"
+          }
+        },
+        "required": ["jwt_token"]
+      }
+    },
+    {
+      "id": "ip_validator",
+      "name": "IP Validator",
+      "description": "Cek IPv4/IPv6",
+      "type": "basic",
+      "category": "network",
+      "icon": "ip",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "ip_address": {
+            "type": "string",
+            "description": "Alamat IP untuk divalidasi"
+          },
+          "ip_version": {
+            "type": "string",
+            "enum": ["ipv4", "ipv6", "both"],
+            "description": "Versi IP yang diterima",
+            "default": "both"
+          }
+        },
+        "required": ["ip_address"]
+      }
+    },
+    {
+      "id": "headers_builder",
+      "name": "Headers Builder",
+      "description": "Bangun header HTTP",
+      "type": "basic",
+      "category": "http",
+      "icon": "headers",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "headers": {
+            "type": "object",
+            "description": "Header HTTP"
+          },
+          "merge_with_existing": {
+            "type": "boolean",
+            "description": "Gabung dengan header yang sudah ada",
+            "default": true
+          }
+        }
+      }
+    },
+    {
+      "id": "quick_template_node",
+      "name": "Quick Template Node",
+      "description": "Template teks",
+      "type": "basic",
+      "category": "text",
+      "icon": "template",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "template": {
+            "type": "string",
+            "description": "Template dengan placeholder seperti {{name}}"
+          },
+          "variables": {
+            "type": "object",
+            "description": "Variabel untuk mengisi placeholder"
+          }
+        },
+        "required": ["template"]
+      }
+    },
+    {
+      "id": "diff_builder",
+      "name": "Diff Builder",
+      "description": "Bandingkan dua string",
+      "type": "basic",
+      "category": "text",
+      "icon": "diff",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "text1": {
+            "type": "string",
+            "description": "Teks pertama"
+          },
+          "text2": {
+            "type": "string",
+            "description": "Teks kedua"
+          },
+          "format": {
+            "type": "string",
+            "enum": ["unified", "side_by_side", "json_patch"],
+            "description": "Format output diff",
+            "default": "unified"
+          }
+        },
+        "required": ["text1", "text2"]
+      }
+    },
+    {
+      "id": "counter_node",
+      "name": "Counter Node",
+      "description": "Increment/decrement",
+      "type": "basic",
+      "category": "utility",
+      "icon": "counter",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "counter_id": {
+            "type": "string",
+            "description": "ID counter"
+          },
+          "operation": {
+            "type": "string",
+            "enum": ["increment", "decrement", "reset", "get"],
+            "description": "Operasi counter",
+            "default": "increment"
+          },
+          "step": {
+            "type": "number",
+            "description": "Langkah increment/decrement",
+            "default": 1
+          }
+        },
+        "required": ["counter_id"]
+      }
+    },
+    {
+      "id": "unit_converter",
+      "name": "Unit Converter",
+      "description": "cm → m → km",
+      "type": "basic",
+      "category": "math",
+      "icon": "converter",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "number",
+            "description": "Nilai untuk dikonversi"
+          },
+          "from_unit": {
+            "type": "string",
+            "description": "Unit asal"
+          },
+          "to_unit": {
+            "type": "string",
+            "description": "Unit tujuan"
+          },
+          "category": {
+            "type": "string",
+            "enum": ["length", "weight", "volume", "temperature", "time"],
+            "description": "Kategori konversi",
+            "default": "length"
+          }
+        },
+        "required": ["value", "from_unit", "to_unit", "category"]
+      }
+    },
+    {
+      "id": "list_trimmer",
+      "name": "List Trimmer",
+      "description": "Ambil X item",
+      "type": "basic",
+      "category": "data",
+      "icon": "trim",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "input_list": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "List input"
+          },
+          "limit": {
+            "type": "integer",
+            "description": "Jumlah item yang diambil",
+            "default": 10
+          },
+          "offset": {
+            "type": "integer",
+            "description": "Jumlah item yang dilewati",
+            "default": 0
+          }
+        },
+        "required": ["input_list"]
+      }
+    },
+    {
+      "id": "random_color_generator",
+      "name": "Random Color Generator",
+      "description": "RGB/HEX random",
+      "type": "basic",
+      "category": "utility",
+      "icon": "color",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "format": {
+            "type": "string",
+            "enum": ["hex", "rgb", "hsl"],
+            "description": "Format warna",
+            "default": "hex"
+          },
+          "count": {
+            "type": "integer",
+            "description": "Jumlah warna untuk digenerate",
+            "default": 1
+          }
+        },
+        "required": ["format"]
+      }
+    },
+    {
+      "id": "ai_text_cleaner",
+      "name": "AI Text Cleaner",
+      "description": "Membersihkan hasil AI",
+      "type": "intermediate",
+      "category": "ai",
+      "icon": "ai",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "input_text": {
+            "type": "string",
+            "description": "Teks dari AI untuk dibersihkan"
+          },
+          "cleanup_types": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["remove_repetition", "fix_grammar", "remove_artifacts", "format_text"]
+            },
+            "description": "Jenis pembersihan",
+            "default": ["remove_repetition", "fix_grammar"]
+          }
+        },
+        "required": ["input_text"]
+      }
+    },
+    {
+      "id": "keyword_extractor",
+      "name": "Keyword Extractor",
+      "description": "Ekstraksi kata kunci",
+      "type": "intermediate",
+      "category": "ai",
+      "icon": "keyword",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "input_text": {
+            "type": "string",
+            "description": "Teks untuk diekstraksi kata kuncinya"
+          },
+          "max_keywords": {
+            "type": "integer",
+            "description": "Jumlah maksimal kata kunci",
+            "default": 10
+          },
+          "language": {
+            "type": "string",
+            "description": "Bahasa teks",
+            "default": "en"
+          }
+        },
+        "required": ["input_text"]
+      }
+    },
+    {
+      "id": "sentiment_analyzer",
+      "name": "Sentiment Analyzer",
+      "description": "Analisa emosi teks",
+      "type": "intermediate",
+      "category": "ai",
+      "icon": "sentiment",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "input_text": {
+            "type": "string",
+            "description": "Teks untuk dianalisis sentimennya"
+          },
+          "language": {
+            "type": "string",
+            "description": "Bahasa teks",
+            "default": "en"
+          }
+        },
+        "required": ["input_text"]
+      }
+    },
+    {
+      "id": "audio_transcriber_local",
+      "name": "Audio Transcriber Local",
+      "description": "STT lokal",
+      "type": "intermediate",
+      "category": "ai",
+      "icon": "audio",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "audio_path": {
+            "type": "string",
+            "description": "Path file audio untuk ditranskripsikan"
+          },
+          "language": {
+            "type": "string",
+            "description": "Bahasa audio",
+            "default": "en"
+          },
+          "model": {
+            "type": "string",
+            "enum": ["tiny", "base", "small", "medium", "large"],
+            "description": "Model untuk transkripsi",
+            "default": "base"
+          }
+        },
+        "required": ["audio_path"]
+      }
+    },
+    {
+      "id": "image_resizer_pro",
+      "name": "Image Resizer Pro",
+      "description": "Resize massal",
+      "type": "intermediate",
+      "category": "image",
+      "icon": "image",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "image_paths": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Path gambar untuk di-resize"
+          },
+          "width": {
+            "type": "integer",
+            "description": "Lebar target dalam pixel"
+          },
+          "height": {
+            "type": "integer",
+            "description": "Tinggi target dalam pixel"
+          },
+          "mode": {
+            "type": "string",
+            "enum": ["exact", "aspect_fit", "aspect_fill"],
+            "description": "Mode resize",
+            "default": "aspect_fit"
+          }
+        },
+        "required": ["image_paths"]
+      }
+    },
+    {
+      "id": "pdf_merger",
+      "name": "PDF Merger",
+      "description": "Gabung beberapa PDF",
+      "type": "intermediate",
+      "category": "file",
+      "icon": "pdf",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "pdf_paths": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Path PDF untuk digabung"
+          },
+          "output_path": {
+            "type": "string",
+            "description": "Path output PDF hasil gabungan"
+          }
+        },
+        "required": ["pdf_paths", "output_path"]
+      }
+    },
+    {
+      "id": "pdf_table_extractor",
+      "name": "PDF Table Extractor",
+      "description": "Ambil tabel otomatis",
+      "type": "intermediate",
+      "category": "file",
+      "icon": "table",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "pdf_path": {
+            "type": "string",
+            "description": "Path PDF untuk diekstraksi tabelnya"
+          },
+          "page_numbers": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "description": "Nomor halaman untuk diekstraksi"
+          }
+        },
+        "required": ["pdf_path"]
+      }
+    },
+    {
+      "id": "ocr_cloud",
+      "name": "OCR Cloud",
+      "description": "OCR akurat",
+      "type": "intermediate",
+      "category": "image",
+      "icon": "ocr",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "image_path": {
+            "type": "string",
+            "description": "Path gambar untuk OCR"
+          },
+          "language": {
+            "type": "string",
+            "description": "Bahasa dalam gambar",
+            "default": "en"
+          },
+          "service": {
+            "type": "string",
+            "enum": ["google", "aws", "azure", "ocr_space"],
+            "description": "Layanan OCR cloud",
+            "default": "google"
+          }
+        },
+        "required": ["image_path", "service"]
+      }
+    },
+    {
+      "id": "disk_monitor",
+      "name": "Disk Monitor",
+      "description": "Monitor sisa storage",
+      "type": "intermediate",
+      "category": "system",
+      "icon": "disk",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Path untuk monitoring storage",
+            "default": "/"
+          },
+          "threshold_percent": {
+            "type": "number",
+            "description": "Threshold penggunaan storage dalam persen",
+            "default": 80
+          }
+        },
+        "required": ["path"]
+      }
+    },
+    {
+      "id": "process_checker",
+      "name": "Process Checker",
+      "description": "Cek proses berjalan",
+      "type": "intermediate",
+      "category": "system",
+      "icon": "process",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "process_name": {
+            "type": "string",
+            "description": "Nama proses untuk dicek"
+          },
+          "check_type": {
+            "type": "string",
+            "enum": ["name", "pid", "port"],
+            "description": "Tipe pengecekan",
+            "default": "name"
+          }
+        },
+        "required": ["process_name"]
+      }
+    },
+    {
+      "id": "system_cpu_monitor",
+      "name": "System CPU Monitor",
+      "description": "Monitor CPU real-time",
+      "type": "intermediate",
+      "category": "system",
+      "icon": "cpu",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "interval": {
+            "type": "number",
+            "description": "Interval monitoring dalam detik",
+            "default": 5
+          },
+          "threshold_percent": {
+            "type": "number",
+            "description": "Threshold CPU dalam persen",
+            "default": 80
+          }
+        }
+      }
+    },
+    {
+      "id": "webhook_mutator",
+      "name": "Webhook Mutator",
+      "description": "Modif payload otomatis",
+      "type": "intermediate",
+      "category": "http",
+      "icon": "webhook",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "payload": {
+            "type": "object",
+            "description": "Payload webhook untuk dimodifikasi"
+          },
+          "mutations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "path": {
+                  "type": "string",
+                  "description": "Path field untuk dimodifikasi"
+                },
+                "operation": {
+                  "type": "string",
+                  "enum": ["set", "remove", "transform"],
+                  "description": "Operasi modifikasi"
+                },
+                "value": {
+                  "type": "string",
+                  "description": "Nilai baru (jika operasi set)"
+                }
+              },
+              "required": ["path", "operation"]
+            },
+            "description": "Daftar mutasi untuk diterapkan"
+          }
+        },
+        "required": ["payload", "mutations"]
+      }
+    },
+    {
+      "id": "webhook_replay",
+      "name": "Webhook Replay",
+      "description": "Replay webhook lama",
+      "type": "intermediate",
+      "category": "http",
+      "icon": "replay",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "webhook_id": {
+            "type": "string",
+            "description": "ID webhook untuk direplay"
+          },
+          "target_url": {
+            "type": "string",
+            "description": "URL tujuan untuk mengirim ulang webhook",
+            "format": "uri"
+          }
+        },
+        "required": ["webhook_id", "target_url"]
+      }
+    },
+    {
+      "id": "form_auto_save",
+      "name": "Form Auto Save",
+      "description": "Form autosave",
+      "type": "intermediate",
+      "category": "ui",
+      "icon": "save",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "form_data": {
+            "type": "object",
+            "description": "Data form untuk disimpan"
+          },
+          "save_interval": {
+            "type": "number",
+            "description": "Interval autosave dalam detik",
+            "default": 30
+          },
+          "storage_type": {
+            "type": "string",
+            "enum": ["local", "session", "database"],
+            "description": "Tempat penyimpanan",
+            "default": "local"
+          }
+        },
+        "required": ["form_data"]
+      }
+    },
+    {
+      "id": "json_path_extractor",
+      "name": "JSON Path Extractor",
+      "description": "Ambil data pakai JSONPath",
+      "type": "intermediate",
+      "category": "data",
+      "icon": "json",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "json_data": {
+            "type": "object",
+            "description": "JSON untuk diekstraksi datanya"
+          },
+          "json_path": {
+            "type": "string",
+            "description": "JSON path untuk ekstraksi"
+          }
+        },
+        "required": ["json_data", "json_path"]
+      }
+    },
+    {
+      "id": "graphql_query_node",
+      "name": "GraphQL Query Node",
+      "description": "Query GraphQL",
+      "type": "intermediate",
+      "category": "http",
+      "icon": "graphql",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "endpoint": {
+            "type": "string",
+            "description": "Endpoint GraphQL",
+            "format": "uri"
+          },
+          "query": {
+            "type": "string",
+            "description": "Query GraphQL"
+          },
+          "variables": {
+            "type": "object",
+            "description": "Variabel untuk query"
+          },
+          "headers": {
+            "type": "object",
+            "description": "Header HTTP untuk request"
+          }
+        },
+        "required": ["endpoint", "query"]
+      }
+    },
+    {
+      "id": "graphql_schema_reader",
+      "name": "GraphQL Schema Reader",
+      "description": "Ambil struktur schema",
+      "type": "intermediate",
+      "category": "data",
+      "icon": "graphql",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "endpoint": {
+            "type": "string",
+            "description": "Endpoint GraphQL",
+            "format": "uri"
+          },
+          "headers": {
+            "type": "object",
+            "description": "Header HTTP untuk request"
+          }
+        },
+        "required": ["endpoint"]
+      }
+    },
+    {
+      "id": "database_automap",
+      "name": "Database AutoMapper",
+      "description": "Auto map table → JSON",
+      "type": "intermediate",
+      "category": "database",
+      "icon": "database",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "table_name": {
+            "type": "string",
+            "description": "Nama tabel untuk dimapping"
+          },
+          "connection_string": {
+            "type": "string",
+            "description": "String koneksi database"
+          },
+          "mapping_strategy": {
+            "type": "string",
+            "enum": ["snake_to_camel", "camel_to_snake", "passthrough"],
+            "description": "Strategi mapping field",
+            "default": "snake_to_camel"
+          }
+        },
+        "required": ["table_name", "connection_string"]
+      }
+    },
+    {
+      "id": "redis_stream_node",
+      "name": "Redis Stream Node",
+      "description": "Integrasi Redis Stream",
+      "type": "intermediate",
+      "category": "messaging",
+      "icon": "redis",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "redis_url": {
+            "type": "string",
+            "description": "URL Redis",
+            "default": "redis://localhost:6379"
+          },
+          "stream_name": {
+            "type": "string",
+            "description": "Nama stream Redis"
+          },
+          "operation": {
+            "type": "string",
+            "enum": ["add", "read", "range", "trim"],
+            "description": "Operasi stream",
+            "default": "add"
+          },
+          "message": {
+            "type": "object",
+            "description": "Pesan untuk dikirim (jika operasi add)"
+          }
+        },
+        "required": ["redis_url", "stream_name", "operation"]
+      }
+    },
+    {
+      "id": "http_parallel_fetch",
+      "name": "HTTP Parallel Fetch",
+      "description": "Fetch paralel 10x",
+      "type": "intermediate",
+      "category": "http",
+      "icon": "parallel",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "requests": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "url": {
+                  "type": "string",
+                  "description": "URL untuk request"
+                },
+                "method": {
+                  "type": "string",
+                  "description": "HTTP method",
+                  "default": "GET"
+                },
+                "headers": {
+                  "type": "object",
+                  "description": "Header request"
+                },
+                "body": {
+                  "type": "object",
+                  "description": "Body request (untuk POST/PUT)"
+                }
+              },
+              "required": ["url"]
+            },
+            "description": "Daftar request untuk dijalankan paralel"
+          },
+          "max_concurrent": {
+            "type": "integer",
+            "description": "Jumlah request maksimum yang dijalankan bersamaan",
+            "default": 10
+          }
+        },
+        "required": ["requests"]
+      }
+    },
+    {
+      "id": "websocket_listener",
+      "name": "Websocket Listener",
+      "description": "Dengar event live",
+      "type": "intermediate",
+      "category": "messaging",
+      "icon": "websocket",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "websocket_url": {
+            "type": "string",
+            "description": "URL WebSocket untuk didengarkan",
+            "format": "uri"
+          },
+          "timeout": {
+            "type": "number",
+            "description": "Timeout dalam detik",
+            "default": 300
+          }
+        },
+        "required": ["websocket_url"]
+      }
+    },
+    {
+      "id": "fetch_with_retry_exponential",
+      "name": "Fetch with Retry Exponential",
+      "description": "Retry pintar",
+      "type": "intermediate",
+      "category": "http",
+      "icon": "retry",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "URL untuk direquest",
+            "format": "uri"
+          },
+          "method": {
+            "type": "string",
+            "description": "HTTP method",
+            "default": "GET"
+          },
+          "max_retries": {
+            "type": "integer",
+            "description": "Jumlah maksimum retry",
+            "default": 5
+          },
+          "base_delay": {
+            "type": "number",
+            "description": "Delay dasar dalam detik",
+            "default": 1
+          },
+          "max_delay": {
+            "type": "number",
+            "description": "Delay maksimum dalam detik",
+            "default": 60
+          }
+        },
+        "required": ["url"]
+      }
+    },
+    {
+      "id": "file_sync_local",
+      "name": "File Sync Local",
+      "description": "Sinkron file lokal",
+      "type": "intermediate",
+      "category": "file",
+      "icon": "sync",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "source_path": {
+            "type": "string",
+            "description": "Path sumber untuk sinkronisasi"
+          },
+          "destination_path": {
+            "type": "string",
+            "description": "Path tujuan untuk sinkronisasi"
+          },
+          "sync_type": {
+            "type": "string",
+            "enum": ["mirror", "incremental", "differential"],
+            "description": "Tipe sinkronisasi",
+            "default": "incremental"
+          }
+        },
+        "required": ["source_path", "destination_path"]
+      }
+    },
+    {
+      "id": "folder_diff_checker",
+      "name": "Folder Diff Checker",
+      "description": "Banding folder",
+      "type": "intermediate",
+      "category": "file",
+      "icon": "diff",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "folder1_path": {
+            "type": "string",
+            "description": "Path folder pertama"
+          },
+          "folder2_path": {
+            "type": "string",
+            "description": "Path folder kedua"
+          },
+          "comparison_type": {
+            "type": "string",
+            "enum": ["file_list", "file_content", "metadata"],
+            "description": "Tipe perbandingan",
+            "default": "file_list"
+          }
+        },
+        "required": ["folder1_path", "folder2_path"]
+      }
+    },
+    {
+      "id": "image_watermark",
+      "name": "Image Watermark",
+      "description": "Watermark otomatis",
+      "type": "intermediate",
+      "category": "image",
+      "icon": "image",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "image_path": {
+            "type": "string",
+            "description": "Path gambar untuk diberi watermark"
+          },
+          "watermark_path": {
+            "type": "string",
+            "description": "Path watermark"
+          },
+          "position": {
+            "type": "string",
+            "enum": ["top-left", "top-right", "bottom-left", "bottom-right", "center"],
+            "description": "Posisi watermark",
+            "default": "bottom-right"
+          },
+          "opacity": {
+            "type": "number",
+            "description": "Transparansi watermark (0-1)",
+            "default": 0.5
+          }
+        },
+        "required": ["image_path", "watermark_path"]
+      }
+    },
+    {
+      "id": "geoip_lookup",
+      "name": "GeoIP Lookup",
+      "description": "Lokasi IP",
+      "type": "intermediate",
+      "category": "network",
+      "icon": "globe",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "ip_address": {
+            "type": "string",
+            "description": "Alamat IP untuk dicek lokasinya"
+          },
+          "service": {
+            "type": "string",
+            "enum": ["ipapi", "ipinfo", "maxmind"],
+            "description": "Layanan GeoIP",
+            "default": "ipapi"
+          }
+        },
+        "required": ["ip_address"]
+      }
+    },
+    {
+      "id": "crypto_price_fetcher",
+      "name": "Crypto Price Fetcher",
+      "description": "Harga crypto real-time",
+      "type": "intermediate",
+      "category": "finance",
+      "icon": "crypto",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "crypto_symbol": {
+            "type": "string",
+            "description": "Simbol kripto (contoh: BTC, ETH)",
+            "default": "BTC"
+          },
+          "fiat_currency": {
+            "type": "string",
+            "description": "Mata uang fiat",
+            "default": "USD"
+          },
+          "service": {
+            "type": "string",
+            "enum": ["coingecko", "coinmarketcap", "binance"],
+            "description": "Layanan harga",
+            "default": "coingecko"
+          }
+        },
+        "required": ["crypto_symbol"]
+      }
+    },
+    {
+      "id": "webhook_security_filter",
+      "name": "Webhook Security Filter",
+      "description": "Filter serangan",
+      "type": "intermediate",
+      "category": "security",
+      "icon": "shield",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "payload": {
+            "type": "object",
+            "description": "Payload webhook untuk difilter"
+          },
+          "security_filters": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["xss", "sqli", "cmd_injection", "code_injection"]
+            },
+            "description": "Filter keamanan untuk diterapkan",
+            "default": ["xss", "sqli"]
+          }
+        },
+        "required": ["payload"]
+      }
+    },
+    {
+      "id": "mime_converter",
+      "name": "MIME Converter",
+      "description": "Ubah tipe file",
+      "type": "intermediate",
+      "category": "file",
+      "icon": "file",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "file_path": {
+            "type": "string",
+            "description": "Path file untuk dikonversi"
+          },
+          "target_mime": {
+            "type": "string",
+            "description": "MIME type target"
+          },
+          "conversion_method": {
+            "type": "string",
+            "enum": ["metadata_only", "actual_conversion"],
+            "description": "Metode konversi",
+            "default": "metadata_only"
+          }
+        },
+        "required": ["file_path", "target_mime"]
+      }
+    },
+    {
+      "id": "file_compressor",
+      "name": "File Compressor",
+      "description": "ZIP/GZIP",
+      "type": "intermediate",
+      "category": "file",
+      "icon": "zip",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "source_paths": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Path file/direktori untuk dikompres"
+          },
+          "output_path": {
+            "type": "string",
+            "description": "Path output file kompresi"
+          },
+          "compression_type": {
+            "type": "string",
+            "enum": ["zip", "gzip", "tar.gz"],
+            "description": "Tipe kompresi",
+            "default": "zip"
+          },
+          "compression_level": {
+            "type": "integer",
+            "description": "Level kompresi (0-9)",
+            "default": 6
+          }
+        },
+        "required": ["source_paths", "output_path"]
+      }
+    },
+    {
+      "id": "text_summarizer_basic",
+      "name": "Text Summarizer Basic",
+      "description": "Ringkas teks",
+      "type": "intermediate",
+      "category": "ai",
+      "icon": "summary",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "input_text": {
+            "type": "string",
+            "description": "Teks untuk diringkas"
+          },
+          "summary_percentage": {
+            "type": "number",
+            "description": "Persentase ringkasan (0-100)",
+            "default": 20
+          },
+          "summary_type": {
+            "type": "string",
+            "enum": ["extractive", "abstractive"],
+            "description": "Tipe ringkasan",
+            "default": "extractive"
+          }
+        },
+        "required": ["input_text"]
+      }
+    },
+    {
+      "id": "email_parser_pro",
+      "name": "Email Parser Pro",
+      "description": "Ambil isi email",
+      "type": "intermediate",
+      "category": "email",
+      "icon": "email",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "email_content": {
+            "type": "string",
+            "description": "Isi email untuk diparse"
+          },
+          "extract_parts": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["subject", "from", "to", "body_text", "body_html", "attachments", "headers"]
+            },
+            "description": "Bagian email yang diekstraksi",
+            "default": ["subject", "from", "to", "body_text"]
+          }
+        },
+        "required": ["email_content"]
+      }
+    },
+    {
+      "id": "ical_node",
+      "name": "iCal Node",
+      "description": "Parser kalender",
+      "type": "intermediate",
+      "category": "date",
+      "icon": "calendar",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "ical_url": {
+            "type": "string",
+            "description": "URL iCal",
+            "format": "uri"
+          },
+          "ical_content": {
+            "type": "string",
+            "description": "Isi iCal jika tidak menggunakan URL"
+          }
+        }
+      }
+    },
+    {
+      "id": "dns_lookup_pro",
+      "name": "DNS Lookup Pro",
+      "description": "Record A/AAA/CNAME",
+      "type": "intermediate",
+      "category": "network",
+      "icon": "dns",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "domain": {
+            "type": "string",
+            "description": "Domain untuk lookup"
+          },
+          "record_types": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["A", "AAAA", "CNAME", "MX", "NS", "TXT", "SRV", "PTR", "SOA"]
+            },
+            "description": "Tipe record untuk dicari",
+            "default": ["A"]
+          }
+        },
+        "required": ["domain"]
+      }
+    },
+    {
+      "id": "html_table_extractor",
+      "name": "HTML Table Extractor",
+      "description": "Parse tabel web",
+      "type": "intermediate",
+      "category": "data",
+      "icon": "table",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "html_content": {
+            "type": "string",
+            "description": "Isi HTML untuk diekstraksi tabelnya"
+          },
+          "table_selector": {
+            "type": "string",
+            "description": "Selector CSS untuk memilih tabel"
+          }
+        },
+        "required": ["html_content"]
+      }
+    },
+    {
+      "id": "device_info_parser",
+      "name": "Device Info Parser",
+      "description": "Analisa UA device",
+      "type": "intermediate",
+      "category": "network",
+      "icon": "device",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "user_agent": {
+            "type": "string",
+            "description": "User agent string untuk dianalisis"
+          }
+        },
+        "required": ["user_agent"]
+      }
+    },
+    {
+      "id": "cache_redis_node",
+      "name": "Cache Redis Node",
+      "description": "Cache terdistribusi",
+      "type": "intermediate",
+      "category": "messaging",
+      "icon": "redis",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "redis_url": {
+            "type": "string",
+            "description": "URL Redis",
+            "default": "redis://localhost:6379"
+          },
+          "operation": {
+            "type": "string",
+            "enum": ["get", "set", "delete", "exists", "keys"],
+            "description": "Operasi cache",
+            "default": "get"
+          },
+          "key": {
+            "type": "string",
+            "description": "Kunci untuk operasi"
+          },
+          "value": {
+            "type": "string",
+            "description": "Nilai untuk disimpan (jika operasi set)"
+          },
+          "ttl": {
+            "type": "number",
+            "description": "Time to live dalam detik"
+          }
+        },
+        "required": ["redis_url", "operation", "key"]
+      }
+    },
+    {
+      "id": "jwt_maker",
+      "name": "JWT Maker",
+      "description": "Generate token",
+      "type": "intermediate",
+      "category": "security",
+      "icon": "jwt",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "payload": {
+            "type": "object",
+            "description": "Payload untuk JWT"
+          },
+          "secret": {
+            "type": "string",
+            "description": "Secret key untuk signing"
+          },
+          "algorithm": {
+            "type": "string",
+            "enum": ["HS256", "HS384", "HS512", "RS256", "RS384", "RS512"],
+            "description": "Algoritma signing",
+            "default": "HS256"
+          },
+          "expires_in": {
+            "type": "string",
+            "description": "Masa berlaku token",
+            "default": "1h"
+          }
+        },
+        "required": ["payload", "secret"]
+      }
+    },
+    {
+      "id": "url_builder_node",
+      "name": "URL Builder Node",
+      "description": "Bangun URL otomatis",
+      "type": "intermediate",
+      "category": "url",
+      "icon": "link",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "base_url": {
+            "type": "string",
+            "description": "URL dasar",
+            "format": "uri"
+          },
+          "path_parts": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Bagian path untuk ditambahkan"
+          },
+          "query_params": {
+            "type": "object",
+            "description": "Parameter query"
+          },
+          "fragment": {
+            "type": "string",
+            "description": "Fragment (bagian #)"
+          }
+        },
+        "required": ["base_url"]
+      }
+    },
+    {
+      "id": "video_thumbnail_node",
+      "name": "Video Thumbnail Node",
+      "description": "Extract thumbnail",
+      "type": "intermediate",
+      "category": "media",
+      "icon": "video",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "video_path": {
+            "type": "string",
+            "description": "Path video untuk ekstraksi thumbnail"
+          },
+          "timestamp": {
+            "type": "string",
+            "description": "Timestamp untuk thumbnail (dalam format HH:MM:SS)",
+            "default": "00:00:01"
+          },
+          "output_path": {
+            "type": "string",
+            "description": "Path output thumbnail"
+          }
+        },
+        "required": ["video_path", "output_path"]
+      }
+    },
+    {
+      "id": "exif_writer",
+      "name": "Exif Writer",
+      "description": "Edit metadata foto",
+      "type": "intermediate",
+      "category": "image",
+      "icon": "image",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "image_path": {
+            "type": "string",
+            "description": "Path gambar untuk diedit EXIF"
+          },
+          "exif_data": {
+            "type": "object",
+            "description": "Data EXIF untuk ditulis"
+          }
+        },
+        "required": ["image_path", "exif_data"]
+      }
+    },
+    {
+      "id": "webhook_recorder",
+      "name": "Webhook Recorder",
+      "description": "Rekam seluruh request",
+      "type": "intermediate",
+      "category": "http",
+      "icon": "record",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "webhook_url": {
+            "type": "string",
+            "description": "URL webhook untuk direkam",
+            "format": "uri"
+          },
+          "storage_path": {
+            "type": "string",
+            "description": "Path untuk menyimpan rekaman"
+          }
+        },
+        "required": ["webhook_url"]
+      }
+    },
+    {
+      "id": "queue_producer_node",
+      "name": "Queue Producer Node",
+      "description": "Push ke antrean",
+      "type": "intermediate",
+      "category": "messaging",
+      "icon": "queue",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "queue_url": {
+            "type": "string",
+            "description": "URL antrean (misalnya SQS, RabbitMQ)"
+          },
+          "message": {
+            "type": "object",
+            "description": "Pesan untuk dikirim ke antrean"
+          },
+          "queue_type": {
+            "type": "string",
+            "enum": ["sqs", "rabbitmq", "redis", "nats"],
+            "description": "Tipe antrean",
+            "default": "sqs"
+          }
+        },
+        "required": ["queue_url", "message"]
+      }
+    },
+    {
+      "id": "queue_consumer_node",
+      "name": "Queue Consumer Node",
+      "description": "Consume antrean",
+      "type": "intermediate",
+      "category": "messaging",
+      "icon": "queue",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "queue_url": {
+            "type": "string",
+            "description": "URL antrean untuk dikonsumsi",
+            "format": "uri"
+          },
+          "queue_type": {
+            "type": "string",
+            "enum": ["sqs", "rabbitmq", "redis", "nats"],
+            "description": "Tipe antrean",
+            "default": "sqs"
+          },
+          "batch_size": {
+            "type": "integer",
+            "description": "Jumlah pesan yang dikonsumsi sekaligus",
+            "default": 1
+          }
+        },
+        "required": ["queue_url"]
+      }
+    },
+    {
+      "id": "data_obfuscator",
+      "name": "Data Obfuscator",
+      "description": "Obfuscasi data",
+      "type": "intermediate",
+      "category": "security",
+      "icon": "shield",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "description": "Data untuk diobfuscasi"
+          },
+          "obfuscation_rules": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "field": {
+                  "type": "string",
+                  "description": "Field untuk diobfuscasi"
+                },
+                "method": {
+                  "type": "string",
+                  "enum": ["mask", "hash", "encrypt", "replace"],
+                  "description": "Metode obfuscasi"
+                }
+              },
+              "required": ["field", "method"]
+            },
+            "description": "Aturan obfuscasi"
+          }
+        },
+        "required": ["data"]
+      }
+    },
+    {
+      "id": "random_choice_node",
+      "name": "Random Choice Node",
+      "description": "Ambil value random",
+      "type": "intermediate",
+      "category": "utility",
+      "icon": "random",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "choices": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Pilihan yang tersedia"
+          },
+          "count": {
+            "type": "integer",
+            "description": "Jumlah pilihan yang diambil",
+            "default": 1
+          }
+        },
+        "required": ["choices"]
+      }
+    },
+    {
+      "id": "html_to_markdown",
+      "name": "HTML to Markdown",
+      "description": "Konversi HTML",
+      "type": "intermediate",
+      "category": "text",
+      "icon": "convert",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "html_content": {
+            "type": "string",
+            "description": "Isi HTML untuk dikonversi"
+          },
+          "options": {
+            "type": "object",
+            "description": "Opsi konversi"
+          }
+        },
+        "required": ["html_content"]
+      }
+    },
+    {
+      "id": "zip_extractor",
+      "name": "ZIP Extractor",
+      "description": "Unzip file",
+      "type": "intermediate",
+      "category": "file",
+      "icon": "zip",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "zip_path": {
+            "type": "string",
+            "description": "Path file ZIP untuk diekstraksi"
+          },
+          "extract_path": {
+            "type": "string",
+            "description": "Path tujuan ekstraksi"
+          },
+          "password": {
+            "type": "string",
+            "description": "Password jika ZIP terenkripsi"
+          }
+        },
+        "required": ["zip_path", "extract_path"]
+      }
+    },
+    {
+      "id": "timezone_converter",
+      "name": "Timezone Converter",
+      "description": "Ubah zona waktu",
+      "type": "intermediate",
+      "category": "date",
+      "icon": "time",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "input_datetime": {
+            "type": "string",
+            "description": "Tanggal waktu input",
+            "format": "date-time"
+          },
+          "source_timezone": {
+            "type": "string",
+            "description": "Zona waktu asal"
+          },
+          "target_timezone": {
+            "type": "string",
+            "description": "Zona waktu tujuan"
+          }
+        },
+        "required": ["input_datetime", "source_timezone", "target_timezone"]
+      }
+    },
+    {
+      "id": "captcha_solver_manual",
+      "name": "Captcha Solver (Manual)",
+      "description": "User input",
+      "type": "intermediate",
+      "category": "security",
+      "icon": "captcha",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "captcha_image_url": {
+            "type": "string",
+            "description": "URL gambar CAPTCHA",
+            "format": "uri"
+          },
+          "captcha_solution": {
+            "type": "string",
+            "description": "Solusi CAPTCHA dari user"
+          }
+        },
+        "required": ["captcha_image_url"]
+      }
+    },
+    {
+      "id": "ai_auto_workflow_builder",
+      "name": "AI Auto Workflow Builder",
+      "description": "AI buat workflow otomatis",
+      "type": "advanced",
+      "category": "ai",
+      "icon": "ai",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string",
+            "description": "Deskripsi workflow yang ingin dibuat"
+          },
+          "target_systems": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Sistem-sistem yang akan diintegrasikan"
+          },
+          "constraints": {
+            "type": "object",
+            "description": "Kendala atau batasan workflow"
+          }
+        },
+        "required": ["description"]
+      }
+    },
+    {
+      "id": "ai_error_analyzer",
+      "name": "AI Error Analyzer",
+      "description": "Jelaskan & perbaiki error",
+      "type": "advanced",
+      "category": "ai",
+      "icon": "ai",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "error_message": {
+            "type": "string",
+            "description": "Pesan error untuk dianalisis"
+          },
+          "error_context": {
+            "type": "string",
+            "description": "Konteks error (log, stack trace, dll)"
+          },
+          "suggested_fix": {
+            "type": "boolean",
+            "description": "Apakah perlu saran perbaikan",
+            "default": true
+          }
+        },
+        "required": ["error_message"]
+      }
+    },
+    {
+      "id": "local_llm_node",
+      "name": "Local LLM Node",
+      "description": "Jalankan GGUF lokal",
+      "type": "advanced",
+      "category": "ai",
+      "icon": "ai",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "model_path": {
+            "type": "string",
+            "description": "Path ke model GGUF"
+          },
+          "prompt": {
+            "type": "string",
+            "description": "Prompt untuk model"
+          },
+          "temperature": {
+            "type": "number",
+            "description": "Parameter suhu (0-1)",
+            "default": 0.7
+          },
+          "max_tokens": {
+            "type": "integer",
+            "description": "Maksimum token output",
+            "default": 512
+          }
+        },
+        "required": ["model_path", "prompt"]
+      }
+    },
+    {
+      "id": "vision_ai_node",
+      "name": "Vision AI Node",
+      "description": "Analisa gambar",
+      "type": "advanced",
+      "category": "ai",
+      "icon": "ai",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "image_path": {
+            "type": "string",
+            "description": "Path gambar untuk dianalisis"
+          },
+          "analysis_type": {
+            "type": "string",
+            "enum": ["description", "object_detection", "text_recognition", "sentiment"],
+            "description": "Tipe analisis",
+            "default": "description"
+          },
+          "prompt": {
+            "type": "string",
+            "description": "Prompt khusus untuk analisis"
+          }
+        },
+        "required": ["image_path"]
+      }
+    },
+    {
+      "id": "ai_semantic_search",
+      "name": "AI Semantic Search",
+      "description": "Pencarian AI",
+      "type": "advanced",
+      "category": "ai",
+      "icon": "ai",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Query pencarian"
+          },
+          "documents": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Dokumen untuk dicari"
+          },
+          "top_k": {
+            "type": "integer",
+            "description": "Jumlah hasil teratas",
+            "default": 5
+          }
+        },
+        "required": ["query", "documents"]
+      }
+    },
+    {
+      "id": "ai_data_structurizer",
+      "name": "AI Data Structurizer",
+      "description": "Merubah teks → schema",
+      "type": "advanced",
+      "category": "ai",
+      "icon": "ai",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "unstructured_text": {
+            "type": "string",
+            "description": "Teks tidak terstruktur"
+          },
+          "target_schema": {
+            "type": "string",
+            "enum": ["json", "csv", "xml", "yaml"],
+            "description": "Format skema target",
+            "default": "json"
+          }
+        },
+        "required": ["unstructured_text"]
+      }
+    },
+    {
+      "id": "code_executor_sandbox",
+      "name": "Code Executor (Sandbox)",
+      "description": "Jalankan JS/Py aman",
+      "type": "advanced",
+      "category": "code",
+      "icon": "code",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "Kode untuk dijalankan"
+          },
+          "language": {
+            "type": "string",
+            "enum": ["javascript", "python"],
+            "description": "Bahasa pemrograman",
+            "default": "javascript"
+          },
+          "timeout": {
+            "type": "number",
+            "description": "Timeout dalam detik",
+            "default": 10
+          },
+          "input_data": {
+            "type": "object",
+            "description": "Data input untuk kode"
+          }
+        },
+        "required": ["code", "language"]
+      }
+    },
+    {
+      "id": "browser_automation_headless",
+      "name": "Browser Automation (Headless)",
+      "description": "Scraping + klik",
+      "type": "advanced",
+      "category": "automation",
+      "icon": "browser",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "URL untuk diotomasi",
+            "format": "uri"
+          },
+          "actions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "action": {
+                  "type": "string",
+                  "enum": ["click", "fill", "wait", "screenshot", "scroll", "extract"]
+                },
+                "selector": {
+                  "type": "string",
+                  "description": "CSS selector"
+                },
+                "value": {
+                  "type": "string",
+                  "description": "Nilai untuk diisi (jika fill)"
+                }
+              },
+              "required": ["action", "selector"]
+            },
+            "description": "Daftar aksi untuk dijalankan"
+          },
+          "options": {
+            "type": "object",
+            "properties": {
+              "headless": {
+                "type": "boolean",
+                "description": "Jalankan tanpa UI",
+                "default": true
+              },
+              "wait_until": {
+                "type": "string",
+                "enum": ["load", "domcontentloaded", "networkidle"],
+                "description": "Tunggu hingga",
+                "default": "load"
+              }
+            }
+          }
+        },
+        "required": ["url", "actions"]
+      }
+    },
+    {
+      "id": "browser_recorder_node",
+      "name": "Browser Recorder Node",
+      "description": "Rekam aksi lalu jadi workflow",
+      "type": "advanced",
+      "category": "automation",
+      "icon": "record",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "description": "ID sesi perekaman"
+          },
+          "record_url": {
+            "type": "string",
+            "description": "URL yang direkam",
+            "format": "uri"
+          },
+          "output_format": {
+            "type": "string",
+            "enum": ["workflow", "script", "actions_list"],
+            "description": "Format output rekaman",
+            "default": "workflow"
+          }
+        },
+        "required": ["session_id"]
+      }
+    },
+    {
+      "id": "file_watcher_advanced",
+      "name": "File Watcher Advanced",
+      "description": "Monitor ribuan event",
+      "type": "advanced",
+      "category": "system",
+      "icon": "file",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "watch_paths": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Path yang diawasi"
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["create", "update", "delete", "rename"]
+            },
+            "description": "Jenis event yang dipantau",
+            "default": ["create", "update"]
+          },
+          "recursive": {
+            "type": "boolean",
+            "description": "Awasi subdirektori",
+            "default": true
+          },
+          "pattern": {
+            "type": "string",
+            "description": "Polanya file yang diawasi (misalnya *.txt)"
+          }
+        },
+        "required": ["watch_paths"]
+      }
+    },
+    {
+      "id": "event_bus_node",
+      "name": "Event Bus Node",
+      "description": "Pub/Sub internal",
+      "type": "advanced",
+      "category": "messaging",
+      "icon": "event-bus",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "operation": {
+            "type": "string",
+            "enum": ["publish", "subscribe", "unsubscribe"],
+            "description": "Operasi event bus",
+            "default": "publish"
+          },
+          "topic": {
+            "type": "string",
+            "description": "Topik event"
+          },
+          "message": {
+            "type": "object",
+            "description": "Pesan untuk dipublikasi"
+          },
+          "consumer_group": {
+            "type": "string",
+            "description": "Grup konsumen (untuk subscribe)"
+          }
+        },
+        "required": ["operation", "topic"]
+      }
+    },
+    {
+      "id": "nats_messaging_node",
+      "name": "NATS Messaging Node",
+      "description": "Messaging super cepat",
+      "type": "advanced",
+      "category": "messaging",
+      "icon": "nats",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "nats_url": {
+            "type": "string",
+            "description": "URL NATS server",
+            "default": "nats://localhost:4222"
+          },
+          "operation": {
+            "type": "string",
+            "enum": ["publish", "subscribe", "request", "reply"],
+            "description": "Operasi NATS",
+            "default": "publish"
+          },
+          "subject": {
+            "type": "string",
+            "description": "Subjek NATS"
+          },
+          "message": {
+            "type": "string",
+            "description": "Pesan NATS"
+          }
+        },
+        "required": ["nats_url", "operation", "subject"]
+      }
+    },
+    {
+      "id": "kafka_consumer_node",
+      "name": "Kafka Consumer Node",
+      "description": "Consume event besar",
+      "type": "advanced",
+      "category": "messaging",
+      "icon": "kafka",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "kafka_brokers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Alamat broker Kafka",
+            "default": ["localhost:9092"]
+          },
+          "topic": {
+            "type": "string",
+            "description": "Topik Kafka untuk dikonsumsi"
+          },
+          "consumer_group": {
+            "type": "string",
+            "description": "Grup konsumen",
+            "default": "citadel-consumer-group"
+          },
+          "batch_size": {
+            "type": "integer",
+            "description": "Jumlah pesan per batch",
+            "default": 100
+          }
+        },
+        "required": ["kafka_brokers", "topic"]
+      }
+    },
+    {
+      "id": "kafka_producer_node",
+      "name": "Kafka Producer Node",
+      "description": "Push pesan besar",
+      "type": "advanced",
+      "category": "messaging",
+      "icon": "kafka",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "kafka_brokers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Alamat broker Kafka",
+            "default": ["localhost:9092"]
+          },
+          "topic": {
+            "type": "string",
+            "description": "Topik Kafka untuk diproduksi"
+          },
+          "message": {
+            "type": "object",
+            "description": "Pesan untuk dikirim"
+          },
+          "partition_key": {
+            "type": "string",
+            "description": "Kunci partisi (opsional)"
+          }
+        },
+        "required": ["kafka_brokers", "topic", "message"]
+      }
+    },
+    {
+      "id": "docker_control_node",
+      "name": "Docker Control Node",
+      "description": "Start/stop container",
+      "type": "advanced",
+      "category": "system",
+      "icon": "docker",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "operation": {
+            "type": "string",
+            "enum": ["start", "stop", "restart", "remove", "create", "logs"],
+            "description": "Operasi Docker",
+            "default": "start"
+          },
+          "container_name": {
+            "type": "string",
+            "description": "Nama container"
+          },
+          "image": {
+            "type": "string",
+            "description": "Image Docker untuk create"
+          },
+          "env_vars": {
+            "type": "object",
+            "description": "Variabel lingkungan"
+          },
+          "ports": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Port mapping (host:container)"
+          }
+        },
+        "required": ["operation", "container_name"]
+      }
+    },
+    {
+      "id": "kubernetes_admin_node",
+      "name": "Kubernetes Admin Node",
+      "description": "Deploy/update pod",
+      "type": "advanced",
+      "category": "system",
+      "icon": "kubernetes",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "operation": {
+            "type": "string",
+            "enum": ["create", "update", "delete", "scale", "get", "deploy"],
+            "description": "Operasi Kubernetes",
+            "default": "get"
+          },
+          "resource_type": {
+            "type": "string",
+            "enum": ["pod", "deployment", "service", "configmap", "secret"],
+            "description": "Tipe resource",
+            "default": "pod"
+          },
+          "resource_name": {
+            "type": "string",
+            "description": "Nama resource"
+          },
+          "namespace": {
+            "type": "string",
+            "description": "Namespace Kubernetes",
+            "default": "default"
+          },
+          "manifest": {
+            "type": "object",
+            "description": "Manifest resource (untuk create/update)"
+          }
+        },
+        "required": ["operation", "resource_type", "resource_name"]
+      }
+    },
+    {
+      "id": "ssh_orchestrator",
+      "name": "SSH Orchestrator",
+      "description": "Jalankan command via SSH",
+      "type": "advanced",
+      "category": "system",
+      "icon": "terminal",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "host": {
+            "type": "string",
+            "description": "Alamat host SSH"
+          },
+          "port": {
+            "type": "integer",
+            "description": "Port SSH",
+            "default": 22
+          },
+          "username": {
+            "type": "string",
+            "description": "Username SSH"
+          },
+          "authentication": {
+            "type": "object",
+            "properties": {
+              "type": "string",
+              "enum": ["password", "key"],
+              "description": "Tipe otentikasi"
+            },
+            "required": ["type"]
+          },
+          "commands": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Perintah-perintah untuk dijalankan"
+          }
+        },
+        "required": ["host", "username", "authentication", "commands"]
+      }
+    },
+    {
+      "id": "firewall_controller",
+      "name": "Firewall Controller",
+      "description": "Kelola firewall cloud",
+      "type": "advanced",
+      "category": "network",
+      "icon": "firewall",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "cloud_provider": {
+            "type": "string",
+            "enum": ["aws", "gcp", "azure"],
+            "description": "Provider cloud"
+          },
+          "operation": {
+            "type": "string",
+            "enum": ["add_rule", "remove_rule", "list_rules", "update_rule"],
+            "description": "Operasi firewall",
+            "default": "add_rule"
+          },
+          "rule_config": {
+            "type": "object",
+            "description": "Konfigurasi aturan firewall"
+          }
+        },
+        "required": ["cloud_provider", "operation"]
+      }
+    },
+    {
+      "id": "reverse_proxy_node",
+      "name": "Reverse Proxy Node",
+      "description": "Kelola Nginx/Traefik",
+      "type": "advanced",
+      "category": "network",
+      "icon": "proxy",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "proxy_type": {
+            "type": "string",
+            "enum": ["nginx", "traefik", "apache"],
+            "description": "Tipe reverse proxy",
+            "default": "nginx"
+          },
+          "operation": {
+            "type": "string",
+            "enum": ["add_backend", "remove_backend", "update_config", "reload"],
+            "description": "Operasi proxy",
+            "default": "add_backend"
+          },
+          "backend_config": {
+            "type": "object",
+            "description": "Konfigurasi backend"
+          }
+        },
+        "required": ["proxy_type", "operation"]
+      }
+    },
+    {
+      "id": "load_balancer_checker",
+      "name": "Load Balancer Checker",
+      "description": "Monitor health upstream",
+      "type": "advanced",
+      "category": "network",
+      "icon": "balance",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "load_balancer_url": {
+            "type": "string",
+            "description": "URL load balancer",
+            "format": "uri"
+          },
+          "upstream_urls": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uri"
+            },
+            "description": "URL upstream untuk dicek kesehatannya"
+          },
+          "health_check_path": {
+            "type": "string",
+            "description": "Path untuk health check",
+            "default": "/health"
+          }
+        },
+        "required": ["load_balancer_url", "upstream_urls"]
+      }
+    },
+    {
+      "id": "ipv6_helper_node",
+      "name": "IPv6 Helper Node",
+      "description": "Konversi IPv4→6",
+      "type": "advanced",
+      "category": "network",
+      "icon": "network",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "input_ip": {
+            "type": "string",
+            "description": "IP untuk dikonversi"
+          },
+          "conversion_type": {
+            "type": "string",
+            "enum": ["ipv4_to_ipv6", "ipv6_to_ipv4", "expand", "compress"],
+            "description": "Tipe konversi",
+            "default": "ipv4_to_ipv6"
+          }
+        },
+        "required": ["input_ip", "conversion_type"]
+      }
+    },
+    {
+      "id": "webrtc_node",
+      "name": "WebRTC Node",
+      "description": "Peer-to-peer streaming",
+      "type": "advanced",
+      "category": "network",
+      "icon": "webrtc",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "operation": {
+            "type": "string",
+            "enum": ["create_offer", "create_answer", "set_local_description", "set_remote_description"],
+            "description": "Operasi WebRTC",
+            "default": "create_offer"
+          },
+          "sdp": {
+            "type": "string",
+            "description": "Session Description Protocol"
+          },
+          "stream_type": {
+            "type": "string",
+            "enum": ["audio", "video", "data"],
+            "description": "Tipe stream",
+            "default": "video"
+          }
+        },
+        "required": ["operation"]
+      }
+    },
+    {
+      "id": "streaming_download_node",
+      "name": "Streaming Download Node",
+      "description": "Unduh file besar",
+      "type": "advanced",
+      "category": "file",
+      "icon": "download",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "URL file untuk diunduh",
+            "format": "uri"
+          },
+          "output_path": {
+            "type": "string",
+            "description": "Path output file"
+          },
+          "chunk_size": {
+            "type": "integer",
+            "description": "Ukuran chunk dalam bytes",
+            "default": 1048576
+          },
+          "concurrent_connections": {
+            "type": "integer",
+            "description": "Jumlah koneksi paralel",
+            "default": 4
+          }
+        },
+        "required": ["url", "output_path"]
+      }
+    },
+    {
+      "id": "realtime_log_streamer",
+      "name": "Realtime Log Streamer",
+      "description": "Live logs",
+      "type": "advanced",
+      "category": "logging",
+      "icon": "log",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "log_source": {
+            "type": "string",
+            "description": "Sumber log (path file, API, etc)"
+          },
+          "filter_level": {
+            "type": "string",
+            "enum": ["debug", "info", "warn", "error", "critical"],
+            "description": "Level filter log",
+            "default": "info"
+          },
+          "stream_format": {
+            "type": "string",
+            "enum": ["plaintext", "json", "syslog"],
+            "description": "Format stream log",
+            "default": "json"
+          }
+        },
+        "required": ["log_source"]
+      }
+    },
+    {
+      "id": "distributed_lock_node",
+      "name": "Distributed Lock Node",
+      "description": "Lock multi server",
+      "type": "advanced",
+      "category": "system",
+      "icon": "lock",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "resource_id": {
+            "type": "string",
+            "description": "ID resource untuk dilock"
+          },
+          "lock_duration": {
+            "type": "number",
+            "description": "Durasi lock dalam detik",
+            "default": 60
+          },
+          "lock_type": {
+            "type": "string",
+            "enum": ["shared", "exclusive"],
+            "description": "Tipe lock",
+            "default": "exclusive"
+          },
+          "timeout": {
+            "type": "number",
+            "description": "Timeout untuk mendapatkan lock",
+            "default": 10
+          }
+        },
+        "required": ["resource_id"]
+      }
+    },
+    {
+      "id": "workflow_splitter",
+      "name": "Workflow Splitter",
+      "description": "Split ke 10 sub workflow",
+      "type": "advanced",
+      "category": "workflow",
+      "icon": "workflow",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "sub_workflow_count": {
+            "type": "integer",
+            "description": "Jumlah sub workflow",
+            "default": 10
+          },
+          "split_strategy": {
+            "type": "string",
+            "enum": ["by_nodes", "by_data", "by_condition"],
+            "description": "Strategi pembagian",
+            "default": "by_nodes"
+          },
+          "input_data": {
+            "type": "object",
+            "description": "Data untuk diproses"
+          }
+        },
+        "required": ["sub_workflow_count"]
+      }
+    },
+    {
+      "id": "workflow_merger",
+      "name": "Workflow Merger",
+      "description": "Gabung sub workflow",
+      "type": "advanced",
+      "category": "workflow",
+      "icon": "merge",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "sub_workflows": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "ID sub workflow untuk digabung"
+          },
+          "merge_strategy": {
+            "type": "string",
+            "enum": ["sequential", "parallel", "conditional"],
+            "description": "Strategi penggabungan",
+            "default": "sequential"
+          }
+        },
+        "required": ["sub_workflows"]
+      }
+    },
+    {
+      "id": "file_integrity_monitor",
+      "name": "File Integrity Monitor",
+      "description": "Deteksi modifikasi file",
+      "type": "advanced",
+      "category": "security",
+      "icon": "shield",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "monitor_paths": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Path file/folder untuk dimonitor"
+          },
+          "hash_algorithm": {
+            "type": "string",
+            "enum": ["md5", "sha1", "sha256"],
+            "description": "Algoritma hashing",
+            "default": "sha256"
+          },
+          "check_interval": {
+            "type": "number",
+            "description": "Interval pengecekan dalam detik",
+            "default": 300
+          }
+        },
+        "required": ["monitor_paths"]
+      }
+    },
+    {
+      "id": "intrusion_detector_basic",
+      "name": "Intrusion Detector Basic",
+      "description": "Deteksi anomali server",
+      "type": "advanced",
+      "category": "security",
+      "icon": "shield",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "log_sources": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Sumber log untuk analisis"
+          },
+          "detection_rules": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "rule_name": {
+                  "type": "string"
+                },
+                "pattern": {
+                  "type": "string"
+                },
+                "severity": {
+                  "type": "string",
+                  "enum": ["low", "medium", "high", "critical"]
+                }
+              }
+            },
+            "description": "Aturan deteksi"
+          }
+        },
+        "required": ["log_sources"]
+      }
+    },
+    {
+      "id": "sql_query_builder_pro",
+      "name": "SQL Query Builder Pro",
+      "description": "Builder SQL otomatis",
+      "type": "advanced",
+      "category": "database",
+      "icon": "database",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "operation": {
+            "type": "string",
+            "enum": ["select", "insert", "update", "delete"],
+            "description": "Operasi SQL",
+            "default": "select"
+          },
+          "table": {
+            "type": "string",
+            "description": "Nama tabel"
+          },
+          "fields": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Field-field untuk operasi"
+          },
+          "where_conditions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "field": {
+                  "type": "string"
+                },
+                "operator": {
+                  "type": "string",
+                  "enum": ["=", "!=", ">", "<", ">=", "<=", "like", "in"]
+                },
+                "value": {}
+              }
+            },
+            "description": "Kondisi WHERE"
+          }
+        },
+        "required": ["operation", "table"]
+      }
+    },
+    {
+      "id": "database_migration_node",
+      "name": "Database Migration Node",
+      "description": "Migrasi DB otomatis",
+      "type": "advanced",
+      "category": "database",
+      "icon": "database",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "db_connection": {
+            "type": "string",
+            "description": "Koneksi database"
+          },
+          "migration_type": {
+            "type": "string",
+            "enum": ["schema", "data", "both"],
+            "description": "Tipe migrasi",
+            "default": "schema"
+          },
+          "migrations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "version": {
+                  "type": "string"
+                },
+                "sql_up": {
+                  "type": "string"
+                },
+                "sql_down": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Definisi migrasi"
+          }
+        },
+        "required": ["db_connection", "migration_type", "migrations"]
+      }
+    },
+    {
+      "id": "cloud_backup_node",
+      "name": "Cloud Backup Node",
+      "description": "Backup: S3, GCS",
+      "type": "advanced",
+      "category": "file",
+      "icon": "backup",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "source_path": {
+            "type": "string",
+            "description": "Path sumber untuk backup"
+          },
+          "destination": {
+            "type": "string",
+            "description": "Tujuan backup (s3://bucket/path, gs://bucket/path, dll)"
+          },
+          "cloud_provider": {
+            "type": "string",
+            "enum": ["aws", "gcp", "azure"],
+            "description": "Provider cloud",
+            "default": "aws"
+          },
+          "encryption": {
+            "type": "boolean",
+            "description": "Enkripsi backup",
+            "default": false
+          }
+        },
+        "required": ["source_path", "destination"]
+      }
+    },
+    {
+      "id": "result_snapshot_node",
+      "name": "Result Snapshot Node",
+      "description": "Simpan snapshot data",
+      "type": "advanced",
+      "category": "data",
+      "icon": "snapshot",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "description": "Data untuk disnapshot"
+          },
+          "snapshot_id": {
+            "type": "string",
+            "description": "ID snapshot"
+          },
+          "storage_path": {
+            "type": "string",
+            "description": "Path penyimpanan snapshot"
+          },
+          "format": {
+            "type": "string",
+            "enum": ["json", "yaml", "csv", "binary"],
+            "description": "Format snapshot",
+            "default": "json"
+          }
+        },
+        "required": ["data"]
+      }
+    },
+    {
+      "id": "queue_delay_node",
+      "name": "Queue Delay Node",
+      "description": "Delay di level antrean",
+      "type": "advanced",
+      "category": "messaging",
+      "icon": "queue",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "queue_url": {
+            "type": "string",
+            "description": "URL antrean",
+            "format": "uri"
+          },
+          "delay_seconds": {
+            "type": "integer",
+            "description": "Jumlah detik delay",
+            "default": 60
+          },
+          "message": {
+            "type": "object",
+            "description": "Pesan untuk dikirim dengan delay"
+          }
+        },
+        "required": ["queue_url", "delay_seconds", "message"]
+      }
+    },
+    {
+      "id": "image_ai_upscaler",
+      "name": "Image AI Upscaler",
+      "description": "Perbesar gambar AI",
+      "type": "advanced",
+      "category": "ai",
+      "icon": "image",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "image_path": {
+            "type": "string",
+            "description": "Path gambar untuk di-upscale"
+          },
+          "scale_factor": {
+            "type": "number",
+            "description": "Faktor skala (2.0, 4.0, dll)",
+            "default": 2.0
+          },
+          "model": {
+            "type": "string",
+            "enum": ["edsr", "srgan", "real_esrgan"],
+            "description": "Model AI untuk upscale",
+            "default": "real_esrgan"
+          }
+        },
+        "required": ["image_path", "scale_factor"]
+      }
+    },
+    {
+      "id": "ai_voice_generator",
+      "name": "AI Voice Generator",
+      "description": "TTS premium",
+      "type": "advanced",
+      "category": "ai",
+      "icon": "audio",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string",
+            "description": "Teks untuk dikonversi ke suara"
+          },
+          "voice": {
+            "type": "string",
+            "description": "Model suara",
+            "default": "default"
+          },
+          "speed": {
+            "type": "number",
+            "description": "Kecepatan suara (0.5-2.0)",
+            "default": 1.0
+          },
+          "output_format": {
+            "type": "string",
+            "enum": ["mp3", "wav", "ogg"],
+            "description": "Format output",
+            "default": "mp3"
+          }
+        },
+        "required": ["text"]
+      }
+    },
+    {
+      "id": "ai_voice_clone",
+      "name": "AI Voice Clone",
+      "description": "Clone suara",
+      "type": "advanced",
+      "category": "ai",
+      "icon": "audio",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "reference_audio": {
+            "type": "string",
+            "description": "Path audio referensi untuk kloning suara"
+          },
+          "target_text": {
+            "type": "string",
+            "description": "Teks untuk diucapkan dengan suara klon"
+          },
+          "output_path": {
+            "type": "string",
+            "description": "Path output audio hasil"
+          }
+        },
+        "required": ["reference_audio", "target_text", "output_path"]
+      }
+    },
+    {
+      "id": "ml_classifier_node",
+      "name": "ML Classifier Node",
+      "description": "Klasifikasi ML ringan",
+      "type": "advanced",
+      "category": "ai",
+      "icon": "ml",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "model_path": {
+            "type": "string",
+            "description": "Path model ML"
+          },
+          "input_data": {
+            "type": "object",
+            "description": "Data untuk diklasifikasikan"
+          },
+          "classification_type": {
+            "type": "string",
+            "enum": ["text", "image", "numeric"],
+            "description": "Tipe klasifikasi",
+            "default": "text"
+          }
+        },
+        "required": ["model_path", "input_data"]
+      }
+    },
+    {
+      "id": "model_downloader",
+      "name": "Model Downloader",
+      "description": "Download model AI",
+      "type": "advanced",
+      "category": "ai",
+      "icon": "download",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "model_id": {
+            "type": "string",
+            "description": "ID model untuk didownload"
+          },
+          "provider": {
+            "type": "string",
+            "enum": ["huggingface", "openai", "custom"],
+            "description": "Provider model",
+            "default": "huggingface"
+          },
+          "download_path": {
+            "type": "string",
+            "description": "Path tujuan download"
+          }
+        },
+        "required": ["model_id", "provider", "download_path"]
+      }
+    },
+    {
+      "id": "realtime_file_sync",
+      "name": "Realtime File Sync",
+      "description": "Sinkron banyak folder",
+      "type": "advanced",
+      "category": "file",
+      "icon": "sync",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "sync_pairs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "source": {
+                  "type": "string"
+                },
+                "destination": {
+                  "type": "string"
+                }
+              },
+              "required": ["source", "destination"]
+            },
+            "description": "Pasangan sinkronisasi (source -> destination)"
+          },
+          "sync_interval": {
+            "type": "number",
+            "description": "Interval sinkron dalam detik",
+            "default": 5
+          }
+        },
+        "required": ["sync_pairs"]
+      }
+    },
+    {
+      "id": "encryption_manager",
+      "name": "Encryption Manager",
+      "description": "Encrypt/decrypt AES",
+      "type": "advanced",
+      "category": "security",
+      "icon": "shield",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "operation": {
+            "type": "string",
+            "enum": ["encrypt", "decrypt"],
+            "description": "Operasi enkripsi",
+            "default": "encrypt"
+          },
+          "data": {
+            "type": "string",
+            "description": "Data untuk diproses"
+          },
+          "key": {
+            "type": "string",
+            "description": "Kunci enkripsi"
+          },
+          "algorithm": {
+            "type": "string",
+            "enum": ["AES-256-GCM", "AES-192-GCM", "AES-128-GCM"],
+            "description": "Algoritma enkripsi",
+            "default": "AES-256-GCM"
+          }
+        },
+        "required": ["operation", "data", "key"]
+      }
+    },
+    {
+      "id": "secret_vault_node",
+      "name": "Secret Vault Node",
+      "description": "Manajemen secret",
+      "type": "advanced",
+      "category": "security",
+      "icon": "vault",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "operation": {
+            "type": "string",
+            "enum": ["get", "set", "delete", "list"],
+            "description": "Operasi vault",
+            "default": "get"
+          },
+          "key": {
+            "type": "string",
+            "description": "Kunci secret"
+          },
+          "value": {
+            "type": "string",
+            "description": "Nilai secret (untuk operasi set)"
+          },
+          "vault_provider": {
+            "type": "string",
+            "enum": ["hashicorp", "aws", "gcp", "azure", "custom"],
+            "description": "Provider vault",
+            "default": "hashicorp"
+          }
+        },
+        "required": ["operation", "key"]
+      }
+    },
+    {
+      "id": "embed_generator",
+      "name": "Embed Generator",
+      "description": "Generate embedding",
+      "type": "advanced",
+      "category": "ai",
+      "icon": "ai",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "input_text": {
+            "type": "string",
+            "description": "Teks untuk digenerate embeddingnya"
+          },
+          "model": {
+            "type": "string",
+            "enum": ["sentence-transformers", "openai", "cohere", "custom"],
+            "description": "Model embedding",
+            "default": "sentence-transformers"
+          },
+          "output_format": {
+            "type": "string",
+            "enum": ["array", "json", "binary"],
+            "description": "Format output embedding",
+            "default": "array"
+          }
+        },
+        "required": ["input_text", "model"]
+      }
+    },
+    {
+      "id": "schema_validator_pro",
+      "name": "Schema Validator Pro",
+      "description": "Validasi JSON schema",
+      "type": "advanced",
+      "category": "data",
+      "icon": "validate",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "description": "Data untuk divalidasi"
+          },
+          "schema": {
+            "type": "object",
+            "description": "Skema validasi JSON"
+          },
+          "validation_mode": {
+            "type": "string",
+            "enum": ["strict", "loose", "custom"],
+            "description": "Mode validasi",
+            "default": "strict"
+          }
+        },
+        "required": ["data", "schema"]
+      }
+    },
+    {
+      "id": "api_auto_tester",
+      "name": "API Auto Tester",
+      "description": "Tes API otomatis",
+      "type": "advanced",
+      "category": "testing",
+      "icon": "api",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "api_specs": {
+            "type": "object",
+            "description": "Spesifikasi API (OpenAPI/Swagger)"
+          },
+          "test_scenarios": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "endpoint": {
+                  "type": "string",
+                  "format": "uri"
+                },
+                "method": {
+                  "type": "string",
+                  "enum": ["GET", "POST", "PUT", "DELETE"]
+                },
+                "payload": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Skenario-skenario tes"
+          },
+          "report_format": {
+            "type": "string",
+            "enum": ["json", "html", "junit"],
+            "description": "Format laporan",
+            "default": "json"
+          }
+        },
+        "required": ["api_specs", "test_scenarios"]
+      }
+    },
+    {
+      "id": "retry_pattern_designer",
+      "name": "Retry Pattern Designer",
+      "description": "Desain retry custom",
+      "type": "advanced",
+      "category": "utility",
+      "icon": "retry",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "retry_type": {
+            "type": "string",
+            "enum": ["fixed", "exponential", "linear", "custom"],
+            "description": "Tipe pola retry",
+            "default": "exponential"
+          },
+          "max_attempts": {
+            "type": "integer",
+            "description": "Jumlah maksimum percobaan",
+            "default": 5
+          },
+          "base_delay": {
+            "type": "number",
+            "description": "Delay dasar dalam detik",
+            "default": 1
+          },
+          "max_delay": {
+            "type": "number",
+            "description": "Delay maksimum dalam detik",
+            "default": 60
+          },
+          "multiplier": {
+            "type": "number",
+            "description": "Pengali untuk exponential backoff",
+            "default": 2
+          }
+        },
+        "required": ["retry_type"]
+      }
+    },
+    {
+      "id": "limit_rate_node",
+      "name": "Limit Rate Node",
+      "description": "Rate limiter",
+      "type": "advanced",
+      "category": "utility",
+      "icon": "limit",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "limit_type": {
+            "type": "string",
+            "enum": ["token_bucket", "leaky_bucket", "fixed_window", "sliding_window"],
+            "description": "Tipe rate limiting",
+            "default": "token_bucket"
+          },
+          "requests_per_second": {
+            "type": "number",
+            "description": "Jumlah request per detik",
+            "default": 10
+          },
+          "burst_capacity": {
+            "type": "integer",
+            "description": "Kapasitas burst (untuk token bucket)",
+            "default": 100
+          },
+          "key": {
+            "type": "string",
+            "description": "Kunci untuk rate limiting (misalnya IP, user_id)"
+          }
+        },
+        "required": ["limit_type", "requests_per_second"]
+      }
+    },
+    {
+      "id": "data_redaction_node",
+      "name": "Data Redaction Node",
+      "description": "Redaksi otomatis",
+      "type": "advanced",
+      "category": "security",
+      "icon": "redact",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "description": "Data untuk diredaksi"
+          },
+          "redaction_rules": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "field": {
+                  "type": "string",
+                  "description": "Field untuk diredaksi"
+                },
+                "method": {
+                  "type": "string",
+                  "enum": ["mask", "delete", "hash", "encrypt"],
+                  "description": "Metode redaksi"
+                },
+                "pattern": {
+                  "type": "string",
+                  "description": "Polanya yang akan diredaksi"
+                }
+              },
+              "required": ["field", "method"]
+            },
+            "description": "Aturan-aturan redaksi"
+          }
+        },
+        "required": ["data", "redaction_rules"]
+      }
+    },
+    {
+      "id": "workflow_profiler",
+      "name": "Workflow Profiler",
+      "description": "Profiling workflow",
+      "type": "advanced",
+      "category": "workflow",
+      "icon": "profile",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "workflow_id": {
+            "type": "string",
+            "description": "ID workflow untuk diprofile"
+          },
+          "profile_type": {
+            "type": "string",
+            "enum": ["time", "memory", "cpu", "io"],
+            "description": "Tipe profiling",
+            "default": "time"
+          },
+          "duration": {
+            "type": "number",
+            "description": "Durasi profiling dalam detik",
+            "default": 30
+          }
+        },
+        "required": ["workflow_id", "profile_type"]
+      }
+    },
+    {
+      "id": "ai_auto_repair_node",
+      "name": "AI Auto Repair Node",
+      "description": "Perbaiki node lain otomatis",
+      "type": "elite",
+      "category": "ai",
+      "icon": "ai",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "error_context": {
+            "type": "object",
+            "description": "Konteks error dari node bermasalah"
+          },
+          "target_node_id": {
+            "type": "string",
+            "description": "ID node yang akan diperbaiki"
+          },
+          "repair_strategy": {
+            "type": "string",
+            "enum": ["code_fix", "parameter_adjust", "alternative_implementation", "workflow_restructure"],
+            "description": "Strategi perbaikan",
+            "default": "code_fix"
+          }
+        },
+        "required": ["error_context", "target_node_id"]
+      }
+    },
+    {
+      "id": "ai_prompt_generator",
+      "name": "AI Prompt Generator",
+      "description": "Buat prompt otomatis",
+      "type": "elite",
+      "category": "ai",
+      "icon": "ai",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "task_description": {
+            "type": "string",
+            "description": "Deskripsi tugas yang akan dibuat promptnya"
+          },
+          "target_language": {
+            "type": "string",
+            "description": "Bahasa target untuk prompt",
+            "default": "en"
+          },
+          "prompt_style": {
+            "type": "string",
+            "enum": ["direct", "chain_of_thought", "few_shot", "instruction_following"],
+            "description": "Gaya prompt",
+            "default": "direct"
+          }
+        },
+        "required": ["task_description"]
+      }
+    },
+    {
+      "id": "ai_node_builder",
+      "name": "AI Node Builder",
+      "description": "Buat node baru pakai AI",
+      "type": "elite",
+      "category": "ai",
+      "icon": "ai",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "node_description": {
+            "type": "string",
+            "description": "Deskripsi fungsi node yang akan dibuat"
+          },
+          "input_schema": {
+            "type": "object",
+            "description": "Skema input untuk node"
+          },
+          "output_schema": {
+            "type": "object",
+            "description": "Skema output untuk node"
+          },
+          "implementation_language": {
+            "type": "string",
+            "enum": ["go", "javascript", "python"],
+            "description": "Bahasa implementasi",
+            "default": "go"
+          }
+        },
+        "required": ["node_description"]
+      }
+    },
+    {
+      "id": "ai_log_intelligence",
+      "name": "AI Log Intelligence",
+      "description": "Analisa log ribuan event",
+      "type": "elite",
+      "category": "ai",
+      "icon": "ai",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "log_data": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Data log untuk dianalisis"
+          },
+          "analysis_type": {
+            "type": "string",
+            "enum": ["anomaly_detection", "trend_analysis", "root_cause", "pattern_identification"],
+            "description": "Tipe analisis",
+            "default": "anomaly_detection"
+          },
+          "time_range": {
+            "type": "string",
+            "description": "Rentang waktu analisis (misalnya 24h, 7d)"
+          }
+        },
+        "required": ["log_data"]
+      }
+    },
+    {
+      "id": "semantic_monitoring_node",
+      "name": "Semantic Monitoring Node",
+      "description": "Monitoring berdasarkan makna",
+      "type": "elite",
+      "category": "ai",
+      "icon": "ai",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "data_stream": {
+            "type": "string",
+            "description": "Sumber data untuk dimonitor"
+          },
+          "semantic_model": {
+            "type": "string",
+            "description": "Model semantik untuk analisis"
+          },
+          "alert_conditions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "condition_name": {
+                  "type": "string"
+                },
+                "semantic_rule": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Kondisi-kondisi alert berbasis semantik"
+          }
+        },
+        "required": ["data_stream", "semantic_model"]
+      }
+    },
+    {
+      "id": "user_behavior_pattern_node",
+      "name": "User Behavior Pattern Node",
+      "description": "Deteksi pola pengguna",
+      "type": "elite",
+      "category": "ai",
+      "icon": "ai",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "user_data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "user_id": {
+                  "type": "string"
+                },
+                "action": {
+                  "type": "string"
+                },
+                "timestamp": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "context": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Riwayat aktivitas pengguna"
+          },
+          "analysis_type": {
+            "type": "string",
+            "enum": ["clickstream", "session_analysis", "conversion_path", "churn_prediction"],
+            "description": "Tipe analisis pola",
+            "default": "clickstream"
+          }
+        },
+        "required": ["user_data"]
+      }
+    },
+    {
+      "id": "fraud_detector_node",
+      "name": "Fraud Detector Node",
+      "description": "Deteksi fraud AI",
+      "type": "elite",
+      "category": "ai",
+      "icon": "ai",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "transaction_data": {
+            "type": "object",
+            "description": "Data transaksi untuk dianalisis"
+          },
+          "model_type": {
+            "type": "string",
+            "enum": ["supervised", "unsupervised", "hybrid"],
+            "description": "Tipe model ML",
+            "default": "hybrid"
+          },
+          "risk_threshold": {
+            "type": "number",
+            "description": "Ambang batas risiko (0-1)",
+            "default": 0.8
+          }
+        },
+        "required": ["transaction_data"]
+      }
+    },
+    {
+      "id": "anomaly_detector_pro",
+      "name": "Anomaly Detector Pro",
+      "description": "Deteksi anomali besar",
+      "type": "elite",
+      "category": "ai",
+      "icon": "ai",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "metrics_data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "timestamp": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "value": {
+                  "type": "number"
+                },
+                "labels": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Data metrik untuk analisis anomali"
+          },
+          "detection_algorithm": {
+            "type": "string",
+            "enum": ["isolation_forest", "local_outlier_factor", "one_class_svm", "statistical"],
+            "description": "Algoritma deteksi",
+            "default": "isolation_forest"
+          },
+          "sensitivity": {
+            "type": "number",
+            "description": "Sensitivitas deteksi (0-1)",
+            "default": 0.5
+          }
+        },
+        "required": ["metrics_data"]
+      }
+    },
+    {
+      "id": "ai_mutation_node",
+      "name": "AI Mutation Node",
+      "description": "Optimasi workflow otomatis",
+      "type": "elite",
+      "category": "ai",
+      "icon": "ai",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "workflow_id": {
+            "type": "string",
+            "description": "ID workflow untuk di-optimasi"
+          },
+          "optimization_goal": {
+            "type": "string",
+            "enum": ["performance", "cost", "reliability", "throughput"],
+            "description": "Tujuan optimasi",
+            "default": "performance"
+          },
+          "mutation_rate": {
+            "type": "number",
+            "description": "Tingkat mutasi (0-1)",
+            "default": 0.1
+          }
+        },
+        "required": ["workflow_id", "optimization_goal"]
+      }
+    },
+    {
+      "id": "ai_api_mock_generator",
+      "name": "AI API Mock Generator",
+      "description": "Mock API otomatis",
+      "type": "elite",
+      "category": "ai",
+      "icon": "ai",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "api_description": {
+            "type": "string",
+            "description": "Deskripsi API untuk digenerate mocknya"
+          },
+          "input_examples": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            },
+            "description": "Contoh-contoh input"
+          },
+          "response_patterns": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "status_code": {
+                  "type": "integer"
+                },
+                "response_body": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Pola-pola response"
+          }
+        },
+        "required": ["api_description"]
+      }
+    },
+    {
+      "id": "workflow_time_machine",
+      "name": "Workflow Time Machine",
+      "description": "Rollback versi lama",
+      "type": "elite",
+      "category": "workflow",
+      "icon": "time-machine",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "workflow_id": {
+            "type": "string",
+            "description": "ID workflow untuk direstore"
+          },
+          "version_id": {
+            "type": "string",
+            "description": "ID versi untuk direstore"
+          },
+          "restore_point": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Titik waktu restore (jika tidak menggunakan version_id)"
+          },
+          "restore_type": {
+            "type": "string",
+            "enum": ["full", "config_only", "data_only"],
+            "description": "Tipe restore",
+            "default": "full"
+          }
+        },
+        "required": ["workflow_id"]
+      }
+    },
+    {
+      "id": "workflow_simulator",
+      "name": "Workflow Simulator",
+      "description": "Simulasi sebelum dijalankan",
+      "type": "elite",
+      "category": "workflow",
+      "icon": "simulate",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "workflow_definition": {
+            "type": "object",
+            "description": "Definisi workflow untuk disimulasikan"
+          },
+          "input_data": {
+            "type": "object",
+            "description": "Data input untuk simulasi"
+          },
+          "simulation_type": {
+            "type": "string",
+            "enum": ["dry_run", "performance", "error_handling", "load_testing"],
+            "description": "Tipe simulasi",
+            "default": "dry_run"
+          }
+        },
+        "required": ["workflow_definition", "input_data"]
+      }
+    },
+    {
+      "id": "load_test_node",
+      "name": "Load Test Node",
+      "description": "Stress test API",
+      "type": "elite",
+      "category": "testing",
+      "icon": "load-test",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "target_url": {
+            "type": "string",
+            "description": "URL target untuk load test",
+            "format": "uri"
+          },
+          "concurrent_users": {
+            "type": "integer",
+            "description": "Jumlah user simulasi",
+            "default": 100
+          },
+          "test_duration": {
+            "type": "number",
+            "description": "Durasi tes dalam detik",
+            "default": 60
+          },
+          "ramp_up_time": {
+            "type": "number",
+            "description": "Waktu untuk menaikkan beban dalam detik",
+            "default": 10
+          }
+        },
+        "required": ["target_url", "concurrent_users", "test_duration"]
+      }
+    },
+    {
+      "id": "chaos_node",
+      "name": "Chaos Node",
+      "description": "Chaos engineering",
+      "type": "elite",
+      "category": "testing",
+      "icon": "chaos",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "target_service": {
+            "type": "string",
+            "description": "Layanan target untuk chaos"
+          },
+          "chaos_type": {
+            "type": "string",
+            "enum": ["latency", "error", "kill", "corruption", "saturation"],
+            "description": "Tipe chaos",
+            "default": "latency"
+          },
+          "duration": {
+            "type": "number",
+            "description": "Durasi chaos dalam detik",
+            "default": 30
+          },
+          "probability": {
+            "type": "number",
+            "description": "Probabilitas chaos (0-1)",
+            "default": 0.1
+          }
+        },
+        "required": ["target_service", "chaos_type"]
+      }
+    },
+    {
+      "id": "failover_switch_node",
+      "name": "Failover Switch Node",
+      "description": "Pindah server otomatis",
+      "type": "elite",
+      "category": "system",
+      "icon": "failover",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "primary_server": {
+            "type": "string",
+            "description": "Server utama",
+            "format": "uri"
+          },
+          "secondary_server": {
+            "type": "string",
+            "description": "Server cadangan",
+            "format": "uri"
+          },
+          "health_check_url": {
+            "type": "string",
+            "description": "URL untuk health check",
+            "format": "uri"
+          },
+          "failover_criteria": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["response_timeout", "error_rate", "cpu_usage", "memory_usage"]
+            },
+            "description": "Kriteria untuk failover",
+            "default": ["response_timeout"]
+          }
+        },
+        "required": ["primary_server", "secondary_server", "health_check_url"]
+      }
+    },
+    {
+      "id": "multi_region_sync_node",
+      "name": "Multi-Region Sync Node",
+      "description": "Sinkron lintas region",
+      "type": "elite",
+      "category": "sync",
+      "icon": "sync",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "source_region": {
+            "type": "string",
+            "description": "Region sumber"
+          },
+          "target_regions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Region-region target"
+          },
+          "sync_type": {
+            "type": "string",
+            "enum": ["database", "file", "cache", "configuration"],
+            "description": "Tipe sinkronisasi",
+            "default": "database"
+          },
+          "consistency_level": {
+            "type": "string",
+            "enum": ["strong", "eventual", "weak"],
+            "description": "Tingkat konsistensi",
+            "default": "eventual"
+          }
+        },
+        "required": ["source_region", "target_regions"]
+      }
+    },
+    {
+      "id": "cluster_controller",
+      "name": "Cluster Controller",
+      "description": "Kelola cluster workflow",
+      "type": "elite",
+      "category": "system",
+      "icon": "cluster",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "cluster_nodes": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uri"
+            },
+            "description": "Node-node dalam cluster"
+          },
+          "operation": {
+            "type": "string",
+            "enum": ["scale", "update", "monitor", "recover"],
+            "description": "Operasi cluster",
+            "default": "monitor"
+          },
+          "scale_config": {
+            "type": "object",
+            "description": "Konfigurasi scaling (untuk operasi scale)"
+          }
+        },
+        "required": ["cluster_nodes"]
+      }
+    },
+    {
+      "id": "node_marketplace_installer",
+      "name": "Node Marketplace Installer",
+      "description": "Install plugin dari store",
+      "type": "elite",
+      "category": "system",
+      "icon": "marketplace",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "node_id": {
+            "type": "string",
+            "description": "ID node dari marketplace"
+          },
+          "version": {
+            "type": "string",
+            "description": "Versi node",
+            "default": "latest"
+          },
+          "installation_path": {
+            "type": "string",
+            "description": "Path instalasi node"
+          },
+          "dependencies": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Dependensi node"
+          }
+        },
+        "required": ["node_id"]
+      }
+    },
+    {
+      "id": "billing_metering_node",
+      "name": "Billing Metering Node",
+      "description": "Hitung pemakaian user",
+      "type": "elite",
+      "category": "billing",
+      "icon": "billing",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "description": "ID user untuk metering"
+          },
+          "resource_type": {
+            "type": "string",
+            "enum": ["api_calls", "storage_gb", "compute_hours", "data_transfer_gb"],
+            "description": "Tipe resource untuk dimeter",
+            "default": "api_calls"
+          },
+          "usage_amount": {
+            "type": "number",
+            "description": "Jumlah penggunaan"
+          },
+          "billing_period": {
+            "type": "string",
+            "enum": ["hourly", "daily", "weekly", "monthly"],
+            "description": "Periode billing",
+            "default": "monthly"
+          }
+        },
+        "required": ["user_id", "resource_type", "usage_amount"]
+      }
+    },
+    {
+      "id": "license_manager_node",
+      "name": "License Manager Node",
+      "description": "Kelola lisensi",
+      "type": "elite",
+      "category": "system",
+      "icon": "license",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "license_key": {
+            "type": "string",
+            "description": "Kunci lisensi"
+          },
+          "operation": {
+            "type": "string",
+            "enum": ["validate", "activate", "deactivate", "renew"],
+            "description": "Operasi lisensi",
+            "default": "validate"
+          },
+          "user_id": {
+            "type": "string",
+            "description": "ID user untuk lisensi"
+          },
+          "features": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Feature yang diizinkan oleh lisensi"
+          }
+        },
+        "required": ["license_key", "operation"]
+      }
+    },
+    {
+      "id": "quota_manager_node",
+      "name": "Quota Manager Node",
+      "description": "Quota user/role",
+      "type": "elite",
+      "category": "system",
+      "icon": "quota",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "description": "ID user untuk manajemen kuota"
+          },
+          "resource_type": {
+            "type": "string",
+            "enum": ["api_calls", "storage", "compute", "concurrent_workflows"],
+            "description": "Tipe resource untuk kuota",
+            "default": "api_calls"
+          },
+          "limit": {
+            "type": "number",
+            "description": "Batas kuota"
+          },
+          "period": {
+            "type": "string",
+            "enum": ["hour", "day", "week", "month", "year"],
+            "description": "Periode kuota",
+            "default": "day"
+          }
+        },
+        "required": ["user_id", "resource_type", "limit"]
+      }
+    },
+    {
+      "id": "workflow_diff_analyzer",
+      "name": "Workflow Diff Analyzer",
+      "description": "Bandingkan dua workflow",
+      "type": "elite",
+      "category": "workflow",
+      "icon": "diff",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "workflow1_id": {
+            "type": "string",
+            "description": "ID workflow pertama"
+          },
+          "workflow2_id": {
+            "type": "string",
+            "description": "ID workflow kedua"
+          },
+          "comparison_type": {
+            "type": "string",
+            "enum": ["structure", "execution_flow", "performance", "cost"],
+            "description": "Tipe perbandingan",
+            "default": "structure"
+          }
+        },
+        "required": ["workflow1_id", "workflow2_id"]
+      }
+    },
+    {
+      "id": "smart_retry_predictor",
+      "name": "Smart Retry Predictor",
+      "description": "AI memprediksi retry terbaik",
+      "type": "elite",
+      "category": "ai",
+      "icon": "ai",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "error_context": {
+            "type": "object",
+            "description": "Konteks error sebelumnya"
+          },
+          "retry_history": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "attempt": {
+                  "type": "integer"
+                },
+                "delay": {
+                  "type": "number"
+                },
+                "success": {
+                  "type": "boolean"
+                }
+              }
+            },
+            "description": "Riwayat retry sebelumnya"
+          },
+          "prediction_horizon": {
+            "type": "integer",
+            "description": "Jumlah prediksi ke depan",
+            "default": 5
+          }
+        },
+        "required": ["error_context", "retry_history"]
+      }
+    },
+    {
+      "id": "dead_letter_queue_handler",
+      "name": "Dead Letter Queue Handler",
+      "description": "Auto-handle DLQ",
+      "type": "elite",
+      "category": "messaging",
+      "icon": "queue",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "dlq_url": {
+            "type": "string",
+            "description": "URL Dead Letter Queue",
+            "format": "uri"
+          },
+          "handling_strategy": {
+            "type": "string",
+            "enum": ["retry", "escalate", "archive", "transform"],
+            "description": "Strategi penanganan",
+            "default": "retry"
+          },
+          "max_retries": {
+            "type": "integer",
+            "description": "Jumlah maksimal retry",
+            "default": 3
+          },
+          "retry_pattern": {
+            "type": "object",
+            "description": "Pola retry (dari node retry_pattern_designer)"
+          }
+        },
+        "required": ["dlq_url", "handling_strategy"]
+      }
+    },
+    {
+      "id": "predictive_scheduler",
+      "name": "Predictive Scheduler",
+      "description": "Jadwal berdasarkan prediksi",
+      "type": "elite",
+      "category": "schedule",
+      "icon": "schedule",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "historical_data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "timestamp": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "workload": {
+                  "type": "number"
+                }
+              }
+            },
+            "description": "Data historis untuk prediksi"
+          },
+          "task_definition": {
+            "type": "object",
+            "description": "Definisi tugas untuk dijadwalkan"
+          },
+          "prediction_model": {
+            "type": "string",
+            "enum": ["arima", "lstm", "prophet", "custom"],
+            "description": "Model prediksi",
+            "default": "lstm"
+          }
+        },
+        "required": ["historical_data", "task_definition"]
+      }
+    },
+    {
+      "id": "smart_autoscaler_node",
+      "name": "Smart Autoscaler Node",
+      "description": "Autoscale server",
+      "type": "elite",
+      "category": "system",
+      "icon": "scale",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "target_resource": {
+            "type": "string",
+            "description": "Resource target untuk autoscale (CPU, Memory, Custom)"
+          },
+          "metrics": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "value": {
+                  "type": "number"
+                },
+                "threshold": {
+                  "type": "number"
+                }
+              }
+            },
+            "description": "Metrik-metrik untuk autoscaling"
+          },
+          "scaling_strategy": {
+            "type": "string",
+            "enum": ["reactive", "predictive", "hybrid"],
+            "description": "Strategi scaling",
+            "default": "reactive"
+          }
+        },
+        "required": ["target_resource", "metrics"]
+      }
+    },
+    {
+      "id": "api_hyper_cache_node",
+      "name": "API Hyper Cache Node",
+      "description": "Cache dengan heuristic AI",
+      "type": "elite",
+      "category": "cache",
+      "icon": "cache",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "api_endpoint": {
+            "type": "string",
+            "description": "Endpoint API untuk di-cache",
+            "format": "uri"
+          },
+          "cache_strategy": {
+            "type": "string",
+            "enum": ["ttl", "lfu", "lru", "ai_predictive"],
+            "description": "Strategi caching",
+            "default": "ai_predictive"
+          },
+          "cache_size": {
+            "type": "integer",
+            "description": "Ukuran cache dalam MB",
+            "default": 100
+          },
+          "heuristic_model": {
+            "type": "string",
+            "description": "Model heuristik untuk prediksi"
+          }
+        },
+        "required": ["api_endpoint", "cache_strategy"]
+      }
+    },
+    {
+      "id": "api_compression_node",
+      "name": "API Compression Node",
+      "description": "Compress payload dinamis",
+      "type": "elite",
+      "category": "http",
+      "icon": "compress",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "compression_algorithm": {
+            "type": "string",
+            "enum": ["gzip", "brotli", "zstd", "lz4", "custom"],
+            "description": "Algoritma kompresi",
+            "default": "gzip"
+          },
+          "threshold_size": {
+            "type": "integer",
+            "description": "Ambang ukuran payload dalam bytes sebelum kompresi",
+            "default": 1024
+          },
+          "target_ratio": {
+            "type": "number",
+            "description": "Rasio kompresi target (0-1)",
+            "default": 0.5
+          }
+        },
+        "required": ["compression_algorithm"]
+      }
+    },
+    {
+      "id": "data_lake_loader",
+      "name": "Data Lake Loader",
+      "description": "Masukkan data ke lakehouse",
+      "type": "elite",
+      "category": "data",
+      "icon": "data-lake",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": "string",
+            "description": "Sumber data (database, file, API)"
+          },
+          "destination": {
+            "type": "string",
+            "description": "Tujuan data lake (s3://, adls://, dll)"
+          },
+          "transformation": {
+            "type": "string",
+            "enum": ["none", "flatten", "aggregate", "enrich"],
+            "description": "Transformasi data",
+            "default": "none"
+          },
+          "partition_strategy": {
+            "type": "object",
+            "description": "Strategi partisi data"
+          }
+        },
+        "required": ["source", "destination"]
+      }
+    },
+    {
+      "id": "cloud_cost_optimizer",
+      "name": "Cloud Cost Optimizer",
+      "description": "Optimasi biaya cloud",
+      "type": "elite",
+      "category": "billing",
+      "icon": "billing",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "cloud_provider": {
+            "type": "string",
+            "enum": ["aws", "gcp", "azure"],
+            "description": "Provider cloud",
+            "default": "aws"
+          },
+          "resources": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string"
+                },
+                "usage": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Resource-resource cloud untuk dioptimasi"
+          },
+          "optimization_target": {
+            "type": "string",
+            "enum": ["cost", "performance", "carbon_footprint"],
+            "description": "Tujuan optimasi",
+            "default": "cost"
+          }
+        },
+        "required": ["cloud_provider", "resources"]
+      }
+    },
+    {
+      "id": "data_drift_detector",
+      "name": "Data Drift Detector",
+      "description": "Pemantau drift ML",
+      "type": "elite",
+      "category": "ai",
+      "icon": "ai",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "baseline_data": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            },
+            "description": "Data baseline untuk perbandingan"
+          },
+          "current_data": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            },
+            "description": "Data saat ini untuk dicek drift"
+          },
+          "drift_algorithm": {
+            "type": "string",
+            "enum": ["ks_test", "chi_square", "wasserstein", "custom"],
+            "description": "Algoritma deteksi drift",
+            "default": "ks_test"
+          },
+          "drift_threshold": {
+            "type": "number",
+            "description": "Ambang deteksi drift",
+            "default": 0.05
+          }
+        },
+        "required": ["baseline_data", "current_data"]
+      }
+    },
+    {
+      "id": "flow_heatmap_analyzer",
+      "name": "Flow Heatmap Analyzer",
+      "description": "Analisa node sering dipakai",
+      "type": "elite",
+      "category": "analytics",
+      "icon": "analytics",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "workflow_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "ID workflow untuk dianalisis"
+          },
+          "time_range": {
+            "type": "string",
+            "description": "Rentang waktu analisis"
+          },
+          "analysis_type": {
+            "type": "string",
+            "enum": ["usage_frequency", "execution_time", "error_rate", "data_throughput"],
+            "description": "Tipe analisis",
+            "default": "usage_frequency"
+          }
+        },
+        "required": ["workflow_ids"]
+      }
+    },
+    {
+      "id": "performance_advisor_node",
+      "name": "Performance Advisor Node",
+      "description": "AI rekomendasi optimasi",
+      "type": "elite",
+      "category": "ai",
+      "icon": "ai",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "performance_data": {
+            "type": "object",
+            "description": "Data kinerja sistem/workflow"
+          },
+          "optimization_area": {
+            "type": "string",
+            "enum": ["execution_time", "resource_usage", "cost", "reliability"],
+            "description": "Area optimasi",
+            "default": "execution_time"
+          },
+          "recommendation_depth": {
+            "type": "string",
+            "enum": ["basic", "intermediate", "advanced"],
+            "description": "Kedalaman rekomendasi",
+            "default": "intermediate"
+          }
+        },
+        "required": ["performance_data", "optimization_area"]
+      }
+    },
+    {
+      "id": "realtime_resource_guard",
+      "name": "Realtime Resource Guard",
+      "description": "Proteksi server real-time",
+      "type": "elite",
+      "category": "security",
+      "icon": "shield",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "resource_limits": {
+            "type": "object",
+            "properties": {
+              "cpu_percent": {
+                "type": "number"
+              },
+              "memory_percent": {
+                "type": "number"
+              },
+              "disk_percent": {
+                "type": "number"
+              }
+            },
+            "description": "Batasan resource server"
+          },
+          "monitoring_interval": {
+            "type": "number",
+            "description": "Interval monitoring dalam detik",
+            "default": 1
+          },
+          "actions": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["alert", "throttle", "restart", "shutdown"]
+            },
+            "description": "Aksi yang diambil saat batas terlampaui",
+            "default": ["alert", "throttle"]
+          }
+        },
+        "required": ["resource_limits"]
+      }
+    },
+    {
+      "id": "adaptive_throttle_node",
+      "name": "Adaptive Throttle Node",
+      "description": "Rate limit adaptif",
+      "type": "elite",
+      "category": "system",
+      "icon": "limit",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "current_load": {
+            "type": "number",
+            "description": "Beban sistem saat ini"
+          },
+          "target_load": {
+            "type": "number",
+            "description": "Beban target sistem"
+          },
+          "throttle_algorithm": {
+            "type": "string",
+            "enum": ["linear", "exponential", "proportional", "neural_network"],
+            "description": "Algoritma throttling",
+            "default": "proportional"
+          },
+          "adjustment_period": {
+            "type": "number",
+            "description": "Periode penyesuaian dalam detik",
+            "default": 30
+          }
+        },
+        "required": ["current_load", "target_load"]
+      }
+    },
+    {
+      "id": "sequence_generator_node",
+      "name": "Sequence Generator Node",
+      "description": "Generate urutan kompleks",
+      "type": "elite",
+      "category": "utility",
+      "icon": "sequence",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "sequence_type": {
+            "type": "string",
+            "enum": ["numeric", "alpha", "alphanumeric", "custom_pattern", "fibonacci", "prime"],
+            "description": "Tipe urutan",
+            "default": "numeric"
+          },
+          "pattern": {
+            "type": "string",
+            "description": "Pola kustom untuk sequence_type=custom_pattern"
+          },
+          "start_value": {
+            "type": "string",
+            "description": "Nilai awal urutan"
+          },
+          "count": {
+            "type": "integer",
+            "description": "Jumlah item dalam urutan",
+            "default": 10
+          }
+        },
+        "required": ["sequence_type"]
+      }
+    },
+    {
+      "id": "replay_attack_guard",
+      "name": "Replay Attack Guard",
+      "description": "Cegah replay attack",
+      "type": "elite",
+      "category": "security",
+      "icon": "shield",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "request_signature": {
+            "type": "string",
+            "description": "Tanda tangan request untuk verifikasi"
+          },
+          "timestamp_tolerance": {
+            "type": "number",
+            "description": "Toleransi timestamp dalam detik",
+            "default": 300
+          },
+          "request_cache_size": {
+            "type": "integer",
+            "description": "Ukuran cache request sebelumnya",
+            "default": 1000
+          }
+        },
+        "required": ["request_signature"]
+      }
+    },
+    {
+      "id": "smart_data_joiner",
+      "name": "Smart Data Joiner",
+      "description": "Join dataset besar",
+      "type": "elite",
+      "category": "data",
+      "icon": "join",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "datasets": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "source": {
+                  "type": "string"
+                },
+                "join_key": {
+                  "type": "string"
+                }
+              },
+              "required": ["id", "source", "join_key"]
+            },
+            "description": "Dataset-dataset untuk digabung"
+          },
+          "join_type": {
+            "type": "string",
+            "enum": ["inner", "left", "right", "full", "cross"],
+            "description": "Tipe join",
+            "default": "inner"
+          },
+          "join_algorithm": {
+            "type": "string",
+            "enum": ["hash_join", "merge_join", "nested_loop", "adaptive"],
+            "description": "Algoritma join",
+            "default": "adaptive"
+          }
+        },
+        "required": ["datasets"]
+      }
+    },
+    {
+      "id": "multi_node_orchestrator",
+      "name": "Multi-Node Orchestrator",
+      "description": "Orkestra 50 node paralel",
+      "type": "elite",
+      "category": "workflow",
+      "icon": "orchestrate",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "nodes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string"
+                },
+                "config": {
+                  "type": "object"
+                },
+                "dependencies": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required": ["id", "type"]
+            },
+            "description": "Node-node untuk di-orkestrasikan"
+          },
+          "max_parallelism": {
+            "type": "integer",
+            "description": "Jumlah maksimum eksekusi paralel",
+            "default": 50
+          },
+          "failure_strategy": {
+            "type": "string",
+            "enum": ["stop_all", "continue", "retry_failed"],
+            "description": "Strategi saat ada node yang gagal",
+            "default": "continue"
+          }
+        },
+        "required": ["nodes"]
+      }
+    },
+    {
+      "id": "dynamic_worker_router",
+      "name": "Dynamic Worker Router",
+      "description": "Routing worker cerdas",
+      "type": "elite",
+      "category": "system",
+      "icon": "route",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "task_definition": {
+            "type": "object",
+            "description": "Definisi tugas yang akan di-route"
+          },
+          "worker_pool": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "capabilities": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "current_load": {
+                  "type": "number"
+                }
+              }
+            },
+            "description": "Pool worker yang tersedia"
+          },
+          "routing_algorithm": {
+            "type": "string",
+            "enum": ["load_balance", "capability_match", "latency_optimized", "cost_optimized"],
+            "description": "Algoritma routing",
+            "default": "load_balance"
+          }
+        },
+        "required": ["task_definition", "worker_pool"]
+      }
+    },
+    {
+      "id": "predictive_error_guard",
+      "name": "Predictive Error Guard",
+      "description": "Prediksi error sebelum terjadi",
+      "type": "elite",
+      "category": "ai",
+      "icon": "ai",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "execution_context": {
+            "type": "object",
+            "description": "Konteks eksekusi saat ini"
+          },
+          "historical_patterns": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "context": {
+                  "type": "object"
+                },
+                "result": {
+                  "type": "string",
+                  "enum": ["success", "error"]
+                }
+              }
+            },
+            "description": "Pola historis error"
+          },
+          "prediction_threshold": {
+            "type": "number",
+            "description": "Ambang prediksi error (0-1)",
+            "default": 0.7
+          }
+        },
+        "required": ["execution_context", "historical_patterns"]
+      }
+    },
+    {
+      "id": "ai_workflow_explainer",
+      "name": "AI Workflow Explainer",
+      "description": "Jelaskan alur workflow",
+      "type": "elite",
+      "category": "ai",
+      "icon": "ai",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "workflow_definition": {
+            "type": "object",
+            "description": "Definisi workflow untuk dijelaskan"
+          },
+          "explanation_level": {
+            "type": "string",
+            "enum": ["high_level", "detailed", "technical", "business"],
+            "description": "Tingkat penjelasan",
+            "default": "detailed"
+          },
+          "target_audience": {
+            "type": "string",
+            "enum": ["developer", "business_user", "analyst", "executive"],
+            "description": "Audien target penjelasan",
+            "default": "developer"
+          }
+        },
+        "required": ["workflow_definition"]
+      }
+    },
+    {
+      "id": "config_policy_enforcer",
+      "name": "Config Policy Enforcer",
+      "description": "Policy-based config",
+      "type": "elite",
+      "category": "system",
+      "icon": "policy",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "config_object": {
+            "type": "object",
+            "description": "Objek konfigurasi untuk diterapkan kebijakan"
+          },
+          "policy_rules": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "rule_name": {
+                  "type": "string"
+                },
+                "condition": {
+                  "type": "string"
+                },
+                "action": {
+                  "type": "string",
+                  "enum": ["allow", "deny", "modify", "alert"]
+                }
+              }
+            },
+            "description": "Aturan kebijakan konfigurasi"
+          }
+        },
+        "required": ["config_object", "policy_rules"]
+      }
+    },
+    {
+      "id": "enterprise_auditor_node",
+      "name": "Enterprise Auditor Node",
+      "description": "Audit enterprise",
+      "type": "elite",
+      "category": "security",
+      "icon": "audit",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "audit_scope": {
+            "type": "string",
+            "enum": ["security", "compliance", "performance", "access", "data"],
+            "description": "Cakupan audit",
+            "default": "security"
+          },
+          "audit_targets": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Target auditan"
+          },
+          "compliance_standard": {
+            "type": "string",
+            "enum": ["sox", "hipaa", "gdpr", "pci_dss", "iso_27001"],
+            "description": "Standar kepatuhan"
+          }
+        },
+        "required": ["audit_scope", "audit_targets"]
+      }
+    },
+    {
+      "id": "zero_downtime_deploy_node",
+      "name": "Zero Downtime Deploy Node",
+      "description": "Deploy tanpa downtime",
+      "type": "elite",
+      "category": "deployment",
+      "icon": "deploy",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "deployment_strategy": {
+            "type": "string",
+            "enum": ["blue_green", "canary", "rolling", "a_b"],
+            "description": "Strategi deployment",
+            "default": "blue_green"
+          },
+          "services": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "version": {
+                  "type": "string"
+                },
+                "replicas": {
+                  "type": "integer"
+                }
+              }
+            },
+            "description": "Layanan-layanan untuk dideploy"
+          },
+          "health_check_url": {
+            "type": "string",
+            "description": "URL untuk health check",
+            "format": "uri"
+          }
+        },
+        "required": ["deployment_strategy", "services"]
+      }
+    },
+    {
+      "id": "model_performance_tracker",
+      "name": "Model Performance Tracker",
+      "description": "Track model ML",
+      "type": "elite",
+      "category": "ai",
+      "icon": "ai",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "model_id": {
+            "type": "string",
+            "description": "ID model untuk ditrack"
+          },
+          "metrics": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["accuracy", "precision", "recall", "f1", "latency", "throughput", "drift"]
+            },
+            "description": "Metrik-metrik untuk ditrack",
+            "default": ["accuracy", "latency"]
+          },
+          "tracking_period": {
+            "type": "string",
+            "enum": ["hourly", "daily", "weekly", "monthly"],
+            "description": "Periode tracking",
+            "default": "daily"
+          }
+        },
+        "required": ["model_id", "metrics"]
+      }
+    },
+    {
+      "id": "large_file_splitter",
+      "name": "Large File Splitter",
+      "description": "Split file > 10GB",
+      "type": "elite",
+      "category": "file",
+      "icon": "split",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "file_path": {
+            "type": "string",
+            "description": "Path file besar untuk displit"
+          },
+          "chunk_size": {
+            "type": "integer",
+            "description": "Ukuran chunk dalam bytes",
+            "default": 1073741824
+          },
+          "output_directory": {
+            "type": "string",
+            "description": "Direktori output untuk potongan file"
+          },
+          "compression": {
+            "type": "boolean",
+            "description": "Kompresi potongan file",
+            "default": false
+          }
+        },
+        "required": ["file_path", "chunk_size", "output_directory"]
+      }
+    },
+    {
+      "id": "large_file_merger",
+      "name": "Large File Merger",
+      "description": "Gabung file besar",
+      "type": "elite",
+      "category": "file",
+      "icon": "merge",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "chunk_files": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Path file-file chunk untuk digabung"
+          },
+          "output_path": {
+            "type": "string",
+            "description": "Path output file hasil penggabungan"
+          },
+          "decompression": {
+            "type": "boolean",
+            "description": "Dekompresi potongan file jika dikompresi",
+            "default": false
+          }
+        },
+        "required": ["chunk_files", "output_path"]
+      }
+    },
+    {
+      "id": "multi_api_sync_node",
+      "name": "Multi API Sync Node",
+      "description": "Sinkron 10 API sekaligus",
+      "type": "elite",
+      "category": "sync",
+      "icon": "sync",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "api_configs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "url": {
+                  "type": "string",
+                  "format": "uri"
+                },
+                "method": {
+                  "type": "string",
+                  "enum": ["GET", "POST", "PUT", "PATCH", "DELETE"]
+                },
+                "headers": {
+                  "type": "object"
+                },
+                "sync_interval": {
+                  "type": "number",
+                  "description": "Interval sinkron dalam detik"
+                }
+              },
+              "required": ["id", "url"]
+            },
+            "description": "Konfigurasi API-API untuk disinkronkan"
+          },
+          "sync_mode": {
+            "type": "string",
+            "enum": ["push", "pull", "bidirectional"],
+            "description": "Mode sinkronisasi",
+            "default": "pull"
+          }
+        },
+        "required": ["api_configs"]
+      }
+    },
+    {
+      "id": "workflow_blueprint_exporter",
+      "name": "Workflow Blueprint Exporter",
+      "description": "Ekspor blueprint",
+      "type": "elite",
+      "category": "workflow",
+      "icon": "export",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "workflow_id": {
+            "type": "string",
+            "description": "ID workflow untuk diekspor"
+          },
+          "export_format": {
+            "type": "string",
+            "enum": ["json", "yaml", "graphml", "dot", "mermaid", "terraform"],
+            "description": "Format ekspor",
+            "default": "json"
+          },
+          "include_dependencies": {
+            "type": "boolean",
+            "description": "Sertakan dependensi",
+            "default": true
+          },
+          "version": {
+            "type": "string",
+            "description": "Versi blueprint"
+          }
+        },
+        "required": ["workflow_id", "export_format"]
+      }
+    },
+    {
+      "id": "ai_full_automation_node",
+      "name": "AI Full Automation Node",
+      "description": "AI menjalankan workflow full otomatis",
+      "type": "elite",
+      "category": "ai",
+      "icon": "ai",
+      "settings_schema": {
+        "type": "object",
+        "properties": {
+          "task_description": {
+            "type": "string",
+            "description": "Deskripsi tugas untuk diotomasi"
+          },
+          "available_nodes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Node-node yang tersedia untuk digunakan"
+          },
+          "constraints": {
+            "type": "object",
+            "description": "Kendala atau batasan otomasi"
+          },
+          "success_criteria": {
+            "type": "object",
+            "description": "Kriteria keberhasilan otomasi"
+          }
+        },
+        "required": ["task_description"]
+      }
+    }
+  ]
+}
