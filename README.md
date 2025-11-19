@@ -1,6 +1,6 @@
 # Citadel Agent - Automation Workflow Platform
 
-Citadel Agent adalah platform automation workflow enterprise-grade yang dirancang untuk menangani sistem kompleks seperti n8n. Platform ini dirancang dengan backend Go, frontend React, dan dukungan plugin untuk ekstensibilitas maksimal.
+Citadel Agent adalah platform automation workflow enterprise-grade yang dirancang untuk menangani sistem kompleks . Platform ini dirancang dengan backend Go, frontend React, dan dukungan plugin untuk ekstensibilitas maksimal.
 
 ## 🏗️ Arsitektur
 
