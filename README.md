@@ -1,152 +1,77 @@
-# Citadel Agent - Automation Workflow Platform
+# @citadel-agent/cli
 
-Citadel Agent adalah platform automation workflow enterprise-grade yang dirancang untuk menangani sistem kompleks seperti n8n. Platform ini dirancang dengan backend Go, frontend React, dan dukungan plugin untuk ekstensibilitas maksimal.
+Citadel Agent - Enterprise Workflow Automation Platform CLI
 
-## 🏗️ Arsitektur
+Citadel Agent is a powerful workflow automation platform designed to handle complex systems with 200+ built-in nodes, enterprise security, and cloud-native scalability. It's built as a more modern, faster, and lighter alternative to n8n.
 
-### Backend (Go)
-- **API Layer**: Fiber/Gin web framework
-- **Worker Executor**: Eksekusi workflow dan task
-- **Scheduler**: Penjadwalan cron, interval, dan trigger
-- **Core Engine**: Workflow execution engine
-- **Plugin Runtime**: Node.js plugin system
+## Installation
 
-### Frontend (React + TypeScript)
-- **React Flow**: Canvas drag-and-drop untuk workflow
-- **Zustand**: State management
-- **TypeScript**: Type safety
+To install Citadel Agent globally:
 
-### Database & Caching
-- **PostgreSQL**: Penyimpanan data utama
-- **Redis**: Session dan caching
-
-### Deployment
-- **Docker**: Containerisasi
-- **Docker Compose**: Multi-service orchestration
-
-## 📁 Struktur Project
-
-```
-/automation-platform
-│
-├── backend/
-│   ├── cmd/
-│   │   ├── api/                   # main API server
-│   │   ├── worker/                # workflow executor worker
-│   │   └── scheduler/             # scheduler (cron, interval, trigger)
-│   │
-│   ├── internal/
-│   │   ├── config/                # environment, config loader
-│   │   ├── database/              # PostgreSQL & Redis connections
-│   │   ├── models/                # struct models (Workflow, Node, User, etc.)
-│   │   ├── repositories/          # database CRUD logic
-│   │   ├── services/              # business logic
-│   │   ├── engine/                # CORE WORKFLOW ENGINE
-│   │   ├── plugins/               # Plugin loader and sandbox
-│   │   ├── api/                   # API controllers and routes
-│   │   ├── utils/                 # utility functions
-│   │   └── auth/                  # authentication & authorization
-│   │
-│   └── go.mod
-│
-├── frontend/
-│   ├── src/
-│   │   ├── components/
-│   │   │   ├── WorkflowCanvas/    # React Flow components
-│   │   │   ├── Sidebar/
-│   │   │   ├── Inspector/
-│   │   │   └── Dashboard/
-│   │   ├── pages/
-│   │   ├── hooks/
-│   │   ├── store/
-│   │   ├── services/
-│   │   ├── utils/
-│   │   └── types/
-│   │
-│   └── package.json
-│
-├── plugins/                       # marketplace plugin user
-│   ├── js/
-│   └── python/
-│
-├── docker/
-│   ├── api.Dockerfile
-│   ├── worker.Dockerfile
-│   ├── frontend.Dockerfile
-│   └── docker-compose.yml
-│
-└── scripts/
-    ├── start.sh
-    ├── migrate.sh
-    └── seed.sh
-```
-
-## 🚀 Cara Menjalankan
-
-### Development
 ```bash
-# Jalankan semua service dengan docker-compose
-docker-compose -f docker/docker-compose.yml up --build
+npm install -g @citadel-agent/cli
 ```
 
-### Development Manual
+## Quick Start
+
+1. Install Citadel Agent:
 ```bash
-# Setup database
-./scripts/migrate.sh
-
-# Jalankan API server
-cd backend && go run cmd/api/main.go
-
-# Jalankan worker
-cd backend && go run cmd/worker/main.go
-
-# Jalankan frontend
-cd frontend && npm start
+citadel install
 ```
 
-## 🛠️ Teknologi yang Digunakan
+2. Start the services:
+```bash
+citadel start
+```
 
-### Backend
-- **Go**: Bahasa utama untuk performa tinggi
-- **Fiber**: Web framework cepat
-- **GORM**: ORM untuk database
-- **Redis**: Caching dan session
-- **PostgreSQL**: Database relasional
+3. Access the platform:
+- API: http://localhost:5001
+- UI: http://localhost:3000 (when available)
 
-### Frontend
-- **React**: UI library
-- **TypeScript**: Type safety
-- **React Flow**: Workflow canvas
-- **Zustand**: State management
-- **Axios**: HTTP client
+4. Stop the services:
+```bash
+citadel stop
+```
 
-### Deployment
-- **Docker**: Containerisasi
-- **Docker Compose**: Orkestrasi multi-container
+## Commands
 
-## 🧩 Plugin System
+- `citadel install` - Install Citadel Agent locally
+- `citadel start` - Start Citadel Agent services
+- `citadel stop` - Stop Citadel Agent services
+- `citadel status` - Check status of services
+- `citadel reset` - Reset all data (⚠️ irreversible)
+- `citadel version` - Show version information
 
-Platform ini mendukung plugin untuk ekstensibilitas:
+## Requirements
 
-- **JavaScript Plugin**: Di sandbox untuk keamanan
-- **Python Plugin**: Untuk AI/ML tasks
+- Node.js v16 or higher
+- Docker
+- Docker Compose
 
-## 🔐 Keamanan
+## Features
 
-- **JWT Authentication**: Untuk session management
-- **RBAC**: Role-based access control
-- **Sandboxed Plugins**: Untuk keamanan plugin
+- 🏗️ **Foundation Engine**: Robust workflow execution with dependency resolution
+- 🔐 **Enterprise Security**: Node sandboxing, SSRF protection, RBAC
+- ⚡ **High Performance**: Optimized for speed and scalability
+- 🧩 **Extensible Nodes**: 200+ built-in nodes with plugin system
+- 🌐 **Real-time Updates**: WebSocket support for live workflow monitoring
+- 📊 **Monitoring**: Built-in metrics and observability
 
-## 📊 Fitur Utama
+## Architecture
 
-- Workflow designer drag-and-drop
-- Node scheduling (cron, interval)
-- Real-time execution monitoring
-- Plugin marketplace
-- Multi-tenant support
-- Audit logging
-- REST API dan WebSocket
+Citadel Agent follows a microservices architecture:
+- **API Service**: Handles REST API requests and workflow management
+- **Worker Service**: Executes workflow nodes in isolated environments
+- **Scheduler Service**: Manages scheduled workflows and triggers
 
-## 🤝 Kontribusi
+## Documentation
 
-Lihat `CONTRIBUTING.md` untuk panduan berkontribusi.
+For full documentation, visit [Citadel Agent Documentation](https://citadel-agent.com/docs)
+
+## Contributing
+
+We welcome contributions! Please see our [contributing guide](CONTRIBUTING.md) for more details.
+
+## License
+
+Apache 2.0 - see the [LICENSE](LICENSE) file for details.

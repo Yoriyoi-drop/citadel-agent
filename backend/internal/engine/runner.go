@@ -2,9 +2,7 @@ package engine
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/google/uuid"
@@ -90,22 +88,51 @@ func (r *Runner) RunWorkflow(ctx context.Context, workflow *Workflow, variables 
 
 // executeWorkflow executes the workflow logic
 func (r *Runner) executeWorkflow(ctx context.Context, workflow *Workflow, execution *Execution) error {
-	// Build a dependency graph from nodes and edges
+	// Create a dependency resolver for this workflow
+	depResolver := NewDependencyResolver(workflow.Nodes, workflow.Edges)
+
+	// Validate the workflow for cycles and other issues
+	if err := depResolver.ValidateWorkflow(); err != nil {
+		return fmt.Errorf("workflow validation failed: %w", err)
+	}
+
+	// Resolve execution order using topological sort
+	executionOrder, err := depResolver.ResolveExecutionOrder()
+	if err != nil {
+		return fmt.Errorf("could not resolve execution order: %w", err)
+	}
+
+	// Execute nodes in the resolved order
+	executedNodes := make(map[string]bool)
 	nodeMap := make(map[string]*Node)
 	for i := range workflow.Nodes {
 		node := &workflow.Nodes[i]
 		nodeMap[node.ID] = node
 	}
 
-	// Find start nodes (nodes with no incoming edges)
-	startNodes := r.findStartNodes(workflow)
-	
-	// Execute the workflow starting from start nodes
-	for _, startNode := range startNodes {
-		err := r.executeNodeRecursive(ctx, workflow, execution, startNode, nodeMap)
+	for _, nodeID := range executionOrder {
+		node := nodeMap[nodeID]
+
+		// Check if this node can be executed (all dependencies satisfied)
+		canExecute, err := depResolver.CanExecute(nodeID, executedNodes)
 		if err != nil {
-			return err
+			return fmt.Errorf("could not check execution eligibility for node %s: %w", nodeID, err)
 		}
+
+		if !canExecute {
+			// This should not happen if topological sort worked correctly,
+			// but we check as a safety measure
+			continue
+		}
+
+		// Execute the node
+		err = r.executeNode(ctx, workflow, execution, node, nodeMap)
+		if err != nil {
+			return fmt.Errorf("failed to execute node %s: %w", nodeID, err)
+		}
+
+		// Mark this node as executed
+		executedNodes[nodeID] = true
 	}
 
 	return nil
@@ -130,8 +157,8 @@ func (r *Runner) findStartNodes(workflow *Workflow) []*Node {
 	return startNodes
 }
 
-// executeNodeRecursive executes a node and its dependents
-func (r *Runner) executeNodeRecursive(ctx context.Context, workflow *Workflow, execution *Execution, node *Node, nodeMap map[string]*Node) error {
+// executeNode executes a single node
+func (r *Runner) executeNode(ctx context.Context, workflow *Workflow, execution *Execution, node *Node, nodeMap map[string]*Node) error {
 	// Prepare input data for the node
 	inputData, err := r.prepareNodeInput(node, execution)
 	if err != nil {
@@ -153,18 +180,6 @@ func (r *Runner) executeNodeRecursive(ctx context.Context, workflow *Workflow, e
 	// Check if execution failed
 	if result.Status == "error" {
 		return fmt.Errorf("node %s failed: %s", node.ID, result.Error)
-	}
-
-	// Find dependent nodes (nodes that depend on this node)
-	dependentNodes := r.findDependentNodes(node.ID, workflow.Edges)
-	
-	// Execute dependent nodes
-	for _, dependentNode := range dependentNodes {
-		depNode := nodeMap[dependentNode]
-		err := r.executeNodeRecursive(ctx, workflow, execution, depNode, nodeMap)
-		if err != nil {
-			return err
-		}
 	}
 
 	return nil
@@ -199,15 +214,4 @@ func (r *Runner) prepareNodeInput(node *Node, execution *Execution) (map[string]
 	}
 
 	return inputData, nil
-}
-
-// findDependentNodes finds nodes that depend on the current node
-func (r *Runner) findDependentNodes(nodeID string, edges []Edge) []string {
-	var dependentNodes []string
-	for _, edge := range edges {
-		if edge.Source == nodeID {
-			dependentNodes = append(dependentNodes, edge.Target)
-		}
-	}
-	return dependentNodes
 }

@@ -1,13 +1,16 @@
 package nodes
 
 import (
+	"bytes"
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"path/filepath"
-	"reflect"
-	"sync"
+	"io"
+	"net/http"
+	"net/url"
+	"strings"
+	"time"
 
 	"citadel-agent/backend/internal/engine"
 )
@@ -283,6 +286,45 @@ func (nr *NodeRegistry) registerBuiltInNodes() {
 		Icon:        "json",
 	})
 
+	// Enhanced HTTP Request Node
+	httpNode := &HTTPRequestNode{}
+	nr.RegisterNode("http_request_enhanced", httpNode, &NodeDefinition{
+		ID:          "http_request_enhanced",
+		Name:        "Enhanced HTTP Request",
+		Description: "HTTP client dengan keamanan dan response handling",
+		Type:        Basic,
+		Category:    HTTP,
+		Icon:        "http",
+		SettingsSchema: map[string]interface{}{
+			"type": "object",
+			"properties": map[string]interface{}{
+				"url": map[string]interface{}{
+					"type":        "string",
+					"description": "Target URL untuk permintaan",
+					"format":      "uri",
+				},
+				"method": map[string]interface{}{
+					"type":        "string",
+					"description": "Metode HTTP (GET, POST, PUT, DELETE, dll)",
+					"enum":        []string{"GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"},
+					"default":     "GET",
+				},
+				"headers": map[string]interface{}{
+					"type":        "object",
+					"description": "Header permintaan",
+					"additionalProperties": map[string]interface{}{
+						"type": "string",
+					},
+				},
+				"body": map[string]interface{}{
+					"type":        "object",
+					"description": "Body permintaan (untuk POST, PUT, PATCH)",
+				},
+			},
+			"required": []string{"url"},
+		},
+	})
+
 	// Add more node registrations as needed
 }
 
@@ -456,4 +498,197 @@ func (nr *NodeRegistry) GetNodesByCategory(category NodeCategory) []*NodeDefinit
 func (nr *NodeRegistry) IsNodeRegistered(nodeID string) bool {
 	_, exists := nr.GetNodeExecutor(nodeID)
 	return exists
+}
+
+// HTTPRequestNode represents an advanced HTTP request node
+type HTTPRequestNode struct {
+	client *http.Client
+}
+
+// NewHTTPRequestNode creates a new HTTP request node
+func NewHTTPRequestNode() *HTTPRequestNode {
+	// Create HTTP client with reasonable defaults
+	client := &http.Client{
+		Timeout: 30 * time.Second,
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: false}, // Secure by default
+			MaxIdleConns:        100,
+			MaxIdleConnsPerHost: 10,
+			IdleConnTimeout:     30 * time.Second,
+		},
+	}
+
+	return &HTTPRequestNode{
+		client: client,
+	}
+}
+
+// Execute implements the NodeExecutor interface for HTTPRequestNode
+func (h *HTTPRequestNode) Execute(ctx context.Context, input map[string]interface{}) (*engine.ExecutionResult, error) {
+	if h.client == nil {
+		h.client = &http.Client{
+			Timeout: 30 * time.Second,
+			Transport: &http.Transport{
+				TLSClientConfig: &tls.Config{InsecureSkipVerify: false},
+				MaxIdleConns:        100,
+				MaxIdleConnsPerHost: 10,
+				IdleConnTimeout:     30 * time.Second,
+			},
+		}
+	}
+
+	// Extract parameters from input
+	method, _ := input["method"].(string)
+	if method == "" {
+		method = "GET" // Default method
+	}
+	method = strings.ToUpper(method)
+
+	urlStr, ok := input["url"].(string)
+	if !ok || urlStr == "" {
+		return &engine.ExecutionResult{
+			Status:    "error",
+			Error:     "URL is required for HTTP request node",
+			Timestamp: time.Now(),
+		}, nil
+	}
+
+	// Validate URL
+	parsedURL, err := url.Parse(urlStr)
+	if err != nil {
+		return &engine.ExecutionResult{
+			Status:    "error",
+			Error:     fmt.Sprintf("Invalid URL format: %v", err),
+			Timestamp: time.Now(),
+		}, nil
+	}
+
+	if parsedURL.Scheme != "http" && parsedURL.Scheme != "https" {
+		return &engine.ExecutionResult{
+			Status:    "error",
+			Error:     "URL scheme must be http or https",
+			Timestamp: time.Now(),
+		}, nil
+	}
+
+	// Extract headers
+	headers, ok := input["headers"].(map[string]interface{})
+	if !ok {
+		headers = make(map[string]interface{})
+	}
+
+	// Extract body data
+	bodyData, ok := input["body"]
+	var body io.Reader
+
+	if bodyData != nil && method != "GET" && method != "HEAD" {
+		// Convert body to JSON string or use as raw string
+		switch v := bodyData.(type) {
+		case string:
+			body = strings.NewReader(v)
+		case map[string]interface{}:
+			jsonBytes, err := json.Marshal(v)
+			if err != nil {
+				return &engine.ExecutionResult{
+					Status:    "error",
+					Error:     fmt.Sprintf("Failed to marshal body to JSON: %v", err),
+					Timestamp: time.Now(),
+				}, nil
+			}
+			body = bytes.NewReader(jsonBytes)
+		default:
+			// Try to convert to string
+			bodyStr := fmt.Sprintf("%v", v)
+			body = strings.NewReader(bodyStr)
+		}
+	}
+
+	// Create HTTP request
+	req, err := http.NewRequestWithContext(ctx, method, urlStr, body)
+	if err != nil {
+		return &engine.ExecutionResult{
+			Status:    "error",
+			Error:     fmt.Sprintf("Failed to create request: %v", err),
+			Timestamp: time.Now(),
+		}, nil
+	}
+
+	// Set headers
+	for key, value := range headers {
+		headerValue := fmt.Sprintf("%v", value)
+		req.Header.Set(key, headerValue)
+	}
+
+	// Set default Content-Type if body exists and Content-Type not provided
+	if bodyData != nil && req.Header.Get("Content-Type") == "" && method != "GET" && method != "HEAD" {
+		req.Header.Set("Content-Type", "application/json")
+	}
+
+	// Set User-Agent if not provided
+	if req.Header.Get("User-Agent") == "" {
+		req.Header.Set("User-Agent", "Citadel-Agent/1.0")
+	}
+
+	// Make the request
+	startTime := time.Now()
+	resp, err := h.client.Do(req)
+	duration := time.Since(startTime)
+
+	if err != nil {
+		return &engine.ExecutionResult{
+			Status:    "error",
+			Error:     fmt.Sprintf("Request failed: %v", err),
+			Timestamp: time.Now(),
+		}, nil
+	}
+	defer resp.Body.Close()
+
+	// Read response body
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return &engine.ExecutionResult{
+			Status:    "error",
+			Error:     fmt.Sprintf("Failed to read response body: %v", err),
+			Timestamp: time.Now(),
+		}, nil
+	}
+
+	// Try to parse response as JSON
+	var responseData interface{}
+	if len(respBody) > 0 {
+		if err := json.Unmarshal(respBody, &responseData); err != nil {
+			// If not JSON, return as string
+			responseData = string(respBody)
+		}
+	} else {
+		responseData = nil
+	}
+
+	// Collect response headers
+	responseHeaders := make(map[string]interface{})
+	for key, values := range resp.Header {
+		if len(values) == 1 {
+			responseHeaders[key] = values[0]
+		} else {
+			responseHeaders[key] = values
+		}
+	}
+
+	// Create result
+	resultData := map[string]interface{}{
+		"status_code":      resp.StatusCode,
+		"status":           resp.Status,
+		"headers":          responseHeaders,
+		"body":             responseData,
+		"content_length":   len(respBody),
+		"response_time_ms": duration.Milliseconds(),
+		"url":              urlStr,
+		"method":           method,
+	}
+
+	return &engine.ExecutionResult{
+		Status:    "success",
+		Data:      resultData,
+		Timestamp: time.Now(),
+	}, nil
 }

@@ -2,12 +2,8 @@ package engine
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"log"
 	"time"
-
-	"github.com/gofiber/websocket/v1"
 )
 
 // ExecutionResult represents the result of a node execution
@@ -27,7 +23,6 @@ type NodeExecutor interface {
 // Executor manages the execution of workflow nodes
 type Executor struct {
 	nodeExecutors map[string]NodeExecutor
-	webSocketConn *websocket.Conn
 }
 
 // NewExecutor creates a new instance of Executor
@@ -65,22 +60,9 @@ func (e *Executor) ExecuteNode(ctx context.Context, nodeType string, input map[s
 	return result, nil
 }
 
-// SetWebSocketConn sets the WebSocket connection for real-time updates
-func (e *Executor) SetWebSocketConn(conn *websocket.Conn) {
-	e.webSocketConn = conn
-}
-
-// SendUpdate sends execution updates via WebSocket if available
+// SendUpdate sends execution updates (placeholder - in real implementation this could use websockets, events, etc.)
 func (e *Executor) SendUpdate(result *ExecutionResult) {
-	if e.webSocketConn != nil {
-		data, err := json.Marshal(result)
-		if err != nil {
-			log.Printf("Error marshaling execution result: %v", err)
-			return
-		}
-		
-		if err := e.webSocketConn.WriteMessage(websocket.TextMessage, data); err != nil {
-			log.Printf("Error sending WebSocket update: %v", err)
-		}
-	}
+	// In a real implementation, this would send the update to interested parties
+	// For example, via WebSocket, event bus, or other real-time notification system
+	_ = result // Use the result in a real implementation
 }

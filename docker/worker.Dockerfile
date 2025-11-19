@@ -1,15 +1,41 @@
-# Dockerfile for Worker service
+# Use the official Golang image to create a build artifact
 FROM golang:1.22-alpine AS builder
 
+# Set destination for the binary
 WORKDIR /app
+
+# Copy go mod files
 COPY backend/go.mod backend/go.sum ./
+
+# Download dependencies
 RUN go mod download
 
-COPY backend/ ./
-RUN CGO_ENABLED=0 GOOS=linux go build -o main cmd/worker/main.go
+# Copy source code
+COPY backend/ .
 
+# Build the application
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o citadel-worker cmd/worker/main.go
+
+# Start a new stage from scratch
 FROM alpine:latest
+
+# Install ca-certificates for HTTPS requests
 RUN apk --no-cache add ca-certificates
+
 WORKDIR /root/
-COPY --from=builder /app/main .
-CMD ["./main"]
+
+# Copy the binary from builder stage
+COPY --from=builder /app/citadel-worker .
+
+# Create a non-root user
+RUN addgroup -g 65532 nonroot &&\
+    adduser -D -u 65532 -G nonroot nonroot
+
+# Change ownership of the binary to non-root user
+RUN chown nonroot:nonroot ./citadel-worker
+
+# Switch to non-root user
+USER nonroot
+
+# Command to run the executable
+CMD ["./citadel-worker"]

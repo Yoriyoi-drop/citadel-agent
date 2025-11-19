@@ -2,52 +2,135 @@ version: '3.8'
 
 services:
   postgres:
-    image: postgres:15
+    image: postgres:15-alpine
+    restart: always
     environment:
-      POSTGRES_DB: citadel_agent
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ${DB_NAME:-citadel_agent}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-citadel_agent}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    command: >
+      postgres
+      -c max_connections=200
+      -c shared_buffers=256MB
+      -c effective_cache_size=1GB
+      -c maintenance_work_mem=64MB
+      -c checkpoint_completion_target=0.9
+      -c wal_buffers=16MB
+      -c default_statistics_target=100
+      -c random_page_cost=1.1
+      -c effective_io_concurrency=200
+      -c work_mem=4MB
+      -c min_wal_size=1GB
+      -c max_wal_size=4GB
+      -c max_worker_processes=2
+      -c max_parallel_workers_per_gather=1
+      -c max_parallel_workers=2
+      -c max_parallel_maintenance_workers=1
 
   redis:
     image: redis:7-alpine
+    restart: always
     ports:
       - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
 
   api:
     build:
-      dockerfile: ./docker/api.Dockerfile
-    ports:
-      - "8080:8080"
-    environment:
-      - DATABASE_URL=postgres://postgres:postgres@postgres:5432/citadel_agent
-      - REDIS_URL=redis://redis:6379
+      context: .
+      dockerfile: docker/api.Dockerfile
+    restart: always
     depends_on:
-      - postgres
-      - redis
-    command: ["./main"]
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=${DB_USER:-postgres}
+      - DB_PASSWORD=${DB_PASSWORD:-postgres}
+      - DB_NAME=${DB_NAME:-citadel_agent}
+      - REDIS_ADDR=redis:6379
+      - JWT_SECRET=${JWT_SECRET:-your-super-secret-jwt-key-here-change-in-production}
+      - SERVER_PORT=${SERVER_PORT:-5001}
+      - ENVIRONMENT=production
+    ports:
+      - "${SERVER_PORT:-5001}:5001"
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:5001/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
 
   worker:
     build:
-      dockerfile: ./docker/worker.Dockerfile
+      context: .
+      dockerfile: docker/worker.Dockerfile
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     environment:
-      - DATABASE_URL=postgres://postgres:postgres@postgres:5432/citadel_agent
-      - REDIS_URL=redis://redis:6379
-    depends_on:
-      - postgres
-      - redis
-    command: ["./main"]
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=${DB_USER:-postgres}
+      - DB_PASSWORD=${DB_PASSWORD:-postgres}
+      - DB_NAME=${DB_NAME:-citadel_agent}
+      - REDIS_ADDR=redis:6379
+      - JWT_SECRET=${JWT_SECRET:-your-super-secret-jwt-key-here-change-in-production}
+      - ENVIRONMENT=production
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -f citadel-worker || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
 
-  frontend:
+  scheduler:
     build:
-      dockerfile: ./docker/frontend.Dockerfile
-    ports:
-      - "3000:80"
+      context: .
+      dockerfile: docker/scheduler.Dockerfile
+    restart: always
     depends_on:
-      - api
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=${DB_USER:-postgres}
+      - DB_PASSWORD=${DB_PASSWORD:-postgres}
+      - DB_NAME=${DB_NAME:-citadel_agent}
+      - REDIS_ADDR=redis:6379
+      - JWT_SECRET=${JWT_SECRET:-your-super-secret-jwt-key-here-change-in-production}
+      - ENVIRONMENT=production
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -f citadel-scheduler || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
 
 volumes:
   postgres_data:
+  redis_data:

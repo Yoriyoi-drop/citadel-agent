@@ -27,7 +27,7 @@ type ExecutionContext struct {
 
 	// Context for cancellation and timeouts
 	Ctx context.Context
-	Cancel context.CancelFunc
+	cancelFunc context.CancelFunc
 
 	// Current execution state
 	State ExecutionState
@@ -54,19 +54,21 @@ func NewExecutionContext(ctx context.Context, workflow *Workflow, variables map[
 	// Create a cancellable context
 	ctx, cancel := context.WithCancel(ctx)
 
-	return &ExecutionContext{
-		ID:          uuid.New().String(),
-		Workflow:    workflow,
-		Variables:   variables,
-		StartedAt:   time.Now(),
-		Ctx:         ctx,
-		Cancel:      cancel,
-		NodeResults: make(map[string]*ExecutionResult),
+	executionContext := &ExecutionContext{
+		ID:        uuid.New().String(),
+		Workflow:  workflow,
+		Variables: variables,
+		StartedAt: time.Now(),
+		Ctx:        ctx,
+		cancelFunc: cancel,
 		State: ExecutionState{
-			NodeResults: make(map[string]*ExecutionResult),
-			TotalNodes:  len(workflow.Nodes),
+			NodeResults:    make(map[string]*ExecutionResult),
+			TotalNodes:     len(workflow.Nodes),
+			ProcessedNodes: 0,
 		},
 	}
+
+	return executionContext
 }
 
 // UpdateVariable updates a variable in the execution context
@@ -110,7 +112,7 @@ func (ec *ExecutionContext) IsCancelled() bool {
 
 // Cancel cancels the execution context
 func (ec *ExecutionContext) Cancel() {
-	ec.Cancel()
+	ec.cancelFunc()
 }
 
 // Complete marks the execution as completed
