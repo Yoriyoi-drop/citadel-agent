@@ -1,0 +1,83 @@
+# Build artifacts
+bin/
+dist/
+build/
+
+# Dependencies
+node_modules/
+vendor/
+
+# Environment specific files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Database
+*.db
+*.db-journal
+
+# Logs
+*.log
+logs/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# Temporary folders
+tmp/
+temp/
+
+# Go specific
+*.exe
+*.dll
+*.so
+*.dylib
+*.test
+*.prof
+go.sum.bak
+
+# Python specific (if any Python files exist)
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.coverage
+
+# Sensitive config files
+config.json
+secrets.json
+credentials.json
+private.key
+id_rsa
