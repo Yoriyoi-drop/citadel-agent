@@ -2,353 +2,330 @@
 package handlers
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
-	"citadel-agent/backend/internal/services"
+	"citadel-agent/backend/internal/observability"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )
 
-// MonitoringHandler handles monitoring-related HTTP requests
+// MonitoringHandler handles monitoring and observability endpoints
 type MonitoringHandler struct {
-	monitoringService *services.MonitoringService
+	monitoringService *observability.MonitoringService
 }
 
 // NewMonitoringHandler creates a new monitoring handler
-func NewMonitoringHandler(monitoringService *services.MonitoringService) *MonitoringHandler {
+func NewMonitoringHandler(monitoringService *observability.MonitoringService) *MonitoringHandler {
 	return &MonitoringHandler{
 		monitoringService: monitoringService,
 	}
 }
 
-// GetSystemMetrics returns system-level metrics
-func (mh *MonitoringHandler) GetSystemMetrics(c *fiber.Ctx) error {
-	metrics, err := mh.monitoringService.GetSystemMetrics(c.Context())
+// GetSystemHealth returns system health metrics
+func (mh *MonitoringHandler) GetSystemHealth(c *fiber.Ctx) error {
+	health, err := mh.monitoringService.GetSystemHealth(c.Context())
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{
-			"error": fmt.Sprintf("Failed to get system metrics: %v", err),
+			"error": fmt.Sprintf("Failed to get system health: %v", err),
 		})
 	}
 
 	return c.JSON(fiber.Map{
 		"success": true,
-		"metrics": metrics,
+		"data":    health,
+		"timestamp": time.Now().Unix(),
 	})
 }
 
-// GetMetrics retrieves metrics based on filters
-func (mh *MonitoringHandler) GetMetrics(c *fiber.Ctx) error {
-	name := c.Query("name")
-	service := c.Query("service")
+// GetWorkflowExecutionTimeline returns execution timeline for a workflow
+func (mh *MonitoringHandler) GetWorkflowExecutionTimeline(c *fiber.Ctx) error {
+	workflowID := c.Params("workflowId")
 	
-	startStr := c.Query("start")
-	endStr := c.Query("end")
-	
-	limitStr := c.Query("limit", "50")
-	limit, err := strconv.Atoi(limitStr)
-	if err != nil || limit <= 0 || limit > 1000 {
-		limit = 50
+	// Validate workflow ID
+	if _, err := uuid.Parse(workflowID); err != nil {
+		return c.Status(400).JSON(fiber.Map{
+			"error": "Invalid workflow ID format",
+		})
 	}
 
-	var start, end *time.Time
-	
-	if startStr != "" {
-		parsed, err := time.Parse(time.RFC3339, startStr)
-		if err == nil {
-			start = &parsed
-		}
-	}
-	
-	if endStr != "" {
-		parsed, err := time.Parse(time.RFC3339, endStr)
-		if err == nil {
-			end = &parsed
-		}
-	}
-
-	metrics, err := mh.monitoringService.GetMetrics(c.Context(), name, service, start, end, limit)
+	events, err := mh.monitoringService.GetWorkflowExecutionTimeline(c.Context(), workflowID)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{
-			"error": fmt.Sprintf("Failed to get metrics: %v", err),
+			"error": fmt.Sprintf("Failed to get workflow timeline: %v", err),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"data":    events,
+		"count":   len(events),
+		"workflow_id": workflowID,
+	})
+}
+
+// GetNodeExecutionStats returns statistics for node executions
+func (mh *MonitoringHandler) GetNodeExecutionStats(c *fiber.Ctx) error {
+	nodeType := c.Params("nodeType")
+	workflowID := c.Params("workflowId")
+	
+	stats, err := mh.monitoringService.GetNodeExecutionStats(c.Context(), nodeType, workflowID)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{
+			"error": fmt.Sprintf("Failed to get node stats: %v", err),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"data":    stats,
+		"node_type": nodeType,
+		"workflow_id": workflowID,
+	})
+}
+
+// GetTenantActivity returns activity metrics for a tenant
+func (mh *MonitoringHandler) GetTenantActivity(c *fiber.Ctx) error {
+	tenantID := c.Params("tenantId")
+	daysParam := c.Query("days", "7")
+	
+	// Validate tenant ID
+	if _, err := uuid.Parse(tenantID); err != nil {
+		return c.Status(400).JSON(fiber.Map{
+			"error": "Invalid tenant ID format",
+		})
+	}
+
+	days, err := strconv.Atoi(daysParam)
+	if err != nil || days <= 0 {
+		days = 7 // Default to 7 days
+	}
+
+	activity, err := mh.monitoringService.GetTenantActivity(c.Context(), tenantID, days)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{
+			"error": fmt.Sprintf("Failed to get tenant activity: %v", err),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"data":    activity,
+		"tenant_id": tenantID,
+		"days":    days,
+	})
+}
+
+// GetPerformanceMetrics returns performance metrics for specific components
+func (mh *MonitoringHandler) GetPerformanceMetrics(c *fiber.Ctx) error {
+	component := c.Params("component")
+	period := c.Query("period", "24h")
+	
+	metrics, err := mh.monitoringService.GetPerformanceMetrics(c.Context(), component, period)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{
+			"error": fmt.Sprintf("Failed to get performance metrics: %v", err),
 		})
 	}
 
 	return c.JSON(fiber.Map{
 		"success": true,
 		"data":    metrics,
-		"count":   len(metrics),
+		"component": component,
+		"period": period,
 	})
 }
 
-// RecordMetric records a new metric
-func (mh *MonitoringHandler) RecordMetric(c *fiber.Ctx) error {
-	var req struct {
-		Name   string                 `json:"name"`
-		Value  float64                `json:"value"`
-		Labels map[string]string      `json:"labels"`
-		Tags   []string               `json:"tags"`
+// GetErrorRate returns error rate for a specific period
+func (mh *MonitoringHandler) GetErrorRate(c *fiber.Ctx) error {
+	service := c.Params("service")
+	resource := c.Query("resource", "*")
+	hoursParam := c.Query("hours", "24")
+	
+	hours, err := strconv.Atoi(hoursParam)
+	if err != nil || hours <= 0 {
+		hours = 24
 	}
 
-	if err := c.BodyParser(&req); err != nil {
-		return c.Status(400).JSON(fiber.Map{
-			"error": "Invalid request body",
-		})
-	}
-
-	if req.Name == "" {
-		return c.Status(400).JSON(fiber.Map{
-			"error": "Metric name is required",
-		})
-	}
-
-	err := mh.monitoringService.RecordMetric(c.Context(), req.Name, req.Value, req.Labels, req.Tags)
+	rate, err := mh.monitoringService.GetErrorRate(c.Context(), service, resource, hours)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{
-			"error": fmt.Sprintf("Failed to record metric: %v", err),
+			"error": fmt.Sprintf("Failed to get error rate: %v", err),
 		})
 	}
 
 	return c.JSON(fiber.Map{
 		"success": true,
-		"message": "Metric recorded successfully",
+		"error_rate": rate,
+		"service": service,
+		"resource": resource,
+		"hours": hours,
 	})
 }
 
-// GetAlerts retrieves alerts based on filters
-func (mh *MonitoringHandler) GetAlerts(c *fiber.Ctx) error {
-	statusStr := c.Query("status")
-	severityStr := c.Query("severity")
+// GetRecentEvents returns recent system events
+func (mh *MonitoringHandler) GetRecentEvents(c *fiber.Ctx) error {
+	eventType := c.Query("type", "*")
+	limitParam := c.Query("limit", "50")
+	offsetParam := c.Query("offset", "0")
 	
-	limitStr := c.Query("limit", "50")
-	limit, err := strconv.Atoi(limitStr)
+	limit, err := strconv.Atoi(limitParam)
 	if err != nil || limit <= 0 || limit > 1000 {
 		limit = 50
 	}
-
-	var status *services.AlertStatus
-	if statusStr != "" {
-		s := services.AlertStatus(statusStr)
-		status = &s
+	
+	offset, err := strconv.Atoi(offsetParam)
+	if err != nil || offset < 0 {
+		offset = 0
 	}
-
-	var severity *services.AlertSeverity
-	if severityStr != "" {
-		s := services.AlertSeverity(severityStr)
-		severity = &s
-	}
-
-	alerts, err := mh.monitoringService.GetAlerts(c.Context(), status, severity, limit)
-	if err != nil {
-		return c.Status(500).JSON(fiber.Map{
-			"error": fmt.Sprintf("Failed to get alerts: %v", err),
-		})
-	}
-
+	
+	// In a real implementation, we would query recent events from the monitoring service
+	// For now, we'll return an empty list
+	
+	events := make([]*observability.Event, 0)
+	
 	return c.JSON(fiber.Map{
 		"success": true,
-		"data":    alerts,
-		"count":   len(alerts),
+		"data":    events,
+		"count":   len(events),
+		"limit":   limit,
+		"offset":  offset,
+		"type":    eventType,
 	})
 }
 
-// CreateAlert creates a new alert
-func (mh *MonitoringHandler) CreateAlert(c *fiber.Ctx) error {
+// SearchEvents searches for events based on criteria
+func (mh *MonitoringHandler) SearchEvents(c *fiber.Ctx) error {
 	var req struct {
-		Name        string            `json:"name"`
-		Severity    string            `json:"severity"`
-		Message     string            `json:"message"`
-		Labels      map[string]string `json:"labels"`
-		Annotations map[string]string `json:"annotations"`
-		Condition   string            `json:"condition"`
-		Threshold   *float64          `json:"threshold"`
+		Query     string `json:"query"`
+		Type      string `json:"type"`
+		Service   string `json:"service"`
+		TenantID  string `json:"tenant_id"`
+		UserID    string `json:"user_id"`
+		Resource  string `json:"resource"`
+		Action    string `json:"action"`
+		Status    string `json:"status"`
+		StartDate string `json:"start_date"`
+		EndDate   string `json:"end_date"`
+		Limit     int    `json:"limit"`
+		Offset    int    `json:"offset"`
 	}
-
+	
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(400).JSON(fiber.Map{
 			"error": "Invalid request body",
 		})
 	}
-
-	if req.Name == "" || req.Condition == "" {
-		return c.Status(400).JSON(fiber.Map{
-			"error": "Alert name and condition are required",
-		})
+	
+	if req.Limit <= 0 || req.Limit > 1000 {
+		req.Limit = 50
 	}
-
-	alert := &services.Alert{
-		Name:        req.Name,
-		Severity:    services.AlertSeverity(req.Severity),
-		Message:     req.Message,
-		Labels:      req.Labels,
-		Annotations: req.Annotations,
-		Condition:   req.Condition,
-		Threshold:   req.Threshold,
+	
+	if req.Offset < 0 {
+		req.Offset = 0
 	}
-
-	createdAlert, err := mh.monitoringService.CreateAlert(c.Context(), alert)
-	if err != nil {
-		return c.Status(500).JSON(fiber.Map{
-			"error": fmt.Sprintf("Failed to create alert: %v", err),
-		})
-	}
-
+	
+	// In a real implementation, we would search for events based on criteria
+	// For now, we'll return an empty list
+	
+	events := make([]*observability.Event, 0)
+	
 	return c.JSON(fiber.Map{
 		"success": true,
-		"data":    createdAlert,
+		"data":    events,
+		"count":   len(events),
+		"limit":   req.Limit,
+		"offset":  req.Offset,
+		"query":   req.Query,
 	})
 }
 
-// ResolveAlert resolves an active alert
-func (mh *MonitoringHandler) ResolveAlert(c *fiber.Ctx) error {
-	alertID := c.Params("alertId")
+// GetMetricsDashboard returns aggregated metrics for dashboard
+func (mh *MonitoringHandler) GetMetricsDashboard(c *fiber.Ctx) error {
+	period := c.Query("period", "24h")
+	granularity := c.Query("granularity", "hour")
 	
-	// Validate UUID format
-	if _, err := uuid.Parse(alertID); err != nil {
-		return c.Status(400).JSON(fiber.Map{
-			"error": "Invalid alert ID format",
-		})
+	// Validate period
+	allowedPeriods := map[string]bool{
+		"1h":  true,
+		"6h":  true,
+		"12h": true,
+		"24h": true,
+		"7d":  true,
+		"30d": true,
 	}
-
-	err := mh.monitoringService.ResolveAlert(c.Context(), alertID)
-	if err != nil {
-		return c.Status(500).JSON(fiber.Map{
-			"error": fmt.Sprintf("Failed to resolve alert: %v", err),
-		})
+	
+	if !allowedPeriods[period] {
+		period = "24h"
 	}
-
+	
+	// Validate granularity
+	allowedGranularities := map[string]bool{
+		"minute": true,
+		"hour":   true,
+		"day":    true,
+	}
+	
+	if !allowedGranularities[granularity] {
+		granularity = "hour"
+	}
+	
+	// Get dashboard metrics
+	metrics := map[string]interface{}{
+		"period":      period,
+		"granularity": granularity,
+		"timestamp":   time.Now().Unix(),
+		"summary": map[string]interface{}{
+			"total_requests":       0,
+			"successful_requests":  0,
+			"failed_requests":      0,
+			"total_workflows":      0,
+			"successful_workflows": 0,
+			"failed_workflows":     0,
+			"active_tenants":       0,
+			"active_users":         0,
+			"total_nodes":          0,
+			"error_rate":           0.0,
+			"avg_response_time":    0.0,
+		},
+		"trend_data": map[string]interface{}{},
+		"top_items": map[string]interface{}{
+			"slowest_endpoints": []string{},
+			"highest_error_rates": []string{},
+			"most_used_workflows": []string{},
+		},
+		"alerts": map[string]interface{}{
+			"critical_count": 0,
+			"warning_count":  0,
+			"info_count":     0,
+		},
+	}
+	
 	return c.JSON(fiber.Map{
 		"success": true,
-		"message": "Alert resolved successfully",
-	})
-}
-
-// GetLogEntries retrieves log entries based on filters
-func (mh *MonitoringHandler) GetLogEntries(c *fiber.Ctx) error {
-	level := c.Query("level")
-	service := c.Query("service")
-	
-	startStr := c.Query("start")
-	endStr := c.Query("end")
-	
-	limitStr := c.Query("limit", "50")
-	limit, err := strconv.Atoi(limitStr)
-	if err != nil || limit <= 0 || limit > 1000 {
-		limit = 50
-	}
-
-	var start, end *time.Time
-	
-	if startStr != "" {
-		parsed, err := time.Parse(time.RFC3339, startStr)
-		if err == nil {
-			start = &parsed
-		}
-	}
-	
-	if endStr != "" {
-		parsed, err := time.Parse(time.RFC3339, endStr)
-		if err == nil {
-			end = &parsed
-		}
-	}
-
-	logEntries, err := mh.monitoringService.GetLogEntries(c.Context(), level, service, start, end, limit)
-	if err != nil {
-		return c.Status(500).JSON(fiber.Map{
-			"error": fmt.Sprintf("Failed to get log entries: %v", err),
-		})
-	}
-
-	return c.JSON(fiber.Map{
-		"success": true,
-		"data":    logEntries,
-		"count":   len(logEntries),
-	})
-}
-
-// LogMessage records a log entry
-func (mh *MonitoringHandler) LogMessage(c *fiber.Ctx) error {
-	var req struct {
-		Level   string                 `json:"level"`
-		Message string                 `json:"message"`
-		Service string                 `json:"service"`
-		Fields  map[string]interface{} `json:"fields"`
-	}
-
-	if err := c.BodyParser(&req); err != nil {
-		return c.Status(400).JSON(fiber.Map{
-			"error": "Invalid request body",
-		})
-	}
-
-	if req.Level == "" || req.Message == "" {
-		return c.Status(400).JSON(fiber.Map{
-			"error": "Log level and message are required",
-		})
-	}
-
-	// Add service to fields for consistency
-	if req.Fields == nil {
-		req.Fields = make(map[string]interface{})
-	}
-	req.Fields["service"] = req.Service
-
-	err := mh.monitoringService.Log(c.Context(), req.Level, req.Message, req.Fields)
-	if err != nil {
-		return c.Status(500).JSON(fiber.Map{
-			"error": fmt.Sprintf("Failed to log message: %v", err),
-		})
-	}
-
-	return c.JSON(fiber.Map{
-		"success": true,
-		"message": "Log recorded successfully",
-	})
-}
-
-// HealthCheck performs a health check of the monitoring system
-func (mh *MonitoringHandler) HealthCheck(c *fiber.Ctx) error {
-	healthy, err := mh.monitoringService.HealthCheck(c.Context())
-	if err != nil {
-		return c.Status(500).JSON(fiber.Map{
-			"success": false,
-			"error":   fmt.Sprintf("Health check failed: %v", err),
-		})
-	}
-
-	status := "healthy"
-	if !healthy {
-		status = "unhealthy"
-		c.Status(503)
-	}
-
-	return c.JSON(fiber.Map{
-		"success": true,
-		"status":  status,
-		"timestamp": time.Now().Unix(),
+		"data":    metrics,
 	})
 }
 
 // RegisterRoutes registers monitoring handler routes
 func (mh *MonitoringHandler) RegisterRoutes(router fiber.Router) {
-	// Public metrics and health endpoints
-	router.Get("/health", mh.HealthCheck)
-	router.Get("/metrics/system", mh.GetSystemMetrics)
+	// Health and status endpoints (public)
+	router.Get("/health", mh.GetSystemHealth)
+	router.Get("/metrics/dashboard", mh.GetMetricsDashboard)
 	
-	// Authenticated endpoints
-	authGroup := router.Use() // This would use the auth middleware in a real implementation
+	// Authenticated monitoring endpoints
+	authRouter := router // In a real implementation, this would be wrapped with auth middleware
 	{
-		authGroup.Get("/metrics", mh.GetMetrics)
-		authGroup.Post("/metrics", mh.RecordMetric)
-		
-		authGroup.Get("/alerts", mh.GetAlerts)
-		authGroup.Post("/alerts", mh.CreateAlert)
-		authGroup.Post("/alerts/:alertId/resolve", mh.ResolveAlert)
-		
-		authGroup.Get("/logs", mh.GetLogEntries)
-		authGroup.Post("/logs", mh.LogMessage)
+		authRouter.Get("/workflow/:workflowId/timeline", mh.GetWorkflowExecutionTimeline)
+		authRouter.Get("/node/:nodeType/workflow/:workflowId/stats", mh.GetNodeExecutionStats)
+		authRouter.Get("/tenant/:tenantId/activity", mh.GetTenantActivity)
+		authRouter.Get("/performance/:component", mh.GetPerformanceMetrics)
+		authRouter.Get("/error-rate/:service", mh.GetErrorRate)
+		authRouter.Get("/events", mh.GetRecentEvents)
+		authRouter.Post("/events/search", mh.SearchEvents)
 	}
 }

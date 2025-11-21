@@ -5,6 +5,7 @@ import (
 	"citadel-agent/backend/internal/nodes/ai"
 	"citadel-agent/backend/internal/nodes/data"
 	"citadel-agent/backend/internal/nodes/file"
+	"citadel-agent/backend/internal/nodes/integrations"
 	"citadel-agent/backend/internal/nodes/logic"
 	"citadel-agent/backend/internal/nodes/logging"
 
@@ -15,18 +16,21 @@ import (
 func RegisterAllNodes(registry *engine.NodeRegistry) {
 	// Register file operation nodes
 	file.RegisterFileNode(registry)
-	
+
 	// Register logging nodes
 	logging.RegisterLogNode(registry)
-	
+
 	// Register AI agent nodes
 	ai.RegisterAINode(registry)
-	
+
 	// Register logic operation nodes
 	logic.RegisterLogicNode(registry)
-	
+
 	// Register data transformation nodes
 	data.RegisterDataTransformNode(registry)
+
+	// Register integration nodes (GitHub, Slack, Email, etc.)
+	integrations.RegisterAllIntegrations(registry)
 
 	// In a complete implementation, we would also register:
 	// - Database nodes
