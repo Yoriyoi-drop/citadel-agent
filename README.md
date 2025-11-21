@@ -288,6 +288,9 @@ Distributed under the Apache 2.0 License. See [LICENSE](./LICENSE) for more info
 Berikut beberapa ilustrasi tampilan sistem Citadel-Agent:
 
 ### Login Screen
+Citadel Agent mendukung berbagai metode otentikasi termasuk login tradisional dan otentikasi OAuth melalui GitHub dan Google:
+
+#### Terminal Login Interface
 ```
 =========================================================
                      CITADEL-AGENT
@@ -304,6 +307,10 @@ Berikut beberapa ilustrasi tampilan sistem Citadel-Agent:
   ENGINE : Foundation-Core v0.1.0
   MODE   : Operator Login
 
+  ALTERNATIF :
+    - GitHub Login : Tekan [G] untuk login via GitHub
+    - Google Login : Tekan [O] untuk login via Google
+
   NOTE :
     - Pastikan kredensial benar.
     - Akses ini akan dicatat dalam event-log.
@@ -313,6 +320,12 @@ Berikut beberapa ilustrasi tampilan sistem Citadel-Agent:
    Tekan ENTER untuk memulai sesi operasional...
 =========================================================
 ```
+
+#### Web Interface
+Citadel Agent juga menyediakan opsi login melalui GitHub dan Google di antarmuka web:
+- Login dengan GitHub: `/api/v1/auth/github`
+- Login dengan Google: `/api/v1/auth/google`
+- Callback endpoint: `/api/v1/auth/github/callback` dan `/api/v1/auth/google/callback`
 
 **Citadel Agent v0.1.0** - *Platform otomasi workflow generasi berikutnya dengan integrasi AI agent*
 
