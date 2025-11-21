@@ -182,17 +182,15 @@ curl -X POST http://localhost:5001/api/v1/workflows/{id}/run \
 
 ## 🔐 Konfigurasi Keamanan
 
-### File Konfigurasi
-**PENTING**: Citadel Agent menggunakan file `.env` untuk konfigurasi lingkungan. File ini berisi kredensial dan informasi sensitif, sehingga tidak disertakan dalam repository. Anda perlu membuat file ini sendiri berdasarkan dokumentasi:
+### File .env
+**PENTING**: File `.env` berisi kredensial dan informasi sensitif, sehingga tidak disertakan dalam repository. Anda perlu membuat file ini sendiri:
 
-1. Buat file baru bernama `.env`:
+1. Buat salinan dari file `.env.example`:
 ```bash
-touch .env
+cp .env.example .env
 ```
 
-2. Lihat dokumentasi konfigurasi untuk struktur dan nilai-nilai yang diperlukan:
-- Lihat file [CONFIGURATION.md](./CONFIGURATION.md) untuk detail lengkap tentang variabel lingkungan
-- Atau buat file `.env` berdasarkan template yang disediakan
+2. Edit file `.env` dan ganti placeholder dengan nilai-nilai sebenarnya sesuai kebutuhan Anda.
 
 **Catatan**: Jangan pernah mengunggah file `.env` ke repository publik karena berisi informasi sensitif.
 
