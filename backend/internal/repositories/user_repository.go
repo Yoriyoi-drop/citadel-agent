@@ -1,199 +1,374 @@
-// citadel-agent/backend/internal/repositories/user_repository.go
+// backend/internal/repositories/user_repository.go
 package repositories
 
 import (
-	"citadel-agent/backend/internal/models"
-	"golang.org/x/crypto/bcrypt"
-	"gorm.io/gorm"
+	"context"
+	"database/sql"
+	"encoding/json"
+	"fmt"
+	"time"
+
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-// UserRepository handles user database operations
+// UserRepository handles user-related database operations
 type UserRepository struct {
-	BaseRepository
+	db *pgxpool.Pool
 }
 
-// NewUserRepository creates a new user repository instance
-func NewUserRepository(db *gorm.DB) *UserRepository {
+// User represents a user in the database
+type User struct {
+	ID        string                 `json:"id"`
+	Email     string                 `json:"email"`
+	Name      string                 `json:"name"`
+	Password  string                 `json:"password"` // Hashed password
+	Role      string                 `json:"role"`     // 'admin', 'user', 'viewer'
+	Status    string                 `json:"status"`   // 'active', 'inactive', 'suspended'
+	CreatedAt time.Time              `json:"created_at"`
+	UpdatedAt time.Time              `json:"updated_at"`
+	Profile   map[string]interface{} `json:"profile"`
+	Preferences map[string]interface{} `json:"preferences"`
+}
+
+// NewUserRepository creates a new user repository
+func NewUserRepository(db *pgxpool.Pool) *UserRepository {
 	return &UserRepository{
-		BaseRepository: *NewBaseRepository(db),
+		db: db,
 	}
 }
 
-// Create creates a new user with password hashing
-func (r *UserRepository) Create(user *models.User) error {
-	// Hash the password before storing
-	if user.Password != "" {
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
-		if err != nil {
-			return err
-		}
-		user.Password = string(hashedPassword)
+// Create creates a new user
+func (ur *UserRepository) Create(ctx context.Context, user *User) (*User, error) {
+	// Serialize profile and preferences to JSON
+	profileJSON, err := json.Marshal(user.Profile)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal profile: %w", err)
 	}
-	
-	return r.BaseRepository.db.Create(user).Error
+
+	preferencesJSON, err := json.Marshal(user.Preferences)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal preferences: %w", err)
+	}
+
+	query := `
+		INSERT INTO users (
+			id, email, name, password, role, status, 
+			created_at, updated_at, profile, preferences
+		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+		RETURNING id, email, name, role, status, created_at, updated_at
+	`
+
+	var createdUser User
+	err = ur.db.QueryRow(ctx, query,
+		user.ID,
+		user.Email,
+		user.Name,
+		user.Password,
+		user.Role,
+		user.Status,
+		user.CreatedAt,
+		user.UpdatedAt,
+		profileJSON,
+		preferencesJSON,
+	).Scan(
+		&createdUser.ID,
+		&createdUser.Email,
+		&createdUser.Name,
+		&createdUser.Role,
+		&createdUser.Status,
+		&createdUser.CreatedAt,
+		&createdUser.UpdatedAt,
+	)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to create user: %w", err)
+	}
+
+	// Set the non-returned fields
+	createdUser.Profile = user.Profile
+	createdUser.Preferences = user.Preferences
+
+	return &createdUser, nil
 }
 
 // GetByID retrieves a user by ID
-func (r *UserRepository) GetByID(id string) (*models.User, error) {
-	var user models.User
-	err := r.BaseRepository.db.Where("id = ?", id).First(&user).Error
+func (ur *UserRepository) GetByID(ctx context.Context, id string) (*User, error) {
+	query := `
+		SELECT id, email, name, role, status, created_at, updated_at, profile, preferences
+		FROM users
+		WHERE id = $1
+	`
+
+	var user User
+	var profileJSON, preferencesJSON []byte
+
+	err := ur.db.QueryRow(ctx, query, id).Scan(
+		&user.ID,
+		&user.Email,
+		&user.Name,
+		&user.Role,
+		&user.Status,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+		&profileJSON,
+		&preferencesJSON,
+	)
+
 	if err != nil {
-		return nil, err
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("user not found: %s", id)
+		}
+		return nil, fmt.Errorf("failed to get user: %w", err)
 	}
+
+	// Deserialize profile and preferences
+	if profileJSON != nil {
+		if err := json.Unmarshal(profileJSON, &user.Profile); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal profile: %w", err)
+		}
+	}
+
+	if preferencesJSON != nil {
+		if err := json.Unmarshal(preferencesJSON, &user.Preferences); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal preferences: %w", err)
+		}
+	}
+
 	return &user, nil
 }
 
 // GetByEmail retrieves a user by email
-func (r *UserRepository) GetByEmail(email string) (*models.User, error) {
-	var user models.User
-	err := r.BaseRepository.db.Where("email = ?", email).First(&user).Error
+func (ur *UserRepository) GetByEmail(ctx context.Context, email string) (*User, error) {
+	query := `
+		SELECT id, email, name, role, status, created_at, updated_at, profile, preferences
+		FROM users
+		WHERE email = $1
+	`
+
+	var user User
+	var profileJSON, preferencesJSON []byte
+
+	err := ur.db.QueryRow(ctx, query, email).Scan(
+		&user.ID,
+		&user.Email,
+		&user.Name,
+		&user.Role,
+		&user.Status,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+		&profileJSON,
+		&preferencesJSON,
+	)
+
 	if err != nil {
-		return nil, err
+		if err == sql.ErrNoRows {
+			return nil, nil // Return nil, nil if not found
+		}
+		return nil, fmt.Errorf("failed to get user: %w", err)
 	}
+
+	// Deserialize profile and preferences
+	if profileJSON != nil {
+		if err := json.Unmarshal(profileJSON, &user.Profile); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal profile: %w", err)
+		}
+	}
+
+	if preferencesJSON != nil {
+		if err := json.Unmarshal(preferencesJSON, &user.Preferences); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal preferences: %w", err)
+		}
+	}
+
 	return &user, nil
 }
 
-// GetByUsername retrieves a user by username
-func (r *UserRepository) GetByUsername(username string) (*models.User, error) {
-	var user models.User
-	err := r.BaseRepository.db.Where("username = ?", username).First(&user).Error
+// Update updates an existing user
+func (ur *UserRepository) Update(ctx context.Context, user *User) (*User, error) {
+	// Serialize profile and preferences to JSON
+	profileJSON, err := json.Marshal(user.Profile)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to marshal profile: %w", err)
 	}
-	return &user, nil
-}
 
-// Update updates a user
-func (r *UserRepository) Update(user *models.User) error {
-	return r.BaseRepository.db.Save(user).Error
-}
-
-// Delete soft deletes a user by ID
-func (r *UserRepository) Delete(id string) error {
-	return r.BaseRepository.db.Delete(&models.User{}, "id = ?", id).Error
-}
-
-// GetAll retrieves all users
-func (r *UserRepository) GetAll() ([]*models.User, error) {
-	var users []*models.User
-	err := r.BaseRepository.db.Find(&users).Error
+	preferencesJSON, err := json.Marshal(user.Preferences)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to marshal preferences: %w", err)
 	}
+
+	query := `
+		UPDATE users
+		SET name = $2, role = $3, status = $4, updated_at = $5, 
+		    profile = $6, preferences = $7
+		WHERE id = $1
+		RETURNING id, email, name, role, status, created_at, updated_at
+	`
+
+	var updatedUser User
+	err = ur.db.QueryRow(ctx, query,
+		user.ID,
+		user.Name,
+		user.Role,
+		user.Status,
+		time.Now(),
+		profileJSON,
+		preferencesJSON,
+	).Scan(
+		&updatedUser.ID,
+		&updatedUser.Email,
+		&updatedUser.Name,
+		&updatedUser.Role,
+		&updatedUser.Status,
+		&updatedUser.CreatedAt,
+		&updatedUser.UpdatedAt,
+	)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to update user: %w", err)
+	}
+
+	// Set the non-returned fields
+	updatedUser.Profile = user.Profile
+	updatedUser.Preferences = user.Preferences
+
+	return &updatedUser, nil
+}
+
+// List retrieves a list of users
+func (ur *UserRepository) List(ctx context.Context, limit, offset int) ([]*User, error) {
+	query := `
+		SELECT id, email, name, role, status, created_at, updated_at, profile, preferences
+		FROM users
+		ORDER BY created_at DESC
+		LIMIT $1 OFFSET $2
+	`
+
+	rows, err := ur.db.Query(ctx, query, limit, offset)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query users: %w", err)
+	}
+	defer rows.Close()
+
+	var users []*User
+	for rows.Next() {
+		var user User
+		var profileJSON, preferencesJSON []byte
+
+		err := rows.Scan(
+			&user.ID,
+			&user.Email,
+			&user.Name,
+			&user.Role,
+			&user.Status,
+			&user.CreatedAt,
+			&user.UpdatedAt,
+			&profileJSON,
+			&preferencesJSON,
+		)
+
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan user: %w", err)
+		}
+
+		// Deserialize profile and preferences
+		if profileJSON != nil {
+			if err := json.Unmarshal(profileJSON, &user.Profile); err != nil {
+				return nil, fmt.Errorf("failed to unmarshal profile: %w", err)
+			}
+		}
+
+		if preferencesJSON != nil {
+			if err := json.Unmarshal(preferencesJSON, &user.Preferences); err != nil {
+				return nil, fmt.Errorf("failed to unmarshal preferences: %w", err)
+			}
+		}
+
+		users = append(users, &user)
+	}
+
 	return users, nil
 }
 
-// GetAllWithPagination retrieves all users with pagination
-func (r *UserRepository) GetAllWithPagination(offset, limit int) ([]*models.User, error) {
-	var users []*models.User
-	err := r.BaseRepository.db.Offset(offset).Limit(limit).Find(&users).Error
+// Delete removes a user by ID
+func (ur *UserRepository) Delete(ctx context.Context, id string) error {
+	query := "DELETE FROM users WHERE id = $1"
+
+	result, err := ur.db.Exec(ctx, query, id)
 	if err != nil {
-		return nil, err
+		return fmt.Errorf("failed to delete user: %w", err)
 	}
-	return users, nil
+
+	if result.RowsAffected() == 0 {
+		return fmt.Errorf("user not found: %s", id)
+	}
+
+	return nil
 }
 
 // GetByRole retrieves users by role
-func (r *UserRepository) GetByRole(role string) ([]*models.User, error) {
-	var users []*models.User
-	err := r.BaseRepository.db.Where("role = ?", role).Find(&users).Error
-	if err != nil {
-		return nil, err
-	}
-	return users, nil
-}
+func (ur *UserRepository) GetByRole(ctx context.Context, role string) ([]*User, error) {
+	query := `
+		SELECT id, email, name, role, status, created_at, updated_at, profile, preferences
+		FROM users
+		WHERE role = $1
+		ORDER BY created_at DESC
+	`
 
-// GetByStatus retrieves users by status
-func (r *UserRepository) GetByStatus(status string) ([]*models.User, error) {
-	var users []*models.User
-	err := r.BaseRepository.db.Where("status = ?", status).Find(&users).Error
+	rows, err := ur.db.Query(ctx, query, role)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to query users by role: %w", err)
 	}
-	return users, nil
-}
+	defer rows.Close()
 
-// Count counts all users
-func (r *UserRepository) Count() (int64, error) {
-	var count int64
-	err := r.BaseRepository.db.Model(&models.User{}).Count(&count).Error
-	return count, err
+	var users []*User
+	for rows.Next() {
+		var user User
+		var profileJSON, preferencesJSON []byte
+
+		err := rows.Scan(
+			&user.ID,
+			&user.Email,
+			&user.Name,
+			&user.Role,
+			&user.Status,
+			&user.CreatedAt,
+			&user.UpdatedAt,
+			&profileJSON,
+			&preferencesJSON,
+		)
+
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan user: %w", err)
+		}
+
+		// Deserialize profile and preferences
+		if profileJSON != nil {
+			if err := json.Unmarshal(profileJSON, &user.Profile); err != nil {
+				return nil, fmt.Errorf("failed to unmarshal profile: %w", err)
+			}
+		}
+
+		if preferencesJSON != nil {
+			if err := json.Unmarshal(preferencesJSON, &user.Preferences); err != nil {
+				return nil, fmt.Errorf("failed to unmarshal preferences: %w", err)
+			}
+		}
+
+		users = append(users, &user)
+	}
+
+	return users, nil
 }
 
 // CountByRole counts users by role
-func (r *UserRepository) CountByRole(role string) (int64, error) {
+func (ur *UserRepository) CountByRole(ctx context.Context, role string) (int64, error) {
+	query := "SELECT COUNT(*) FROM users WHERE role = $1"
+
 	var count int64
-	err := r.BaseRepository.db.Model(&models.User{}).Where("role = ?", role).Count(&count).Error
-	return count, err
-}
-
-// CountByStatus counts users by status
-func (r *UserRepository) CountByStatus(status string) (int64, error) {
-	var count int64
-	err := r.BaseRepository.db.Model(&models.User{}).Where("status = ?", status).Count(&count).Error
-	return count, err
-}
-
-// SearchByName searches users by first name or last name (case-insensitive partial match)
-func (r *UserRepository) SearchByName(name string) ([]*models.User, error) {
-	var users []*models.User
-	err := r.BaseRepository.db.Where("LOWER(first_name) LIKE LOWER(?) OR LOWER(last_name) LIKE LOWER(?)", "%"+name+"%", "%"+name+"%").Find(&users).Error
+	err := ur.db.QueryRow(ctx, query, role).Scan(&count)
 	if err != nil {
-		return nil, err
+		return 0, fmt.Errorf("failed to count users by role: %w", err)
 	}
-	return users, nil
-}
 
-// SearchByEmail searches users by email (case-insensitive partial match)
-func (r *UserRepository) SearchByEmail(email string) ([]*models.User, error) {
-	var users []*models.User
-	err := r.BaseRepository.db.Where("LOWER(email) LIKE LOWER(?)", "%"+email+"%").Find(&users).Error
-	if err != nil {
-		return nil, err
-	}
-	return users, nil
-}
-
-// AuthenticateUser authenticates a user by email and password
-func (r *UserRepository) AuthenticateUser(email, password string) (*models.User, error) {
-	user, err := r.GetByEmail(email)
-	if err != nil {
-		return nil, err
-	}
-	
-	// Compare the provided password with the hashed password
-	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
-	if err != nil {
-		return nil, err
-	}
-	
-	// Don't return the password hash to the caller
-	user.Password = ""
-	return user, nil
-}
-
-// UpdatePassword updates a user's password (with password hashing)
-func (r *UserRepository) UpdatePassword(userID, newPassword string) error {
-	user, err := r.GetByID(userID)
-	if err != nil {
-		return err
-	}
-	
-	// Hash the new password
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
-	if err != nil {
-		return err
-	}
-	
-	return r.BaseRepository.db.Model(user).Update("password", string(hashedPassword)).Error
-}
-
-// ActivateUser activates a user account
-func (r *UserRepository) ActivateUser(userID string) error {
-	return r.BaseRepository.db.Model(&models.User{}).Where("id = ?", userID).Update("status", "active").Error
-}
-
-// DeactivateUser deactivates a user account
-func (r *UserRepository) DeactivateUser(userID string) error {
-	return r.BaseRepository.db.Model(&models.User{}).Where("id = ?", userID).Update("status", "inactive").Error
+	return count, nil
 }

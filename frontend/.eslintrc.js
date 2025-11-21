@@ -1,19 +1,17 @@
+// frontend/.eslintrc.js
 module.exports = {
   env: {
     browser: true,
     es2021: true,
     node: true,
-    jest: true,
   },
   extends: [
     'eslint:recommended',
-    '@typescript-eslint/recommended',
     'plugin:react/recommended',
     'plugin:react-hooks/recommended',
-    'plugin:jest/recommended',
-    'prettier',
+    'plugin:import/errors',
+    'plugin:import/warnings',
   ],
-  parser: '@typescript-eslint/parser',
   parserOptions: {
     ecmaFeatures: {
       jsx: true,
@@ -23,8 +21,8 @@ module.exports = {
   },
   plugins: [
     'react',
-    '@typescript-eslint',
-    'jest',
+    'react-hooks',
+    'import',
   ],
   settings: {
     react: {
@@ -32,20 +30,48 @@ module.exports = {
     },
   },
   rules: {
-    'jest/expect-expect': 'off',
-    '@typescript-eslint/no-unused-vars': 'error',
-    '@typescript-eslint/no-explicit-any': 'warn',
-    'react/react-in-jsx-scope': 'off',
-    'react/prop-types': 'off',
-    '@typescript-eslint/explicit-module-boundary-types': 'off',
-    'jest/expect-expect': 'off',
-    'jest/valid-expect': 'off',
+    'react/react-in-jsx-scope': 'off', // Not needed with Next.js
+    'react/prop-types': 'off', // We don't use PropTypes
+    'react/jsx-uses-vars': 'error',
+    'react/jsx-uses-react': 'off',
+    'react-hooks/rules-of-hooks': 'error',
+    'react-hooks/exhaustive-deps': 'warn',
+    'import/order': [
+      'error',
+      {
+        groups: [
+          'builtin',
+          'external',
+          'internal',
+          'parent',
+          'sibling',
+          'index',
+        ],
+        pathGroups: [
+          {
+            pattern: 'react',
+            group: 'external',
+            position: 'before',
+          },
+          {
+            pattern: '@/**',
+            group: 'internal',
+          },
+        ],
+        pathGroupsExcludedImportTypes: ['react'],
+        'newlines-between': 'always',
+        alphabetize: {
+          order: 'asc',
+          caseInsensitive: true,
+        },
+      },
+    ],
   },
   overrides: [
     {
-      files: ['**/*.test.ts', '**/*.test.tsx'],
-      rules: {
-        '@typescript-eslint/no-explicit-any': 'off',
+      files: ['**/*.test.js', '**/*.test.jsx'],
+      env: {
+        jest: true,
       },
     },
   ],

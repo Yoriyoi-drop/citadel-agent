@@ -1,319 +1,316 @@
+// backend/internal/services/workflow_service.go
 package services
 
 import (
-	"errors"
+	"context"
 	"fmt"
-	"log"
 	"time"
 
-	"citadel-agent/backend/internal/models"
-	"citadel-agent/backend/internal/repositories"
-	"github.com/google/uuid"
-	"gorm.io/gorm"
+	"github.com/citadel-agent/backend/internal/workflow/core/engine"
+	"github.com/citadel-agent/backend/internal/models"
+	"github.com/citadel-agent/backend/internal/repositories"
 )
 
-// WorkflowService handles workflow-related business logic
+// WorkflowService handles business logic for workflow operations
 type WorkflowService struct {
-	repo *repositories.WorkflowRepository
-	nodeRepo *repositories.NodeRepository
-	repositoryFactory *repositories.RepositoryFactory
-	executionService *ExecutionService
+	repo      *repositories.WorkflowRepository
+	engine    *engine.Engine
+	validator *WorkflowValidator
+}
+
+// WorkflowValidator validates workflow data
+type WorkflowValidator struct {
+	maxNodesPerWorkflow int
+	maxWorkflowSize     int
+	allowedNodeTypes    []engine.NodeType
 }
 
 // NewWorkflowService creates a new workflow service
-func NewWorkflowService(db *gorm.DB) *WorkflowService {
-	repositoryFactory := repositories.NewRepositoryFactory(db)
-
+func NewWorkflowService(
+	repo *repositories.WorkflowRepository,
+	workflowEngine *engine.Engine,
+) *WorkflowService {
 	return &WorkflowService{
-		repo: repositoryFactory.GetWorkflowRepository(),
-		nodeRepo: repositoryFactory.GetNodeRepository(),
-		repositoryFactory: repositoryFactory,
-		executionService: NewExecutionService(db),
+		repo:   repo,
+		engine: workflowEngine,
+		validator: &WorkflowValidator{
+			maxNodesPerWorkflow: 100,
+			maxWorkflowSize:     1024 * 1024, // 1MB
+			allowedNodeTypes:    []engine.NodeType{"http_request", "condition", "delay", "database_query", "script_execution", "ai_agent", "data_transformer", "notification", "loop", "error_handler"},
+		},
 	}
 }
 
-// CreateWorkflow creates a new workflow with validation
-func (s *WorkflowService) CreateWorkflow(workflow *models.Workflow) error {
-	// Validate input
-	if workflow.Name == "" {
-		return errors.New("workflow name is required")
+// CreateWorkflow creates a new workflow
+func (ws *WorkflowService) CreateWorkflow(ctx context.Context, workflow *models.Workflow) (*models.Workflow, error) {
+	// Validate workflow
+	if err := ws.validator.ValidateWorkflow(workflow); err != nil {
+		return nil, fmt.Errorf("workflow validation failed: %w", err)
 	}
 
-	// Generate ID if not provided
-	if workflow.ID == "" {
-		workflow.ID = uuid.New().String()
-	}
-
-	// Set timestamps
+	// Set creation timestamp
 	workflow.CreatedAt = time.Now()
 	workflow.UpdatedAt = time.Now()
+	workflow.Status = models.WorkflowStatusActive
 
-	// Begin transaction
-	tx := s.repo.GetDB().Begin()
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
-		}
-	}()
-
-	// Create workflow
-	if err := tx.Create(workflow).Error; err != nil {
-		tx.Rollback()
-		return fmt.Errorf("failed to create workflow: %w", err)
+	// Save to repository
+	createdWorkflow, err := ws.repo.Create(ctx, workflow)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create workflow: %w", err)
 	}
 
-	return tx.Commit().Error
+	return createdWorkflow, nil
 }
 
-// GetWorkflow retrieves a workflow by ID with nodes
-func (s *WorkflowService) GetWorkflow(id string) (*models.Workflow, error) {
-	// Validate ID
-	if id == "" {
-		return nil, errors.New("workflow ID is required")
-	}
-
-	workflow, err := s.repo.GetByID(id)
+// GetWorkflow retrieves a workflow by ID
+func (ws *WorkflowService) GetWorkflow(ctx context.Context, id string) (*models.Workflow, error) {
+	workflow, err := ws.repo.GetByID(ctx, id)
 	if err != nil {
-		return nil, fmt.Errorf("workflow not found: %w", err)
-	}
-
-	// Load associated nodes
-	nodes, err := s.nodeRepo.GetByWorkflowID(id)
-	if err != nil {
-		log.Printf("Error loading nodes for workflow %s: %v", id, err)
-		// Don't fail the entire operation just because of node loading
-	}
-	workflow.Nodes = make([]models.Node, len(nodes))
-	for i, node := range nodes {
-		workflow.Nodes[i] = *node
+		return nil, fmt.Errorf("failed to get workflow: %w", err)
 	}
 
 	return workflow, nil
 }
 
-// GetWorkflows retrieves all workflows with optional pagination
-func (s *WorkflowService) GetWorkflows() ([]*models.Workflow, error) {
-	return s.repo.GetAll()
-}
-
-// GetExecutionsByWorkflowID retrieves all executions for a specific workflow
-// This method is kept for backward compatibility - it should delegate to execution service
-func (s *WorkflowService) GetExecutionsByWorkflowID(workflowID string) ([]*models.Execution, error) {
-	if workflowID == "" {
-		return nil, errors.New("workflow ID is required")
+// UpdateWorkflow updates an existing workflow
+func (ws *WorkflowService) UpdateWorkflow(ctx context.Context, id string, workflow *models.Workflow) (*models.Workflow, error) {
+	// Validate workflow
+	if err := ws.validator.ValidateWorkflow(workflow); err != nil {
+		return nil, fmt.Errorf("workflow validation failed: %w", err)
 	}
 
-	if s.executionService == nil {
-		return nil, errors.New("execution service is not initialized")
-	}
+	// Set update timestamp
+	workflow.UpdatedAt = time.Now()
 
-	return s.executionService.GetExecutions(workflowID)
-}
-
-// GetWorkflowsWithPagination retrieves workflows with pagination
-func (s *WorkflowService) GetWorkflowsWithPagination(offset, limit int) ([]*models.Workflow, error) {
-	if offset < 0 || limit <= 0 || limit > 100 {
-		return nil, errors.New("invalid pagination parameters")
-	}
-
-	return s.repo.GetAllWithPagination(offset, limit)
-}
-
-// GetWorkflowsByUser retrieves workflows for a specific user
-func (s *WorkflowService) GetWorkflowsByUser(userID string) ([]*models.Workflow, error) {
-	if userID == "" {
-		return nil, errors.New("user ID is required")
-	}
-
-	return s.repo.GetByUserID(userID)
-}
-
-// GetWorkflowsByUserWithPagination retrieves workflows for a specific user with pagination
-func (s *WorkflowService) GetWorkflowsByUserWithPagination(userID string, offset, limit int) ([]*models.Workflow, error) {
-	if userID == "" {
-		return nil, errors.New("user ID is required")
-	}
-	if offset < 0 || limit <= 0 || limit > 100 {
-		return nil, errors.New("invalid pagination parameters")
-	}
-
-	return s.repo.GetByUserIDWithPagination(userID, offset, limit)
-}
-
-// GetWorkflowsByStatus retrieves workflows by status
-func (s *WorkflowService) GetWorkflowsByStatus(status string) ([]*models.Workflow, error) {
-	if status == "" {
-		return nil, errors.New("status is required")
-	}
-
-	return s.repo.GetByStatus(status)
-}
-
-// UpdateWorkflow updates a workflow with validation
-func (s *WorkflowService) UpdateWorkflow(workflow *models.Workflow) error {
-	// Validate input
-	if workflow.ID == "" {
-		return errors.New("workflow ID is required")
-	}
-	if workflow.Name == "" {
-		return errors.New("workflow name is required")
-	}
-
-	// Check if workflow exists
-	existing, err := s.repo.GetByID(workflow.ID)
+	// Save to repository
+	updatedWorkflow, err := ws.repo.Update(ctx, id, workflow)
 	if err != nil {
-		return fmt.Errorf("workflow not found: %w", err)
+		return nil, fmt.Errorf("failed to update workflow: %w", err)
 	}
 
-	// Update only allowed fields
-	existing.Name = workflow.Name
-	existing.Description = workflow.Description
-	existing.Status = workflow.Status
-	existing.OwnerID = workflow.OwnerID
-	existing.UpdatedAt = time.Now()
-
-	return s.repo.Update(existing)
+	return updatedWorkflow, nil
 }
 
-// DeleteWorkflow deletes a workflow by ID and its associated nodes
-func (s *WorkflowService) DeleteWorkflow(id string) error {
-	if id == "" {
-		return errors.New("workflow ID is required")
+// DeleteWorkflow deletes a workflow by ID
+func (ws *WorkflowService) DeleteWorkflow(ctx context.Context, id string) error {
+	// Check if workflow has active executions
+	activeExecutions, err := ws.repo.GetActiveExecutions(ctx, id)
+	if err != nil {
+		return fmt.Errorf("failed to check active executions: %w", err)
 	}
 
-	// Begin transaction to ensure consistency
-	tx := s.repo.GetDB().Begin()
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
-		}
-	}()
-
-	// Delete associated nodes first
-	if err := s.nodeRepo.DeleteByWorkflowID(id); err != nil {
-		tx.Rollback()
-		return fmt.Errorf("failed to delete associated nodes: %w", err)
+	if len(activeExecutions) > 0 {
+		return fmt.Errorf("cannot delete workflow with %d active executions", len(activeExecutions))
 	}
 
-	// Delete the workflow
-	if err := tx.Delete(&models.Workflow{}, "id = ?", id).Error; err != nil {
-		tx.Rollback()
+	// Delete from repository
+	if err := ws.repo.Delete(ctx, id); err != nil {
 		return fmt.Errorf("failed to delete workflow: %w", err)
 	}
 
-	return tx.Commit().Error
+	return nil
 }
 
-// CountWorkflows counts all workflows
-func (s *WorkflowService) CountWorkflows() (int64, error) {
-	return s.repo.Count()
-}
-
-// CountWorkflowsByUser counts workflows for a specific user
-func (s *WorkflowService) CountWorkflowsByUser(userID string) (int64, error) {
-	if userID == "" {
-		return 0, errors.New("user ID is required")
-	}
-
-	return s.repo.CountByUserID(userID)
-}
-
-// SearchWorkflows searches workflows by name
-func (s *WorkflowService) SearchWorkflows(name string) ([]*models.Workflow, error) {
-	if name == "" {
-		return nil, errors.New("search term is required")
-	}
-
-	return s.repo.SearchByName(name)
-}
-
-// ActivateWorkflow sets workflow status to active
-func (s *WorkflowService) ActivateWorkflow(id string) error {
-	if id == "" {
-		return errors.New("workflow ID is required")
-	}
-
-	workflow, err := s.repo.GetByID(id)
+// ListWorkflows retrieves a list of workflows with pagination
+func (ws *WorkflowService) ListWorkflows(ctx context.Context, page, limit int) ([]*models.Workflow, error) {
+	workflows, err := ws.repo.List(ctx, page, limit)
 	if err != nil {
-		return fmt.Errorf("workflow not found: %w", err)
+		return nil, fmt.Errorf("failed to list workflows: %w", err)
 	}
 
-	workflow.Status = "active"
-	workflow.UpdatedAt = time.Now()
-
-	return s.repo.Update(workflow)
+	return workflows, nil
 }
 
-// DeactivateWorkflow sets workflow status to inactive
-func (s *WorkflowService) DeactivateWorkflow(id string) error {
-	if id == "" {
-		return errors.New("workflow ID is required")
-	}
-
-	workflow, err := s.repo.GetByID(id)
+// ExecuteWorkflow triggers the execution of a workflow
+func (ws *WorkflowService) ExecuteWorkflow(ctx context.Context, id string, params map[string]interface{}) (string, error) {
+	// Get the workflow
+	workflow, err := ws.GetWorkflow(ctx, id)
 	if err != nil {
-		return fmt.Errorf("workflow not found: %w", err)
+		return "", fmt.Errorf("failed to get workflow: %w", err)
 	}
 
-	workflow.Status = "inactive"
-	workflow.UpdatedAt = time.Now()
+	if workflow.Status != models.WorkflowStatusActive {
+		return "", fmt.Errorf("workflow is not active: %s", workflow.Status)
+	}
 
-	return s.repo.Update(workflow)
+	// Execute using the engine
+	executionID, err := ws.engine.ExecuteWorkflow(ctx, &engine.Workflow{
+		ID:          workflow.ID,
+		Name:        workflow.Name,
+		Description: workflow.Description,
+		Nodes:       convertNodesToEngineFormat(workflow.Nodes),
+		Connections: convertConnectionsToEngineFormat(workflow.Connections),
+		Config:      workflow.Config,
+		CreatedAt:   workflow.CreatedAt,
+		UpdatedAt:   workflow.UpdatedAt,
+	}, params)
+	
+	if err != nil {
+		return "", fmt.Errorf("failed to execute workflow: %w", err)
+	}
+
+	// Log the execution
+	if err := ws.repo.LogExecution(ctx, &models.ExecutionLog{
+		WorkflowID:  id,
+		ExecutionID: executionID,
+		Status:      models.ExecutionStatusRunning,
+		StartedAt:   time.Now(),
+		Parameters:  params,
+	}); err != nil {
+		// Log error but don't fail the execution
+		fmt.Printf("Failed to log execution: %v\n", err)
+	}
+
+	return executionID, nil
 }
 
-// DuplicateWorkflow creates a copy of an existing workflow
-func (s *WorkflowService) DuplicateWorkflow(id string, newName string) (*models.Workflow, error) {
-	if id == "" {
-		return nil, errors.New("workflow ID is required")
-	}
-
-	if newName == "" {
-		return nil, errors.New("new workflow name is required")
-	}
-
-	// Get the original workflow with nodes
-	original, err := s.GetWorkflow(id)
+// GetExecution retrieves execution details by ID
+func (ws *WorkflowService) GetExecution(ctx context.Context, executionID string) (*engine.Execution, error) {
+	execution, err := ws.engine.GetExecution(executionID)
 	if err != nil {
-		return nil, fmt.Errorf("original workflow not found: %w", err)
+		return nil, fmt.Errorf("failed to get execution: %w", err)
 	}
 
-	// Create a new workflow based on the original
-	newWorkflow := &models.Workflow{
-		ID:          uuid.New().String(),
-		Name:        newName,
-		Description: original.Description,
-		Status:      "inactive", // New workflow starts as inactive
-		OwnerID:     original.OwnerID,
-		CreatedAt:   time.Now(),
-		UpdatedAt:   time.Now(),
+	return execution, nil
+}
+
+// ValidateWorkflow validates workflow structure and content
+func (wv *WorkflowValidator) ValidateWorkflow(workflow *models.Workflow) error {
+	if workflow.Name == "" {
+		return fmt.Errorf("workflow name is required")
 	}
 
-	// Create the new workflow
-	if err := s.CreateWorkflow(newWorkflow); err != nil {
-		return nil, fmt.Errorf("failed to create new workflow: %w", err)
+	if len(workflow.Name) > 100 {
+		return fmt.Errorf("workflow name too long (max 100 chars)")
 	}
 
-	// Copy nodes
-	for _, node := range original.Nodes {
-		newNode := &models.Node{
-			ID:          uuid.New().String(),
-			WorkflowID:  newWorkflow.ID,
+	if workflow.Description != "" && len(workflow.Description) > 1000 {
+		return fmt.Errorf("workflow description too long (max 1000 chars)")
+	}
+
+	if len(workflow.Nodes) == 0 {
+		return fmt.Errorf("workflow must have at least one node")
+	}
+
+	if len(workflow.Nodes) > wv.maxNodesPerWorkflow {
+		return fmt.Errorf("workflow has too many nodes (max %d)", wv.maxNodesPerWorkflow)
+	}
+
+	// Check node types
+	for i, node := range workflow.Nodes {
+		isAllowed := false
+		for _, allowedType := range wv.allowedNodeTypes {
+			if string(allowedType) == node.Type {
+				isAllowed = true
+				break
+			}
+		}
+		if !isAllowed {
+			return fmt.Errorf("node at index %d has invalid type: %s", i, node.Type)
+		}
+	}
+
+	// Check for circular dependencies
+	if hasCycle := ws.hasCircularDependencies(workflow); hasCycle {
+		return fmt.Errorf("workflow has circular dependencies")
+	}
+
+	return nil
+}
+
+// hasCircularDependencies checks if the workflow has circular dependencies
+func (ws *WorkflowService) hasCircularDependencies(workflow *models.Workflow) bool {
+	// This is a simplified implementation
+	// In a real system, you would use graph algorithms to detect cycles
+	// For now, we'll use a basic check
+	
+	visited := make(map[string]bool)
+	recStack := make(map[string]bool)
+	
+	nodesMap := make(map[string]*models.Node)
+	for _, node := range workflow.Nodes {
+		nodesMap[node.ID] = node
+	}
+	
+	for _, node := range workflow.Nodes {
+		if !visited[node.ID] {
+			if ws.hasCycleDFS(node.ID, nodesMap, visited, recStack, workflow.Connections) {
+				return true
+			}
+		}
+	}
+	
+	return false
+}
+
+func (ws *WorkflowService) hasCycleDFS(nodeID string, nodesMap map[string]*models.Node, visited, recStack map[string]bool, connections []*models.Connection) bool {
+	visited[nodeID] = true
+	recStack[nodeID] = true
+
+	// Find all connections from this node
+	for _, conn := range connections {
+		if conn.SourceNodeID == nodeID {
+			targetID := conn.TargetNodeID
+			if !visited[targetID] {
+				if ws.hasCycleDFS(targetID, nodesMap, visited, recStack, connections) {
+					return true
+				}
+			} else if recStack[targetID] {
+				return true // Cycle detected
+			}
+		}
+	}
+
+	recStack[nodeID] = false
+	return false
+}
+
+// convertNodesToEngineFormat converts models nodes to engine format
+func convertNodesToEngineFormat(nodes []*models.Node) []*engine.Node {
+	engineNodes := make([]*engine.Node, len(nodes))
+	for i, node := range nodes {
+		engineNodes[i] = &engine.Node{
+			ID:          node.ID,
 			Type:        node.Type,
 			Name:        node.Name,
-			Description: node.Description,
-			PositionX:   node.PositionX,
-			PositionY:   node.PositionY,
-			Settings:    node.Settings,
-			CreatedAt:   time.Now(),
-			UpdatedAt:   time.Now(),
-		}
-
-		if err := s.nodeRepo.Create(newNode); err != nil {
-			// If node creation fails, try to delete the workflow we just created
-			s.repo.Delete(newWorkflow.ID)
-			return nil, fmt.Errorf("failed to create node: %w", err)
+			Config:      node.Config,
+			Dependencies: node.Dependencies,
+			Inputs:      node.Inputs,
+			Outputs:     make(map[string]interface{}), // Initially empty
+			Status:      engine.NodePending,
 		}
 	}
+	return engineNodes
+}
 
-	return newWorkflow, nil
+// convertConnectionsToEngineFormat converts models connections to engine format
+func convertConnectionsToEngineFormat(connections []*models.Connection) []*engine.Connection {
+	engineConnections := make([]*engine.Connection, len(connections))
+	for i, conn := range connections {
+		engineConnections[i] = &engine.Connection{
+			SourceNodeID: conn.SourceNodeID,
+			TargetNodeID: conn.TargetNodeID,
+			Port:         conn.Port,
+			Condition:    conn.Condition,
+		}
+	}
+	return engineConnections
+}
+
+// UpdateWorkflowStatus updates the status of a workflow
+func (ws *WorkflowService) UpdateWorkflowStatus(ctx context.Context, id string, status models.WorkflowStatus) error {
+	workflow, err := ws.GetWorkflow(ctx, id)
+	if err != nil {
+		return fmt.Errorf("failed to get workflow: %w", err)
+	}
+
+	workflow.Status = status
+	workflow.UpdatedAt = time.Now()
+
+	_, err = ws.repo.Update(ctx, id, workflow)
+	if err != nil {
+		return fmt.Errorf("failed to update workflow status: %w", err)
+	}
+
+	return nil
 }

@@ -1,206 +1,289 @@
-# Citadel Agent - Autonomous Secure Workflow Engine
+# Citadel Agent - Technical Architecture Documentation
 
-## Executive Summary
-
-Citadel Agent is a cutting-edge workflow automation platform featuring AI agent integration, multi-language runtime capabilities, and enterprise-grade security. Designed as a next-generation solution to replace n8n, Windmill, Temporal, and Prefect, it combines sophisticated automation with advanced AI agent capabilities.
+## Overview
+Citadel Agent is an advanced workflow automation platform with AI agent capabilities, multi-language runtime, and advanced sandboxing security. This document outlines the technical architecture, components, and security implementations.
 
 ## System Architecture
 
-### Core Components
-- **Foundation Engine**: Core execution engine with dependency resolution
-- **AI Agent Runtime**: Complete AI agent management system with memory capabilities
-- **Multi-Language Runtime**: Support for 10+ programming languages with secure sandboxing
-- **Plugin System**: Secure marketplace with sandboxed execution
-- **Node System**: 200+ pre-built nodes across 4 grade levels
-- **Security Framework**: RBAC, encryption, audit logging, and policy isolation
-
-### Technology Stack
-- **Backend**: Go (Golang) microservices
-- **Frontend**: React with TypeScript and Tailwind CSS
-- **Database**: PostgreSQL with GORM
-- **Caching**: Redis for session management
-- **Runtime**: Docker containers and language-specific sandboxes
-- **Authentication**: JWT with RBAC system
-- **Messaging**: RabbitMQ/Kafka for background jobs
-
-## AI Agent Implementation
-
-### Core AI Features
-- **Memory System**: Long and short-term memory capabilities
-- **Tool Integration**: Connect to external services and APIs
-- **Multi-Agent Coordination**: Orchestrated agent cooperation
-- **Human-in-the-Loop**: Seamless human intervention capabilities
-- **Learning Capabilities**: Adaptive agent behavior
-
-### AI Agent Architecture
+### High-Level Architecture
 ```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   MEMORY        │    │    TOOLS        │    │   COORDINATION  │
-│                 │    │                 │    │                 │
-│  Short-term     │    │  Web API        │    │  Agent-to-Agent │
-│  Long-term      │    │  Database       │    │  Communication  │
-│  Context        │    │  File System    │    │  Orchestration  │
-│  Persistence    │    │  External       │    │                 │
-└─────────────────┘    │  Services       │    └─────────────────┘
-                       └─────────────────┘
-                                │
-                       ┌─────────────────┐
-                       │   AI ENGINE     │
-                       │                 │
-                       │  LLM Integration│
-                       │  Reasoning      │
-                       │  Decision Making│
-                       │  Learning       │
-                       └─────────────────┘
+┌─────────────────────────────────────────────────────────────────────────┐
+│                        CITADEL-AGENT ARCHITECTURE                       │
+├─────────────────────────────────────────────────────────────────────────┤
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐    │
+│  │   FRONTEND  │  │   API       │  │ WORKFLOW    │  │     AI      │    │
+│  │    UI       │  │   GATEWAY   │  │   ENGINE    │  │   AGENTS    │    │
+│  │             │  │             │  │             │  │             │    │
+│  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘    │
+│         │                   │                   │                │     │
+│         ▼                   ▼                   ▼                ▼     │
+│  ┌─────────────────────────────────────────────────────────────────────┐│
+│  │                    SECURITY LAYER                                   ││
+│  │  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐  ││
+│  │  │ AUTH        │ │ VALIDATION  │ │ RATE LIMIT  │ │ POLICY      │  ││
+│  │  │ MIDDLEWARE  │ │ MIDDLEWARE  │ │ MIDDLEWARE  │ │ ENFORCEMENT │  ││
+│  │  └─────────────┘ └─────────────┘ └─────────────┘ └─────────────┘  ││
+│  └─────────────────────────────────────────────────────────────────────┘│
+│                              │                                          │
+│                              ▼                                          │
+│  ┌─────────────────────────────────────────────────────────────────────┐│
+│  │                   DATA LAYER                                        ││
+│  │  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐  ││
+│  │  │ POSTGRES    │ │    REDIS    │ │  SECURITY   │ │   LOGGING   │  ││
+│  │  │   DB        │ │   CACHE     │ │   POLICY    │ │             │  ││
+│  │  └─────────────┘ └─────────────┘ └─────────────┘ └─────────────┘  ││
+│  └─────────────────────────────────────────────────────────────────────┘│
+└─────────────────────────────────────────────────────────────────────────┘
 ```
 
-## Multi-Language Runtime Implementation
+## Core Components
 
-### Supported Languages (10+)
-1. **Go (Native)**: Compiled for maximum performance
-2. **JavaScript/Node.js**: Secure sandboxed execution
-3. **Python**: Isolated execution environment
-4. **Java**: VM-based isolation
-5. **Ruby**: Secure runtime environment
-6. **PHP**: Isolated execution context
-7. **Rust**: Memory-safe execution
-8. **C#**: Managed runtime environment
-9. **Shell Scripts**: Restricted command execution
-10. **PowerShell**: Constrained language mode
+### 1. Workflow Engine
+The workflow engine is the core of the platform that manages and executes workflows.
 
-### Security Implementation
-- **Process Isolation**: Each language runs in separate process/thread
-- **Resource Limits**: CPU, memory, and I/O throttling
-- **Network Restrictions**: Controlled network access
-- **File System Isolation**: Sandboxed file access
-- **Timeouts**: Automatic termination of hanging processes
-- **Code Validation**: Static analysis before execution
+#### Key Features:
+- Parallel execution of workflow nodes
+- Dependency resolution and management
+- Advanced error handling and retry mechanisms
+- Comprehensive monitoring and observability
 
-## Node System Implementation
+#### Architecture:
+- **Runner**: Manages workflow execution lifecycle
+- **Executor**: Executes nodes concurrently
+- **Scheduler**: Schedules workflow execution
+- **Security Manager**: Manages runtime validation and permissions
+- **Monitoring System**: Collects metrics and tracks execution
 
-### Node Categories and Grades
-- **Grade A (Elite)**: 50+ advanced nodes with complex integrations
-- **Grade B (Advanced)**: 75+ API integration nodes with advanced features
-- **Grade C (Intermediate)**: 50+ utility nodes for common operations
-- **Grade D (Basic)**: 25+ simple functions and debugging tools
+### 2. Security Implementation
 
-### Node Architecture
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                        NODE ARCHITECTURE                        │
-├─────────────────────────────────────────────────────────────────┤
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐ │
-│  │   NODE INPUT    │  │   NODE EXEC     │  │   NODE OUTPUT   │ │
-│  │                 │  │                 │  │                 │ │
-│  │  Validation     │  │  Runtime        │  │  Validation     │ │
-│  │  Sanitization   │  │  Isolation      │  │  Formatting     │ │
-│  │  Schema         │  │  Security       │  │  Serialization  │ │
-│  └─────────────────┘  └─────────────────┘  └─────────────────┘ │
-│            │                      │                      │      │
-│            ▼                      ▼                      ▼      │
-│  ┌─────────────────────────────────────────────────────────────┤
-│  │                    NODE EXECUTION PIPELINE                  │ │
-│  │                                                             │ │
-│  │  Pre-processing → Execution → Post-processing → Validation │ │
-│  └─────────────────────────────────────────────────────────────┘ │
-└─────────────────────────────────────────────────────────────────┘
+#### Runtime Sandboxing
+The system implements multi-layer security for code execution:
+
+```go
+type RuntimeSandbox struct {
+    config *SandboxConfig
+}
+
+type SandboxConfig struct {
+    MaxExecutionTime    time.Duration
+    MaxMemory           int64
+    MaxOutputLength     int
+    AllowedHosts        []string
+    BlockedPaths        []string
+    AllowedCapabilities []string
+    EnableNetwork       bool
+    EnableFileAccess    bool
+}
 ```
 
-## Security Framework
+#### Security Policy
+A comprehensive security policy engine validates all operations:
 
-### Defense-in-Depth Strategy
-1. **Network Security**: Firewall rules, VPN access, restricted ports
-2. **Application Security**: RBAC, rate limiting, input validation
-3. **Runtime Security**: Sandboxed execution, resource limits
-4. **Data Security**: Encryption at rest and in transit
-5. **Audit Security**: Comprehensive logging and monitoring
-
-### Security Modules
-- **Authentication**: JWT with refresh token system
-- **Authorization**: RBAC with hierarchical role management
-- **Encryption**: AES-256-GCM for sensitive data
-- **Audit Trail**: Immutable logging system
-- **Policy Engine**: Fine-grained access control policies
-
-## Workflow Engine Implementation
-
-### Core Features
-- **Dependency Resolution**: Automated topological sorting
-- **Parallel Execution**: Concurrent node processing
-- **Error Handling**: Comprehensive fault tolerance
-- **Retry Mechanisms**: Configurable retry policies
-- **Monitoring**: Real-time execution tracking
-- **Scaling**: Horizontal scaling capabilities
-
-### Execution Flow
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   WORKFLOW      │    │  DEPENDENCY     │    │   EXECUTION     │
-│   DEFINITION    │───▶│  RESOLUTION     │───▶│   ENGINE        │
-│                 │    │                 │    │                 │
-│  Nodes & Edges  │    │  Topo Sort      │    │  Parallel       │
-│  Parameters     │    │  Cycle Check    │    │  Processing     │
-│  Connections    │    │  Validation     │    │  Scheduling     │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-                                                          │
-                                                          ▼
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   RESULT        │    │   PERSISTENCE   │    │   NOTIFICATION  │
-│   AGGREGATION   │◀───│   LAYER         │◀───│   SYSTEM        │
-│                 │    │                 │    │                 │
-│  Data Bundling  │    │  PostgreSQL     │    │  Real-time      │
-│  Error Prop.    │    │  Redis Cache    │    │  Updates        │
-│  Status Mgmt    │    │  Audit Logs     │    │  WebSocket      │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
+```go
+type SecurityPolicy struct {
+    AllowedHosts           []string
+    BlockedIPs             []*net.IPNet
+    AllowedIPs             []*net.IPNet
+    RateLimits             map[string]*RateLimit
+    ContentSecurityPolicy  *CSPConfig
+    NetworkFilter          *NetworkFilter
+    AuditLoggingEnabled    bool
+    MaxRequestSize         int64
+    MaxUploadSize          int64
+    SessionTimeout         time.Duration
+    PasswordPolicy         *PasswordPolicy
+    APIKeyPolicy           *APIKeyPolicy
+}
 ```
 
-## UI/UX Implementation
+#### API Security
+- JWT-based authentication
+- Role-based access control (RBAC)
+- API key management with permission scoping
+- Rate limiting and request validation
+- Audit logging for all security-relevant events
 
-### Dashboard Features
-- **Workflow Studio**: Drag-and-drop visual interface
-- **Real-time Monitoring**: Live workflow execution tracking
-- **Performance Metrics**: System and node-level KPIs
-- **Security Dashboard**: Audit logs and violation tracking
-- **Node Marketplace**: Browser and installer for plugins
-- **Team Management**: RBAC administration interface
+### 3. Authentication & Authorization System
 
-### Technical Implementation
-- **Frontend**: React 18 with TypeScript
-- **Workflow Canvas**: React Flow for visual editing
-- **State Management**: Zustand for global state
-- **Styling**: Tailwind CSS with custom component library
-- **Real-time**: WebSocket connections for live updates
-- **Accessibility**: WCAG 2.1 AA compliance
+#### Architecture:
+- **AuthService**: Handles authentication and authorization operations
+- **UserRepository**: Database operations for user management
+- **APIKeyRepository**: API key management
+- **TeamRepository**: Team and member management
 
-## Production Readiness
+#### Features:
+- User registration and login
+- OAuth integration (GitHub, Google)
+- Session management and refresh tokens
+- API key creation with scoped permissions
+- Role-based access control
+- Password policy enforcement
 
-### Monitoring and Observability
-- **Metrics Collection**: Prometheus for system metrics
-- **Tracing**: Distributed tracing for performance analysis
-- **Alerting**: Configurable alerts for critical issues
-- **Logging**: Structured logging with retention policies
-- **Health Checks**: Comprehensive system health monitoring
+### 4. Frontend Architecture
 
-### Scalability
-- **Horizontal Scaling**: Microservice architecture enables scaling
-- **Load Balancing**: Support for multiple instances
-- **Database Scaling**: Connection pooling and read replicas
-- **Caching**: Multi-tier caching strategy
-- **Queue Management**: Distributed job processing
+#### Technology Stack:
+- React 18 with functional components
+- React Router for navigation
+- React Flow for visual workflow builder
+- Tailwind CSS for styling
+- Zustand for state management
+- Axios for API communication
 
-### Reliability
-- **Fault Tolerance**: Graceful degradation for service failures
-- **Backup Systems**: Automated backup and recovery procedures
-- **Disaster Recovery**: Point-in-time recovery capabilities
-- **High Availability**: Multi-instance deployment patterns
-- **Rollback Procedures**: Safe deployment and rollback processes
+#### Key Components:
+- **AuthContext**: Authentication state management
+- **WorkflowContext**: Workflow state management
+- **MainLayout**: Main application layout with sidebar
+- **WorkflowBuilder**: Visual workflow editor
+- **Dashboard**: Analytics and workflow management
 
-## Conclusion
+### 5. API Layer
 
-Citadel Agent represents the next generation of workflow automation platforms, combining the best of traditional workflow engines with modern AI agent capabilities. The implementation follows industry best practices for security, scalability, and maintainability while providing an unparalleled feature set for enterprise automation needs.
+#### Security Middleware:
+- Request validation and sanitization
+- Rate limiting with configurable policies
+- Content Security Policy headers
+- CORS configuration
+- XSS protection headers
+- Authentication and authorization
+- Audit logging
 
-The system has been designed with extensibility in mind, allowing for future enhancements in AI capabilities, integrations, and advanced workflow patterns while maintaining the highest standards of security and reliability.
+#### Endpoints:
+- `/api/v1/auth/*` - Authentication endpoints
+- `/api/v1/workflows/*` - Workflow management
+- `/api/v1/executions/*` - Execution management
+- `/api/v1/users/*` - User management
+- `/api/v1/teams/*` - Team management
 
----
+## Security Implementation Details
 
-**Citadel Agent v0.1.0** - Autonomous Secure Workflow Engine
+### 1. Code Execution Sandboxing
+The system provides secure execution environments for multiple languages:
+
+#### JavaScript Execution:
+- Syntax and pattern validation
+- Blocked dangerous functions (eval, Function, etc.)
+- Limited to safe APIs
+- Timeout enforcement
+
+#### Python Execution:
+- Subprocess isolation
+- Blocked dangerous modules (os, subprocess, etc.)
+- Limited built-in functions
+- Resource limiting
+
+#### Shell Execution:
+- Command validation
+- Blocked dangerous commands
+- Limited to allowed operations
+- Output length limiting
+
+### 2. Network Security
+- Egress proxy with domain whitelisting
+- IP blocking and allowing
+- SSRF protection
+- Maximum redirect limits
+- Network call validation
+
+### 3. Data Security
+- Input sanitization and validation
+- Output encoding
+- SQL injection prevention
+- NoSQL injection prevention
+- Directory traversal protection
+
+### 4. API Security
+- JWT token validation
+- API key authentication
+- Rate limiting by endpoint
+- Request size limits
+- Content type validation
+
+### 5. Authentication Security
+- Bcrypt password hashing
+- Secure token generation
+- Session timeout enforcement
+- Account lockout after failed attempts
+- Password complexity requirements
+
+## Deployment Architecture
+
+### Backend Services:
+1. **API Service**: Handles HTTP requests and business logic
+2. **Worker Service**: Executes workflow nodes
+3. **Scheduler Service**: Manages workflow scheduling
+4. **Database Service**: PostgreSQL for data storage
+5. **Cache Service**: Redis for caching and queuing
+
+### Security in Deployment:
+- Network isolation between services
+- Resource limits per container
+- Health checks and monitoring
+- Automated backups
+- SSL/TLS termination
+
+## Monitoring and Observability
+
+### Metrics Collection:
+- Request rates and latencies
+- Error rates and types
+- Resource utilization
+- Security events
+- Business metrics
+
+### Tracing:
+- End-to-end request tracing
+- Performance bottleneck identification
+- Node execution tracking
+- Error correlation
+
+### Alerting:
+- Threshold-based alerts
+- Anomaly detection
+- Multi-channel notifications
+- Escalation policies
+
+## Development Best Practices
+
+### Security Practices:
+- Input validation at all boundaries
+- Principle of least privilege
+- Regular security audits
+- Automated security scanning
+- Secure coding guidelines
+
+### Code Quality:
+- Comprehensive testing (unit, integration, e2e)
+- Code review processes
+- Static analysis tools
+- Dependency management
+- Documentation standards
+
+### Performance:
+- Load testing
+- Performance monitoring
+- Caching strategies
+- Database optimization
+- Resource efficiency
+
+## Next Steps
+
+### Phase 1: Core Features Completion (Completed)
+- ✅ Authentication & Authorization System
+- ✅ Frontend Dashboard Foundation  
+- ✅ Security Sandboxing Implementation
+
+### Phase 2: Advanced Features
+- Multi-agent coordination
+- Advanced workflow patterns
+- Plugin marketplace
+- Enhanced analytics
+
+### Phase 3: Production Readiness
+- Performance optimization
+- Security audit
+- Scalability testing
+- Production deployment guides
+
+## Support and Community
+
+For support, documentation, and community resources, visit the official Citadel Agent platform.
