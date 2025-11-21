@@ -182,40 +182,17 @@ curl -X POST http://localhost:5001/api/v1/workflows/{id}/run \
 
 ## 🔐 Konfigurasi Keamanan
 
-### File .env
-**PENTING**: File `.env` berisi kredensial dan informasi sensitif, sehingga tidak disertakan dalam repository. Anda perlu membuat file ini sendiri:
+### File Konfigurasi
+**PENTING**: Citadel Agent menggunakan file `.env` untuk konfigurasi lingkungan. File ini berisi kredensial dan informasi sensitif, sehingga tidak disertakan dalam repository. Anda perlu membuat file ini sendiri berdasarkan dokumentasi:
 
-1. Buat salinan dari file `.env.example`:
+1. Buat file baru bernama `.env`:
 ```bash
-cp .env.example .env
+touch .env
 ```
 
-2. Edit file `.env` dan sesuaikan nilai-nilai berikut:
-```env
-# JWT Secret untuk autentikasi (ganti dengan nilai yang kuat untuk production)
-JWT_SECRET=your-super-secret-jwt-key-here-at-least-32-characters-for-production
-
-# Konfigurasi database
-DATABASE_URL=postgresql://postgres:password@localhost:5432/citadel_agent
-
-# Konfigurasi Redis
-REDIS_URL=redis://localhost:6379
-
-# Environment (development/production)
-ENVIRONMENT=development
-
-# Konfigurasi OAuth untuk GitHub dan Google (opsional)
-GITHUB_CLIENT_ID=your_github_client_id
-GITHUB_CLIENT_SECRET=your_github_client_secret
-GITHUB_CALLBACK_URL=http://localhost:5001/api/v1/auth/github/callback
-
-GOOGLE_CLIENT_ID=your_google_client_id
-GOOGLE_CLIENT_SECRET=your_google_client_secret
-GOOGLE_CALLBACK_URL=http://localhost:5001/api/v1/auth/google/callback
-
-# Batas rate limit API
-API_RATE_LIMIT=1000
-```
+2. Lihat dokumentasi konfigurasi untuk struktur dan nilai-nilai yang diperlukan:
+- Lihat file [CONFIGURATION.md](./CONFIGURATION.md) untuk detail lengkap tentang variabel lingkungan
+- Atau buat file `.env` berdasarkan template yang disediakan
 
 **Catatan**: Jangan pernah mengunggah file `.env` ke repository publik karena berisi informasi sensitif.
 
