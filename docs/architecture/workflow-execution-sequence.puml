@@ -1,0 +1,28 @@
+@startuml
+title Workflow Execution Sequence
+
+actor User
+participant "Frontend UI" as UI
+participant "API Service" as API
+participant "Database" as DB
+participant "Redis Queue" as Queue
+participant "Worker Service" as Worker
+participant "Runtime Environment" as Runtime
+
+User -> UI: Create/Trigger Workflow
+UI -> API: POST /api/v1/workflows/{id}/run
+API -> DB: Validate workflow exists
+DB -> API: Return workflow definition
+API -> Queue: Queue workflow execution task
+Queue -> Worker: Task available notification
+Worker -> Queue: Claim task
+Worker -> API: Fetch workflow definition
+API -> Worker: Return workflow definition
+Worker -> Runtime: Execute workflow nodes
+Runtime -> Worker: Return execution results
+Worker -> DB: Update execution status
+Worker -> API: Notify completion
+API -> UI: Return execution status
+UI -> User: Display results
+
+@enduml

@@ -1,0 +1,56 @@
+# Development override file
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.override.yml up
+
+version: '3.8'
+
+services:
+  # API Service - Development mode with hot reload
+  api:
+    build:
+      context: .
+      dockerfile: docker/api-dev.Dockerfile
+    environment:
+      - ENVIRONMENT=development
+      - LOG_LEVEL=debug
+    volumes:
+      - .:/app
+      - /app/go/pkg/mod/cache
+    command: >
+      sh -c "go install github.com/pilu/fresh@latest &&
+             cd /app/backend &&
+             fresh"
+    ports:
+      - "5001:5001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # Worker Service - Development mode
+  worker:
+    build:
+      context: .
+      dockerfile: docker/worker-dev.Dockerfile
+    environment:
+      - ENVIRONMENT=development
+      - LOG_LEVEL=debug
+    volumes:
+      - .:/app
+      - /app/go/pkg/mod/cache
+    command: >
+      sh -c "cd /app/backend && go run cmd/worker/main.go"
+
+  # Scheduler Service - Development mode
+  scheduler:
+    build:
+      context: .
+      dockerfile: docker/scheduler-dev.Dockerfile
+    environment:
+      - ENVIRONMENT=development
+      - LOG_LEVEL=debug
+    volumes:
+      - .:/app
+      - /app/go/pkg/mod/cache
+    command: >
+      sh -c "cd /app/backend && go run cmd/scheduler/main.go"

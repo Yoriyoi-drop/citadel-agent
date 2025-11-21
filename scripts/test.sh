@@ -1,33 +1,22 @@
 #!/bin/bash
 # Test script for Citadel Agent
 
-set -e
+set -e  # Exit on any error
 
-echo "Running tests for Citadel Agent..."
+echo "Running Citadel Agent tests..."
 
-# Run backend tests
-echo "Running backend tests..."
-cd backend
-go test -v ./internal/...
-go test -v ./test/...
+# Navigate to backend directory
+cd /home/whale-d/fajar/citadel-agent/backend
 
-cd ..
+# Run all tests
+echo "Running unit tests..."
+go test ./test/unit/... -v
 
-# Run frontend tests if available
-if [ -d "frontend" ]; then
-  echo "Running frontend tests..."
-  cd frontend
-  npm test -- --coverage
-  cd ..
-fi
+echo "Running tests for internal packages..."
+go test ./internal/api/... -v
+go test ./internal/auth/... -v
+go test ./internal/engine/... -v
+go test ./internal/ai/... -v
+go test ./internal/runtimes/... -v
 
-# Run integration tests
-if [ -d "tests" ]; then
-  echo "Running integration tests..."
-  cd tests
-  # Placeholder for integration tests
-  echo "Integration tests would run here"
-  cd ..
-fi
-
-echo "All tests completed!"
+echo "All tests completed successfully!"

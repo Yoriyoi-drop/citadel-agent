@@ -1,10 +1,8 @@
-# Development Dockerfile for Scheduler
-FROM golang:1.22-alpine
+# Development Dockerfile for Scheduler service
+FROM golang:1.21-alpine
 
+# Set working directory
 WORKDIR /app
-
-# Install dependencies
-RUN apk add --no-cache git
 
 # Copy go mod files
 COPY backend/go.mod backend/go.sum ./
@@ -12,11 +10,11 @@ COPY backend/go.mod backend/go.sum ./
 # Download dependencies
 RUN go mod download
 
-# Copy all source code
+# Copy source code
 COPY backend/ .
 
-# Install nodemon for auto-reload
-RUN go install github.com/pilu/fresh@latest
+# Expose any necessary port for debugging
+EXPOSE 8081
 
-# Command to run in development mode
-CMD ["fresh", "-c", "../fresh.conf", "-b", "scheduler"]
+# Run the scheduler service
+CMD ["sh", "-c", "cd /app && go run cmd/scheduler/main.go"]

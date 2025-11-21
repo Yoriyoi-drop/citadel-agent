@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In to Citadel Agent</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .login-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 450px;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .logo {
+            margin-bottom: 30px;
+        }
+        
+        .logo h1 {
+            color: #1a2a6c;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .logo p {
+            color: #666;
+            font-size: 16px;
+        }
+        
+        .oauth-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .oauth-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            color: white;
+        }
+        
+        .oauth-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+        
+        .github-btn {
+            background: #24292e;
+        }
+        
+        .google-btn {
+            background: #4285f4;
+        }
+        
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 25px 0;
+        }
+        
+        .divider::before,
+        .divider::after {
+            content: "";
+            flex: 1;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .divider span {
+            padding: 0 10px;
+            color: #777;
+            font-size: 14px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #1a2a6c;
+            box-shadow: 0 0 0 3px rgba(26, 42, 108, 0.1);
+        }
+        
+        .remember-forgot {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        
+        .remember-forgot label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #555;
+        }
+        
+        .remember-forgot a {
+            color: #1a2a6c;
+            text-decoration: none;
+        }
+        
+        .remember-forgot a:hover {
+            text-decoration: underline;
+        }
+        
+        .login-btn {
+            width: 100%;
+            padding: 16px;
+            background: #1a2a6c;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .login-btn:hover {
+            background: #0d1b4d;
+        }
+        
+        .signup-link {
+            margin-top: 25px;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .signup-link a {
+            color: #1a2a6c;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .signup-link a:hover {
+            text-decoration: underline;
+        }
+        
+        .security-note {
+            margin-top: 30px;
+            padding: 15px;
+            background: #f0f7ff;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #555;
+            border-left: 4px solid #1a2a6c;
+        }
+        
+        .provider-hint {
+            font-size: 13px;
+            color: #777;
+            margin-top: 5px;
+            text-align: center;
+        }
+        
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="logo">
+            <h1>Citadel Agent</h1>
+            <p>Autonomous Secure Workflow Engine</p>
+        </div>
+        
+        <div class="oauth-buttons">
+            <button class="oauth-btn github-btn" onclick="location.href='/auth/oauth/github'">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
+                </svg>
+                Sign in with GitHub
+            </button>
+            <button class="oauth-btn google-btn" onclick="location.href='/auth/oauth/google'">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21.1 12.6c0-.6-.1-1.2-.2-1.8H12v3.4h5.2c-.2 1.1-1 2.1-2.2 2.7v2.2h3.5c2.1-1.9 3.3-4.6 3.3-7.7z" fill="#4285F4"></path>
+                    <path d="M12 22c2.7 0 5-1 6.7-2.8l-3.2-2.5c-.9.6-2 1-3.5 1-2.7 0-5-2.2-5-5s2.3-5 5-5c1.4 0 2.6.5 3.5 1.4l3.3-3.3C17.1 3.7 14.8 2.5 12 2.5 7.6 2.5 4 6.3 4 11s3.6 8.5 8 8.5z" fill="#34A853"></path>
+                    <path d="M4 11c0-.9.1-1.7.4-2.5L1 6.2c-1.1 2.2-1.1 4.8 0 7l3.3-2.7z" fill="#FBBC05"></path>
+                    <path d="M12 4.1c1.6 0 3.1.6 4.2 1.8l3.2-3.2C17.8 1.4 15.3 0 12 0 7.6 0 4 3.7 4 8.5s3.6 8.5 8 8.5c3.3 0 5.8-1.4 7.2-3.7l-3.3-2.5c-1.1 1.2-2.6 1.9-4.1 1.9-2.7 0-5-2.2-5-5s2.3-5 5-5z" fill="#EA4335"></path>
+                </svg>
+                Sign in with Google
+            </button>
+        </div>
+        
+        <div class="provider-hint">
+            For organization accounts prefer GitHub/Google SSO
+        </div>
+        
+        <div class="divider">
+            <span>or</span>
+        </div>
+        
+        <form id="local-login-form">
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" placeholder="Enter your email" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" placeholder="Enter your password" required>
+            </div>
+            
+            <div class="remember-forgot">
+                <label>
+                    <input type="checkbox" name="remember">
+                    Remember me
+                </label>
+                <a href="#">Forgot password?</a>
+            </div>
+            
+            <button type="submit" class="login-btn">Sign In</button>
+        </form>
+        
+        <div class="signup-link">
+            New to Citadel Agent? <a href="#">Request access</a>
+        </div>
+        
+        <div class="security-note">
+            Security note: We use OAuth & industry best practices. All credentials are securely stored and transmitted.
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('local-login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData);
+            
+            try {
+                const response = await fetch('/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    // Store token and redirect
+                    localStorage.setItem('token', result.access_token);
+                    window.location.href = '/dashboard';
+                } else {
+                    alert(`Login failed: ${result.error || 'Unknown error'}`);
+                }
+            } catch (error) {
+                alert(`Login error: ${error.message}`);
+            }
+        });
+    </script>
+</body>
+</html>

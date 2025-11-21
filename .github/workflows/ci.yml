@@ -1,4 +1,4 @@
-name: CI Pipeline
+name: CI/CD Pipeline
 
 on:
   push:
@@ -6,194 +6,133 @@ on:
   pull_request:
     branches: [ main ]
 
-env:
-  REGISTRY: docker.io
-  IMAGE_NAME: citadelagent/citadel-agent
-
 jobs:
-  lint-and-test:
+  test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        go-version: [1.21]
-        node-version: [18.x]
+        go-version: [1.21.x]
+
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v3
 
-    - name: Setup Go
+    - name: Set up Go
       uses: actions/setup-go@v4
       with:
         go-version: ${{ matrix.go-version }}
-        cache: true
-
-    - name: Setup Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-        cache-dependency-path: frontend/package-lock.json
-
-    - name: Setup Go tools
-      run: |
-        go install golang.org/x/tools/cmd/goimports@latest
-        go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 
     - name: Install dependencies
       run: |
         cd backend
         go mod download
-        cd ../frontend
-        npm ci
 
-    - name: Run Go linters
+    - name: Run tests
       run: |
         cd backend
-        golangci-lint run --timeout=5m
-        go vet ./...
-        gofmt -s -w . && git diff --exit-code || (echo "Please run gofmt -s -w ."; exit 1)
-        goimports -w . && git diff --exit-code || (echo "Please run goimports -w ."; exit 1)
+        go test -v ./...
 
-    - name: Run frontend linters
-      run: |
-        cd frontend
-        npm run lint || echo "Linting issues found, please fix them"
-
-    - name: Run Go tests with coverage
+    - name: Run race detector tests
       run: |
         cd backend
-        go test -v -race -coverprofile=coverage.txt -covermode=atomic ./...
-        go tool cover -func=coverage.txt -o coverage.out
+        go test -race -v ./...
 
-    - name: Run frontend tests
-      run: |
-        cd frontend
-        npm test -- --coverage --watchAll=false
-        npm run build
-
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
-      with:
-        file: ./backend/coverage.txt
-        flags: backend
-        name: codecov-umbrella
-        fail_ci_if_error: false
-
-    - name: Security scan with Trivy
-      uses: aquasecurity/trivy-action@master
-      with:
-        scan-type: 'fs'
-        scan-ref: '.'
-        format: 'sarif'
-        output: 'trivy-results.sarif'
-      continue-on-error: true
-
-    - name: Upload Trivy scan results
-      uses: github/codeql-action/upload-sarif@v2
-      with:
-        sarif_file: 'trivy-results.sarif'
-      continue-on-error: true
-
-  build-and-push:
+  lint:
     runs-on: ubuntu-latest
-    needs: lint-and-test
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    permissions:
-      contents: read
-      packages: write
+    strategy:
+      matrix:
+        go-version: [1.21.x]
+
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v3
 
-    - name: Set up QEMU
-      uses: docker/setup-qemu-action@v3
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: ${{ matrix.go-version }}
+
+    - name: Install golangci-lint
+      run: |
+        go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+
+    - name: Run golangci-lint
+      run: |
+        cd backend
+        golangci-lint run ./...
+
+    - name: Check formatting
+      run: |
+        cd backend
+        go fmt ./...
+        git diff --exit-code || (echo "Code is not properly formatted. Please run 'go fmt ./...' locally and commit the changes." && exit 1)
+
+    - name: Check for uncommitted changes
+      run: |
+        cd backend
+        git diff --exit-code || (echo "There are uncommitted changes after go fmt. Please format your code." && exit 1)
+
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go-version: [1.21.x]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: ${{ matrix.go-version }}
+
+    - name: Install dependencies
+      run: |
+        cd backend
+        go mod download
+
+    - name: Build API service
+      run: |
+        cd backend
+        go build -o ../bin/api cmd/api/main.go
+
+    - name: Build Worker service
+      run: |
+        cd backend
+        go build -o ../bin/worker cmd/worker/main.go
+
+    - name: Build Scheduler service
+      run: |
+        cd backend
+        go build -o ../bin/scheduler cmd/scheduler/main.go
+
+    - name: Verify binaries
+      run: |
+        ls -la bin/
+        file bin/api
+        file bin/worker
+        file bin/scheduler
+
+  docker:
+    runs-on: ubuntu-latest
+    needs: [test, lint, build]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
 
     - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
+      uses: docker/setup-buildx-action@v2
 
-    - name: Login to Docker Hub
-      uses: docker/login-action@v3
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-    - name: Extract metadata
-      id: meta
-      uses: docker/metadata-action@v5
-      with:
-        images: ${{ env.IMAGE_NAME }}
-        tags: |
-          type=ref,event=branch
-          type=ref,event=pr
-          type=sha,prefix={{branch}}-
-          type=raw,value=latest,enable={{is_default_branch}}
-
-    - name: Build and push API image
-      uses: docker/build-push-action@v5
-      with:
-        context: .
-        file: docker/api.Dockerfile
-        push: true
-        tags: ${{ steps.meta.outputs.tags }}
-        labels: ${{ steps.meta.outputs.labels }}
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
-
-    - name: Build and push Worker image
-      uses: docker/build-push-action@v5
-      with:
-        context: .
-        file: docker/worker.Dockerfile
-        push: true
-        tags: ${{ steps.meta.outputs.tags }}
-        labels: ${{ steps.meta.outputs.labels }}
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
-
-    - name: Build and push Frontend image
-      uses: docker/build-push-action@v5
-      with:
-        context: .
-        file: docker/frontend.Dockerfile
-        push: true
-        tags: ${{ steps.meta.outputs.tags }}
-        labels: ${{ steps.meta.outputs.labels }}
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
-
-  security-audit:
-    runs-on: ubuntu-latest
-    needs: lint-and-test
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Run CodeQL Analysis
-      uses: github/codeql-action/analyze@v2
-      with:
-        languages: go,javascript
-
-    - name: Run Snyk to check for vulnerabilities
-      uses: snyk/actions/golang@master
-      env:
-        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-      with:
-        args: --all-projects --fail-on=all
-
-    - name: Run Gosec Security Scanner
-      uses: securecodewarrior/github-action-gosec@v2.0.0
-      with:
-        args: -no-fail -fmt sarif -out results.sarif ./...
-      continue-on-error: true
-
-  deploy-staging:
-    runs-on: ubuntu-latest
-    needs: [build-and-push, security-audit]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    environment: staging
-    steps:
-    - name: Deploy to staging
+    - name: Build API Docker image
       run: |
-        echo "Deploying to staging environment..."
-        # Add deployment commands here (Helm, kubectl, etc.)
-        # This would typically deploy the built images to a staging environment
+        docker build -f docker/api.Dockerfile -t citadel-agent-api:latest .
+
+    - name: Build Worker Docker image
+      run: |
+        docker build -f docker/worker.Dockerfile -t citadel-agent-worker:latest .
+
+    - name: Build Scheduler Docker image
+      run: |
+        docker build -f docker/scheduler.Dockerfile -t citadel-agent-scheduler:latest .

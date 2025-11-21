@@ -357,14 +357,19 @@ Nodes untuk menangani event, notifikasi, dan reaksi terhadap perubahan sistem:
 
 ## 📚 Dokumentasi
 
+### Struktur Project
+Lihat [STRUCTURE.md](./STRUCTURE.md) untuk penjelasan lengkap tentang struktur direktori dan komponen Citadel Agent.
+
 ### Struktur Dokumentasi
 ```
 docs/
-├── api/              # Dokumentasi API
-├── guides/           # Panduan penggunaan
-├── architecture/     # Dokumentasi arsitektur
-└── nodes/            # Dokumentasi node
+├── api/              # Dokumentasi API dan OpenAPI/Swagger
+├── guides/           # Panduan penggunaan dan tutorial
+├── architecture/     # Dokumentasi arsitektur sistem
+└── nodes/            # Dokumentasi node dan workflow
 ```
+
+Untuk kontribusi dan pengembangan lebih lanjut, lihat [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 ### Panduan Awal
 1. **Getting Started**: Mulai dengan Citadel Agent

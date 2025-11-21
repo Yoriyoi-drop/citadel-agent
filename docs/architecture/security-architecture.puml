@@ -1,0 +1,71 @@
+@startuml
+title Citadel Agent Security Architecture
+
+!theme plain
+
+package "Security Layer" {
+  
+  package "Authentication" as authn {
+    [OAuth 2.0 Providers]
+    [JWT Token Service]
+    [Multi-factor Auth]
+    [SSO Integration]
+  }
+  
+  package "Authorization" as authz {
+    [Role-based Access]
+    [Permission System]
+    [Policy Engine]
+    [RBAC Manager]
+  }
+  
+  package "Runtime Security" as runtime_sec {
+    [Container Sandbox]
+    [VM Isolation]
+    [Resource Limits]
+    [Network Policies]
+    [Code Execution Sandbox]
+  }
+  
+  package "Data Security" as data_sec {
+    [Encryption at Rest]
+    [TLS Encryption]
+    [Audit Logging]
+    [Data Loss Prevention]
+  }
+}
+
+package "Core Services" {
+  [API Service]
+  [Worker Service] 
+  [Scheduler Service]
+}
+
+package "Data Layer" {
+  [PostgreSQL]
+  [Redis Cache]
+}
+
+authn --> [API Service] : authenticates
+authz --> [API Service] : authorizes
+runtime_sec --> [Worker Service] : secures execution
+data_sec --> [PostgreSQL] : encrypts data
+data_sec --> [Redis Cache] : encrypts data
+
+[API Service] --> authn : requests authn
+[API Service] --> authz : requests authz
+[Worker Service] --> runtime_sec : requests sandboxing
+
+note right of runtime_sec
+  Each code execution is 
+  isolated in secure
+  runtime environment
+end note
+
+note left of authn
+  Multiple authentication
+  providers supported:
+  GitHub, Google, etc.
+end note
+
+@enduml

@@ -1,0 +1,124 @@
+@startuml
+!theme plain
+title Citadel Agent System Architecture
+
+left to right direction
+
+actor User as user
+component "Frontend UI" as frontend {
+  [Dashboard]
+  [Workflow Editor]
+}
+
+component "CLI Tools" as cli {
+  [Basic CLI]
+  [Advanced CLI]
+}
+
+component "External Clients" as external {
+  [REST API]
+  [Webhooks]
+  [Third-party Apps]
+}
+
+node "Load Balancer" as lb {
+  [Nginx/Traefik]
+}
+
+node "API Gateway" as gateway {
+  [Request Routing]
+  [Rate Limiting]
+  [API Versioning]
+}
+
+node "Auth Service" as auth {
+  [OAuth 2.0]
+  [JWT Tokens]
+  [User Management]
+}
+
+database "PostgreSQL" as db {
+  [User Data]
+  [Workflow Definitions]
+  [Node Configs]
+  [Audit Logs]
+}
+
+cache "Redis" as cache {
+  [Session Store]
+  [Cache Layer]
+  [Task Queue]
+  [Rate Limiting]
+}
+
+storage "File Storage" as storage {
+  [Workflow Assets]
+  [Logs]
+  [Temp Files]
+}
+
+node "Microservices" as ms {
+  component "API Service" as api {
+    [User Management API]
+    [Workflow CRUD API]
+    [Node Management API]
+    [Authentication API]
+    [Agent Management API]
+  }
+
+  component "Worker Service" as worker {
+    [Task Queue Consumer]
+    [Workflow Execution]
+    [Node Runtime Manager]
+    [Sandboxing System]
+  }
+
+  component "Scheduler Service" as scheduler {
+    [Cron Scheduler]
+    [Event Scheduler]
+    [Workflow Triggers]
+    [Time-based Events]
+  }
+}
+
+node "Monitoring & Logs" as monitoring {
+  [Prometheus]
+  [Grafana]
+  [ELK Stack]
+  [Audit Logging]
+}
+
+user --> frontend
+user --> cli
+external --> lb
+frontend --> lb
+cli --> lb
+external --> lb
+
+lb --> gateway
+lb --> auth
+
+gateway --> api
+auth --> api
+
+api --> db
+api --> cache
+api --> storage
+
+api --> worker
+api --> scheduler
+
+worker --> db
+worker --> cache
+worker --> storage
+
+scheduler --> db
+scheduler --> cache
+
+db --> monitoring
+cache --> monitoring
+storage --> monitoring
+
+ms --> monitoring
+
+@enduml
