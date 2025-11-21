@@ -1,42 +1,39 @@
 {
   "name": "citadel-agent-frontend",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "dependencies": {
-    "@types/node": "^18.17.0",
-    "@types/react": "^18.2.21",
-    "@types/react-dom": "^18.2.7",
+    "@headlessui/react": "^1.7.0",
+    "@heroicons/react": "^1.0.6",
+    "@tailwindcss/forms": "^0.5.0",
     "react": "^18.2.0",
+    "react-dnd": "^16.0.1",
+    "react-dnd-html5-backend": "^16.0.1",
     "react-dom": "^18.2.0",
-    "react-scripts": "5.0.1",
-    "typescript": "^4.9.5",
-    "axios": "^1.6.0",
-    "react-flow-renderer": "^10.3.17",
-    "@types/react-flow-renderer": "^10.3.7",
-    "zustand": "^4.4.7",
-    "react-router-dom": "^6.16.0"
+    "react-router-dom": "^6.4.0",
+    "reactflow": "^11.0.0",
+    "zustand": "^4.1.0",
+    "chart.js": "^3.9.1",
+    "react-chartjs-2": "^4.3.1"
   },
   "devDependencies": {
-    "@types/react-router-dom": "^5.3.3",
-    "ts-node": "^10.9.1",
-    "webpack": "^5.88.2",
-    "webpack-cli": "^5.1.4",
-    "ts-loader": "^9.4.4",
-    "@babel/preset-env": "^7.22.20",
-    "@babel/preset-react": "^7.22.15",
-    "@babel/preset-typescript": "^7.23.0"
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
+    "@types/node": "^18.0.0",
+    "typescript": "^4.8.0",
+    "vite": "^3.0.0",
+    "vite-plugin-svgr": "^2.2.1",
+    "autoprefixer": "^10.4.12",
+    "postcss": "^8.4.18",
+    "tailwindcss": "^3.1.8",
+    "eslint": "^8.0.0",
+    "@vitejs/plugin-react": "^2.1.0"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "serve": "vite preview",
+    "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
   },
   "browserslist": {
     "production": [

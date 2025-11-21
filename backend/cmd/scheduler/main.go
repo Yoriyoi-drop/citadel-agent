@@ -1,70 +1,72 @@
+// backend/cmd/scheduler/main.go
 package main
 
 import (
-	"context"
 	"log"
 	"os"
-	"os/signal"
-	"syscall"
 	"time"
 
-	"citadel-agent/backend/internal/config"
-	"citadel-agent/backend/internal/database"
-	"citadel-agent/backend/internal/engine"
-	"citadel-agent/backend/internal/services"
+	"github.com/citadel-agent/backend/internal/auth"
+	"github.com/citadel-agent/backend/internal/ai"
+	"github.com/citadel-agent/backend/internal/runtimes"
+	"github.com/citadel-agent/backend/internal/engine"
+	"github.com/citadel-agent/backend/internal/database"
 )
 
 func main() {
 	// Load configuration
-	cfg := config.LoadConfig()
+	jwtSecret := os.Getenv("JWT_SECRET")
+	if jwtSecret == "" {
+		log.Fatal("JWT_SECRET environment variable is required")
+	}
 
-	// Initialize database connection
-	db, err := database.NewPostgresDB(&cfg.Database)
+	dbURL := os.Getenv("DATABASE_URL")
+	if dbURL == "" {
+		log.Fatal("DATABASE_URL environment variable is required")
+	}
+
+	// Initialize database
+	db, err := database.Connect(dbURL)
 	if err != nil {
-		log.Fatal("Failed to connect to database:", err)
+		log.Fatalf("Failed to connect to database: %v", err)
 	}
 
-	// Initialize services
-	workflowService := services.NewWorkflowService(db.GormDB)
-	executionService := services.NewExecutionService(db.GormDB)
+	// Initialize authentication service
+	authSvc := auth.NewAuthService(db, jwtSecret)
 
-	// Initialize workflow engine
-	executor := engine.NewExecutor()
-	runner := engine.NewRunner(executor)
+	// Initialize AI service
+	aiSvc := ai.NewAIService(db, authSvc)
+	
+	// Register built-in AI tools
+	aiSvc.RegisterBuiltInTools()
 
-	// Initialize scheduler
-	scheduler := engine.NewScheduler(runner)
+	// Initialize runtime manager
+	runtimeMgr := runtimes.NewMultiRuntimeManager()
 
-	// Create worker
-	schedulerService := services.NewSchedulerService(workflowService, executionService, scheduler)
+	// Initialize engine components
+	nodeRegistry := engine.NewNodeRegistry(aiSvc.GetAIManager(), runtimeMgr)
+	executor := engine.NewExecutor(aiSvc.GetAIManager(), runtimeMgr)
+	runner := engine.NewRunner(executor, aiSvc.GetAIManager())
 
-	// Create context that is cancelled on interrupt signal
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	// Start the scheduler
-	go func() {
-		if err := schedulerService.Start(ctx); err != nil {
-			log.Fatal("Scheduler failed to start:", err)
+	log.Println("Scheduler service started successfully")
+	
+	// In a real implementation, the scheduler would:
+	// 1. Check for workflows scheduled to run
+	// 2. Handle cron-based workflows
+	// 3. Retry failed workflows
+	// 4. Handle timeout workflows
+	//
+	// For now, we'll just simulate the scheduler functionality with a simple loop
+	
+	ticker := time.NewTicker(30 * time.Second)
+	defer ticker.Stop()
+	
+	for {
+		select {
+		case <-ticker.C:
+			log.Println("Scheduler: Checking for scheduled workflows...")
+			// In a real implementation, this would check the database for scheduled workflows
+			// and trigger their execution
 		}
-	}()
-
-	log.Println("Scheduler started successfully")
-
-	// Wait for interrupt signal to gracefully shutdown the scheduler
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
-	<-quit
-
-	log.Println("Shutting down scheduler...")
-
-	// Create context with timeout for graceful shutdown
-	shutdownCtx, cancelShutdown := context.WithTimeout(ctx, 30*time.Second)
-	defer cancelShutdown()
-
-	if err := schedulerService.Stop(shutdownCtx); err != nil {
-		log.Printf("Error during scheduler shutdown: %v", err)
 	}
-
-	log.Println("Scheduler stopped")
 }

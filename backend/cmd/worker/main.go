@@ -1,67 +1,56 @@
+// backend/cmd/worker/main.go
 package main
 
 import (
-	"context"
 	"log"
 	"os"
-	"os/signal"
-	"syscall"
-	"time"
 
-	"citadel-agent/backend/internal/config"
-	"citadel-agent/backend/internal/database"
-	"citadel-agent/backend/internal/engine"
-	"citadel-agent/backend/internal/services"
+	"github.com/citadel-agent/backend/internal/auth"
+	"github.com/citadel-agent/backend/internal/ai"
+	"github.com/citadel-agent/backend/internal/runtimes"
+	"github.com/citadel-agent/backend/internal/engine"
+	"github.com/citadel-agent/backend/internal/database"
 )
 
 func main() {
 	// Load configuration
-	cfg := config.LoadConfig()
+	jwtSecret := os.Getenv("JWT_SECRET")
+	if jwtSecret == "" {
+		log.Fatal("JWT_SECRET environment variable is required")
+	}
 
-	// Initialize database connection
-	db, err := database.NewPostgresDB(&cfg.Database)
+	dbURL := os.Getenv("DATABASE_URL")
+	if dbURL == "" {
+		log.Fatal("DATABASE_URL environment variable is required")
+	}
+
+	// Initialize database
+	db, err := database.Connect(dbURL)
 	if err != nil {
-		log.Fatal("Failed to connect to database:", err)
+		log.Fatalf("Failed to connect to database: %v", err)
 	}
 
-	// Initialize services
-	executionService := services.NewExecutionService(db.GormDB)
+	// Initialize authentication service
+	authSvc := auth.NewAuthService(db, jwtSecret)
 
-	// Initialize workflow engine
-	nodeRegistry := engine.NewNodeRegistry()
-	executor := engine.NewExecutor()
-	runner := engine.NewRunner(executor)
-
-	// Create worker
-	worker := services.NewWorker(executionService, runner, nodeRegistry)
-
-	// Create context that is cancelled on interrupt signal
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	// Start the worker
-	go func() {
-		if err := worker.Start(ctx); err != nil {
-			log.Fatal("Worker failed to start:", err)
-		}
-	}()
-
-	log.Println("Worker started successfully")
-
-	// Wait for interrupt signal to gracefully shutdown the worker
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
-	<-quit
-
-	log.Println("Shutting down worker...")
+	// Initialize AI service
+	aiSvc := ai.NewAIService(db, authSvc)
 	
-	// Create context with timeout for graceful shutdown
-	shutdownCtx, cancelShutdown := context.WithTimeout(ctx, 30*time.Second)
-	defer cancelShutdown()
+	// Register built-in AI tools
+	aiSvc.RegisterBuiltInTools()
 
-	if err := worker.Stop(shutdownCtx); err != nil {
-		log.Printf("Error during worker shutdown: %v", err)
-	}
+	// Initialize runtime manager
+	runtimeMgr := runtimes.NewMultiRuntimeManager()
 
-	log.Println("Worker stopped")
+	// Initialize engine components
+	nodeRegistry := engine.NewNodeRegistry(aiSvc.GetAIManager(), runtimeMgr)
+	executor := engine.NewExecutor(aiSvc.GetAIManager(), runtimeMgr)
+	runner := engine.NewRunner(executor, aiSvc.GetAIManager())
+
+	log.Println("Worker service started successfully")
+	
+	// In a real implementation, the worker would listen for jobs from a queue
+	// For now, we'll just simulate the worker functionality
+	
+	select {} // Block forever - in real implementation this would be the worker loop
 }

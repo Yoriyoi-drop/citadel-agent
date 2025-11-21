@@ -1,3 +1,4 @@
+// backend/internal/engine/node_registry.go
 package engine
 
 import (
@@ -7,28 +8,49 @@ import (
 	"log"
 	"math/rand"
 	"time"
+
+	"github.com/citadel-agent/backend/internal/ai"
+	"github.com/citadel-agent/backend/internal/nodes"
+	"github.com/citadel-agent/backend/internal/runtimes"
 )
 
 // BuiltInNodeType represents the type of built-in nodes
 type BuiltInNodeType string
 
 const (
-	HTTPNodeType       BuiltInNodeType = "http_request"
-	DelayNodeType      BuiltInNodeType = "delay"
-	FunctionNodeType   BuiltInNodeType = "function"
-	TriggerNodeType    BuiltInNodeType = "trigger"
+	HTTPNodeType        BuiltInNodeType = "http_request"
+	DelayNodeType       BuiltInNodeType = "delay"
+	FunctionNodeType    BuiltInNodeType = "function"
+	TriggerNodeType     BuiltInNodeType = "trigger"
 	DataProcessNodeType BuiltInNodeType = "data_process"
+	// Multi-language runtime nodes
+	GoNodeType          BuiltInNodeType = "go_code"
+	JSNodeType          BuiltInNodeType = "javascript_code"
+	PythonNodeType      BuiltInNodeType = "python_code"
+	JavaNodeType        BuiltInNodeType = "java_code"
+	RubyNodeType        BuiltInNodeType = "ruby_code"
+	PHPNodeType         BuiltInNodeType = "php_code"
+	RustNodeType        BuiltInNodeType = "rust_code"
+	CSharpNodeType      BuiltInNodeType = "csharp_code"
+	ShellNodeType       BuiltInNodeType = "shell_script"
+	// AI nodes
+	AIAgentNodeType     BuiltInNodeType = "ai_agent"
+	MultiRuntimeNodeType BuiltInNodeType = "multi_runtime"
 )
 
 // NodeRegistry holds the registration of all available nodes
 type NodeRegistry struct {
 	nodes map[string]NodeExecutor
+	aiManager *ai.AIManager
+	runtimeMgr *runtimes.MultiRuntimeManager
 }
 
 // NewNodeRegistry creates a new instance of NodeRegistry
-func NewNodeRegistry() *NodeRegistry {
+func NewNodeRegistry(aiManager *ai.AIManager, runtimeMgr *runtimes.MultiRuntimeManager) *NodeRegistry {
 	registry := &NodeRegistry{
 		nodes: make(map[string]NodeExecutor),
+		aiManager: aiManager,
+		runtimeMgr: runtimeMgr,
 	}
 
 	// Register built-in nodes
@@ -37,6 +59,21 @@ func NewNodeRegistry() *NodeRegistry {
 	registry.RegisterNode(string(FunctionNodeType), &FunctionNode{})
 	registry.RegisterNode(string(TriggerNodeType), &TriggerNode{})
 	registry.RegisterNode(string(DataProcessNodeType), &DataProcessNode{})
+
+	// Register multi-language runtime nodes
+	registry.RegisterNode(string(GoNodeType), &nodes.GoNode{})
+	registry.RegisterNode(string(JSNodeType), &nodes.JavaScriptNode{})
+	registry.RegisterNode(string(PythonNodeType), &nodes.PythonNode{})
+	registry.RegisterNode(string(JavaNodeType), &nodes.JavaNode{})
+	registry.RegisterNode(string(RubyNodeType), &nodes.RubyNode{})
+	registry.RegisterNode(string(PHPNodeType), &nodes.PHPNode{})
+	registry.RegisterNode(string(RustNodeType), &nodes.RustNode{})
+	registry.RegisterNode(string(CSharpNodeType), &nodes.CSharpNode{})
+	registry.RegisterNode(string(ShellNodeType), &nodes.ShellNode{})
+
+	// Register AI nodes with their dependencies
+	registry.RegisterNode(string(AIAgentNodeType), &nodes.AIAgentNode{AIManager: aiManager})
+	registry.RegisterNode(string(MultiRuntimeNodeType), &nodes.MultiRuntimeNode{RuntimeMgr: runtimeMgr})
 
 	return registry
 }
@@ -145,7 +182,7 @@ type FunctionNode struct{}
 func (f *FunctionNode) Execute(ctx context.Context, input map[string]interface{}) (*ExecutionResult, error) {
 	// In a real implementation, this would execute JavaScript/Python code from the input
 	// For now, we'll simulate function execution
-	
+
 	code, exists := input["code"].(string)
 	if !exists {
 		// If no code is provided, just pass through input data
@@ -158,7 +195,7 @@ func (f *FunctionNode) Execute(ctx context.Context, input map[string]interface{}
 
 	// Simulate function execution
 	log.Printf("Executing function: %s", code)
-	
+
 	// Just return the input with an additional field as an example
 	resultData := make(map[string]interface{})
 	for k, v := range input {
@@ -181,7 +218,7 @@ type TriggerNode struct{}
 func (t *TriggerNode) Execute(ctx context.Context, input map[string]interface{}) (*ExecutionResult, error) {
 	// Trigger nodes typically initialize workflows
 	// They might check for conditions, receive webhooks, etc.
-	
+
 	// For this example, we'll just pass through the input
 	triggerType, exists := input["trigger_type"].(string)
 	if !exists {
@@ -252,7 +289,7 @@ func (d *DataProcessNode) Execute(ctx context.Context, input map[string]interfac
 // Helper functions for data processing
 func transformData(input map[string]interface{}) map[string]interface{} {
 	result := make(map[string]interface{})
-	
+
 	// Convert all values to strings as an example transformation
 	for k, v := range input {
 		switch val := v.(type) {
@@ -272,30 +309,30 @@ func transformData(input map[string]interface{}) map[string]interface{} {
 			}
 		}
 	}
-	
+
 	return result
 }
 
 func filterData(input map[string]interface{}) map[string]interface{} {
 	result := make(map[string]interface{})
-	
+
 	// For this example, filter out any keys that start with "temp_"
 	for k, v := range input {
 		if len(k) < 5 || k[:5] != "temp_" {
 			result[k] = v
 		}
 	}
-	
+
 	return result
 }
 
 func aggregateData(input map[string]interface{}) map[string]interface{} {
 	result := make(map[string]interface{})
-	
+
 	// For this example, count and sum all number values
 	count := 0
 	sum := 0.0
-	
+
 	for _, v := range input {
 		switch val := v.(type) {
 		case int:
@@ -315,12 +352,13 @@ func aggregateData(input map[string]interface{}) map[string]interface{} {
 			sum += val
 		}
 	}
-	
+
 	result["count"] = count
 	result["sum"] = sum
 	if count > 0 {
 		result["average"] = sum / float64(count)
 	}
-	
+
 	return result
 }
+

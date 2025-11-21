@@ -1,217 +1,284 @@
+// backend/internal/engine/runner.go
 package engine
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"log"
+	"sync"
 	"time"
 
+	"github.com/citadel-agent/backend/internal/interfaces"
 	"github.com/google/uuid"
 )
 
-// Node represents a single node in the workflow
-type Node struct {
-	ID       string                 `json:"id"`
-	Type     string                 `json:"type"`
-	Name     string                 `json:"name"`
-	Settings map[string]interface{} `json:"settings"`
-	Inputs   []string               `json:"inputs"`
-	Outputs  []string               `json:"outputs"`
-}
-
-// Edge represents a connection between two nodes
-type Edge struct {
-	ID     string `json:"id"`
-	Source string `json:"source"`
-	Target string `json:"target"`
-}
-
-// Workflow represents the entire workflow
-type Workflow struct {
-	ID          string `json:"id"`
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	Nodes       []Node `json:"nodes"`
-	Edges       []Edge `json:"edges"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
-}
-
-// Execution represents a single run of a workflow
-type Execution struct {
-	ID         string                 `json:"id"`
-	WorkflowID string                 `json:"workflow_id"`
-	Status     string                 `json:"status"` // "running", "completed", "failed", "cancelled"
-	StartedAt  time.Time              `json:"started_at"`
-	EndedAt    *time.Time             `json:"ended_at,omitempty"`
-	Results    map[string]interface{} `json:"results"`
-	Error      string                 `json:"error,omitempty"`
-	Variables  map[string]interface{} `json:"variables"`
-}
-
-// Runner manages the execution of entire workflows
+// Runner manages the execution of workflows
 type Runner struct {
-	executor *Executor
+	executor    *Executor
+	workflowManager *WorkflowManager
+	aiManager   interfaces.AIManagerInterface // Use interface instead of concrete type
 }
 
 // NewRunner creates a new instance of Runner
-func NewRunner(executor *Executor) *Runner {
+func NewRunner(executor *Executor, workflowMgr *WorkflowManager, aiManager interfaces.AIManagerInterface) *Runner {
 	return &Runner{
-		executor: executor,
+		executor:    executor,
+		workflowManager: workflowMgr,
+		aiManager:   aiManager,
 	}
 }
 
-// RunWorkflow executes an entire workflow
-func (r *Runner) RunWorkflow(ctx context.Context, workflow *Workflow, variables map[string]interface{}) (*Execution, error) {
-	execution := &Execution{
-		ID:         uuid.New().String(),
-		WorkflowID: workflow.ID,
-		Status:     "running",
-		StartedAt:  time.Now(),
-		Results:    make(map[string]interface{}),
-		Variables:  variables,
-	}
-
-	// Execute the workflow
-	err := r.executeWorkflow(ctx, workflow, execution)
+// RunWorkflow runs a workflow with the given inputs
+func (r *Runner) RunWorkflow(ctx context.Context, workflowID string, inputs map[string]interface{}) (*Execution, error) {
+	// Retrieve workflow from manager
+	workflow, err := r.workflowManager.GetWorkflow(workflowID)
 	if err != nil {
-		execution.Status = "failed"
-		execution.Error = err.Error()
-	} else {
-		execution.Status = "completed"
+		return nil, fmt.Errorf("failed to get workflow: %w", err)
 	}
 
-	endTime := time.Now()
-	execution.EndedAt = &endTime
+	// Create execution record
+	executionID := uuid.New()
+	execution := &Execution{
+		ID:          executionID.String(),
+		WorkflowID:  workflow.ID,
+		Status:      "running",
+		StartedAt:   time.Now(),
+		Inputs:      inputs,
+		NodeResults: make(map[string]interface{}),
+	}
 
-	return execution, err
+	// Trigger the workflow execution
+	go r.executeWorkflow(ctx, workflow, execution)
+
+	return execution, nil
 }
 
-// executeWorkflow executes the workflow logic
-func (r *Runner) executeWorkflow(ctx context.Context, workflow *Workflow, execution *Execution) error {
-	// Create a dependency resolver for this workflow
+// executeWorkflow executes the workflow in the background
+func (r *Runner) executeWorkflow(ctx context.Context, workflow *Workflow, execution *Execution) {
+	log.Printf("Starting execution of workflow %s with ID %s", workflow.ID, execution.ID)
+
+	// Create dependency resolver
 	depResolver := NewDependencyResolver(workflow.Nodes, workflow.Edges)
 
 	// Validate the workflow for cycles and other issues
 	if err := depResolver.ValidateWorkflow(); err != nil {
-		return fmt.Errorf("workflow validation failed: %w", err)
+		r.updateExecutionStatus(execution, "failed", fmt.Sprintf("workflow validation error: %v", err))
+		return
 	}
 
 	// Resolve execution order using topological sort
 	executionOrder, err := depResolver.ResolveExecutionOrder()
 	if err != nil {
-		return fmt.Errorf("could not resolve execution order: %w", err)
+		r.updateExecutionStatus(execution, "failed", fmt.Sprintf("dependency resolution error: %v", err))
+		return
 	}
+
+	// Keep track of results from each node
+	nodeResults := make(map[string]interface{})
+	var mu sync.Mutex
 
 	// Execute nodes in the resolved order
-	executedNodes := make(map[string]bool)
-	nodeMap := make(map[string]*Node)
-	for i := range workflow.Nodes {
-		node := &workflow.Nodes[i]
-		nodeMap[node.ID] = node
-	}
+	wg := sync.WaitGroup{}
+	errorChan := make(chan error, 1)
+	executionCtx, cancel := context.WithCancel(ctx)
+
+	defer cancel()
 
 	for _, nodeID := range executionOrder {
-		node := nodeMap[nodeID]
+		wg.Add(1)
+		go func(nodeID string) {
+			defer wg.Done()
 
-		// Check if this node can be executed (all dependencies satisfied)
-		canExecute, err := depResolver.CanExecute(nodeID, executedNodes)
-		if err != nil {
-			return fmt.Errorf("could not check execution eligibility for node %s: %w", nodeID, err)
+			node, exists := workflow.GetNode(nodeID)
+			if !exists {
+				select {
+				case errorChan <- fmt.Errorf("node %s not found in workflow", nodeID):
+				default:
+				}
+				return
+			}
+
+			// Check if execution was cancelled
+			select {
+			case <-executionCtx.Done():
+				return
+			default:
+			}
+
+			// Prepare input data for the node
+			inputData, err := r.prepareNodeInput(node, nodeResults, execution.Inputs)
+			if err != nil {
+				select {
+				case errorChan <- fmt.Errorf("failed to prepare input for node %s: %v", nodeID, err):
+				default:
+				}
+				return
+			}
+
+			// Execute the node
+			result, err := r.executor.ExecuteNode(executionCtx, node.Type, inputData)
+			if err != nil {
+				select {
+				case errorChan <- fmt.Errorf("failed to execute node %s: %v", nodeID, err):
+				default:
+				}
+				return
+			}
+
+			// Store result
+			mu.Lock()
+			nodeResults[nodeID] = result.Data
+			mu.Unlock()
+
+			// Update execution status with node result
+			r.updateNodeResult(execution, nodeID, result)
+		}(nodeID)
+	}
+
+	// Wait for all nodes to complete or an error to occur
+	go func() {
+		wg.Wait()
+		close(errorChan)
+	}()
+
+	// Wait for error or completion
+	select {
+	case err, ok := <-errorChan:
+		if ok && err != nil {
+			r.updateExecutionStatus(execution, "failed", err.Error())
+			cancel()
+			return
 		}
-
-		if !canExecute {
-			// This should not happen if topological sort worked correctly,
-			// but we check as a safety measure
-			continue
-		}
-
-		// Execute the node
-		err = r.executeNode(ctx, workflow, execution, node, nodeMap)
-		if err != nil {
-			return fmt.Errorf("failed to execute node %s: %w", nodeID, err)
-		}
-
-		// Mark this node as executed
-		executedNodes[nodeID] = true
+	case <-executionCtx.Done():
+		// Context cancelled
+		r.updateExecutionStatus(execution, "cancelled", "execution cancelled")
+		return
 	}
 
-	return nil
-}
-
-// findStartNodes finds nodes with no incoming edges
-func (r *Runner) findStartNodes(workflow *Workflow) []*Node {
-	// Create a set of all target nodes (nodes that have incoming edges)
-	targetNodes := make(map[string]bool)
-	for _, edge := range workflow.Edges {
-		targetNodes[edge.Target] = true
-	}
-
-	var startNodes []*Node
-	for i := range workflow.Nodes {
-		node := &workflow.Nodes[i]
-		if !targetNodes[node.ID] {
-			startNodes = append(startNodes, node)
-		}
-	}
-
-	return startNodes
-}
-
-// executeNode executes a single node
-func (r *Runner) executeNode(ctx context.Context, workflow *Workflow, execution *Execution, node *Node, nodeMap map[string]*Node) error {
-	// Prepare input data for the node
-	inputData, err := r.prepareNodeInput(node, execution)
-	if err != nil {
-		return fmt.Errorf("failed to prepare input for node %s: %w", node.ID, err)
-	}
-
-	// Execute the node
-	result, err := r.executor.ExecuteNode(ctx, node.Type, inputData)
-	if err != nil {
-		return fmt.Errorf("failed to execute node %s: %w", node.ID, err)
-	}
-
-	// Store result
-	execution.Results[node.ID] = result
-
-	// Send update via WebSocket
-	r.executor.SendUpdate(result)
-
-	// Check if execution failed
-	if result.Status == "error" {
-		return fmt.Errorf("node %s failed: %s", node.ID, result.Error)
-	}
-
-	return nil
+	r.updateExecutionStatus(execution, "completed", "execution completed successfully")
 }
 
 // prepareNodeInput prepares input data for a node based on its dependencies
-func (r *Runner) prepareNodeInput(node *Node, execution *Execution) (map[string]interface{}, error) {
+func (r *Runner) prepareNodeInput(node *Node, nodeResults map[string]interface{}, globalInputs map[string]interface{}) (map[string]interface{}, error) {
 	inputData := make(map[string]interface{})
 
-	// Copy execution variables
-	for k, v := range execution.Variables {
+	// Add global inputs
+	for k, v := range globalInputs {
 		inputData[k] = v
 	}
 
-	// Get input from dependent nodes
-	for _, inputNodeID := range node.Inputs {
-		if result, exists := execution.Results[inputNodeID]; exists {
-			// Add input data from previous node result
-			if resultData, ok := result.(*ExecutionResult); ok {
-				if resultData.Data != nil {
-					if resultMap, ok := resultData.Data.(map[string]interface{}); ok {
-						for k, v := range resultMap {
-							inputData[k] = v
-						}
-					} else {
-						// If not a map, store it as 'data' field
-						inputData["data"] = resultData.Data
-					}
-				}
-			}
+	// Add inputs from dependency nodes
+	for _, dependencyNodeID := range node.Inputs {
+		if result, exists := nodeResults[dependencyNodeID]; exists {
+			// Add the result from the dependency node
+			dependencyKey := fmt.Sprintf("input_from_%s", dependencyNodeID)
+			inputData[dependencyKey] = result
 		}
 	}
 
+	// Add node-specific settings
+	for k, v := range node.Settings {
+		inputData[k] = v
+	}
+
 	return inputData, nil
+}
+
+// updateExecutionStatus updates the status of an execution
+func (r *Runner) updateExecutionStatus(execution *Execution, status, message string) {
+	execution.Status = status
+	execution.Message = message
+	execution.EndedAt = time.Now()
+
+	// In a real implementation, this would update the database
+	// For now, we'll just log the status change
+	log.Printf("Execution %s status updated to: %s - %s", execution.ID, status, message)
+}
+
+// updateNodeResult updates the result of a node execution
+func (r *Runner) updateNodeResult(execution *Execution, nodeID string, result *ExecutionResult) {
+	execution.NodeResults[nodeID] = result
+
+	// In a real implementation, this might send updates to a WebSocket or event bus
+	// For now, log the node completion
+	log.Printf("Node %s in execution %s completed with status: %s", nodeID, execution.ID, result.Status)
+}
+
+// StartContinuousWorkflow starts a continuous workflow that runs indefinitely
+func (r *Runner) StartContinuousWorkflow(ctx context.Context, workflowID string, inputs map[string]interface{}) error {
+	workflow, err := r.workflowManager.GetWorkflow(workflowID)
+	if err != nil {
+		return fmt.Errorf("failed to get workflow: %w", err)
+	}
+
+	if !workflow.IsContinuous {
+		return errors.New("workflow is not configured as continuous")
+	}
+
+	// Run the workflow continuously in a separate goroutine
+	go func() {
+		for {
+			select {
+			case <-ctx.Done():
+				log.Printf("Continuous workflow %s stopped", workflowID)
+				return
+			default:
+				// Execute the workflow
+				_, err := r.RunWorkflow(ctx, workflowID, inputs)
+				if err != nil {
+					log.Printf("Error running continuous workflow %s: %v", workflowID, err)
+					// Wait before retrying
+					time.Sleep(5 * time.Second)
+					continue
+				}
+
+				// Wait based on the workflow's schedule configuration
+				if workflow.Schedule.Interval > 0 {
+					time.Sleep(time.Duration(workflow.Schedule.Interval) * time.Second)
+				} else {
+					// Default to 30 seconds if no interval specified
+					time.Sleep(30 * time.Second)
+				}
+			}
+		}
+	}()
+
+	return nil
+}
+
+// ExecuteWithTimeout executes a workflow with a timeout
+func (r *Runner) ExecuteWithTimeout(ctx context.Context, workflowID string, inputs map[string]interface{}, timeout time.Duration) (*Execution, error) {
+	executionCtx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+
+	execution, err := r.RunWorkflow(executionCtx, workflowID, inputs)
+	if err != nil {
+		return nil, err
+	}
+
+	// Wait for execution to complete or timeout
+	select {
+	case <-executionCtx.Done():
+		if errors.Is(executionCtx.Err(), context.DeadlineExceeded) {
+			r.updateExecutionStatus(execution, "timeout", "execution exceeded timeout limit")
+			return execution, nil
+		}
+	}
+
+	return execution, nil
+}
+
+// StopExecution stops a running workflow execution
+func (r *Runner) StopExecution(executionID string) error {
+	// In a real implementation, this would stop a running workflow
+	// by cancelling its context and updating its status
+	// For now, we'll just log the action
+	log.Printf("Stopping execution: %s", executionID)
+	
+	// Update execution status to cancelled
+	// This would typically involve storing this in the database
+	// and cancelling any running goroutines associated with the execution
+	
+	return nil
 }

@@ -1,27 +1,32 @@
 #!/bin/bash
-
 # Build script for Citadel Agent
+
 set -e
 
-echo "Building Citadel Agent binaries..."
+echo "Building Citadel Agent..."
 
-# Create dist directory if not exists
-mkdir -p dist
+# Build backend services
+echo "Building backend services..."
+cd backend
 
-# Build binaries for different platforms
-echo "Building API server..."
-GOOS=linux GOARCH=amd64 go build -o dist/citadel-api-linux-amd64 ./backend/cmd/api
-GOOS=darwin GOARCH=amd64 go build -o dist/citadel-api-darwin-amd64 ./backend/cmd/api
-GOOS=windows GOARCH=amd64 go build -o dist/citadel-api-windows-amd64.exe ./backend/cmd/api
+echo "Building API service..."
+go build -o ../bin/api cmd/api/main.go
 
 echo "Building Worker service..."
-GOOS=linux GOARCH=amd64 go build -o dist/citadel-worker-linux-amd64 ./backend/cmd/worker
-GOOS=darwin GOARCH=amd64 go build -o dist/citadel-worker-darwin-amd64 ./backend/cmd/worker
-GOOS=windows GOARCH=amd64 go build -o dist/citadel-worker-windows-amd64.exe ./backend/cmd/worker
+go build -o ../bin/worker cmd/worker/main.go
 
 echo "Building Scheduler service..."
-GOOS=linux GOARCH=amd64 go build -o dist/citadel-scheduler-linux-amd64 ./backend/cmd/scheduler
-GOOS=darwin GOARCH=amd64 go build -o dist/citadel-scheduler-darwin-amd64 ./backend/cmd/scheduler
-GOOS=windows GOARCH=amd64 go build -o dist/citadel-scheduler-windows-amd64.exe ./backend/cmd/scheduler
+go build -o ../bin/scheduler cmd/scheduler/main.go
 
-echo "Build completed! Binaries are in the 'dist' directory."
+cd ..
+
+# Build frontend
+echo "Building frontend..."
+if [ -d "frontend" ]; then
+  cd frontend
+  npm run build
+  cd ..
+fi
+
+echo "Build completed successfully!"
+echo "Binaries available in bin/ directory"

@@ -1,59 +1,30 @@
 {
-  "name": "@citadel-agent/cli",
-  "version": "0.1.0",
-  "description": "Citadel Agent - Automation Workflow Platform",
+  "name": "citadel-agent",
+  "version": "1.0.0",
+  "description": "A powerful workflow automation engine with AI agent capabilities",
   "main": "index.js",
-  "bin": {
-    "citadel": "./bin/citadel.js"
-  },
   "scripts": {
-    "start": "node ./bin/citadel.js",
-    "dev": "nodemon ./bin/citadel.js",
-    "build": "go build ./cmd/api",
-    "test": "go test ./..."
+    "dev": "concurrently \"npm run dev:api\" \"npm run dev:web\"",
+    "dev:api": "cd backend && go run cmd/api/main.go",
+    "dev:web": "cd frontend && npm start",
+    "build": "npm run build:api && npm run build:web",
+    "build:api": "cd backend && go build -o ../bin/api cmd/api/main.go",
+    "build:web": "cd frontend && npm run build",
+    "test": "npm run test:unit && npm run test:integration",
+    "test:unit": "cd backend && go test ./internal/...",
+    "test:integration": "cd backend && go test -v ./test/integration/...",
+    "docker:build": "docker-compose -f docker/compose/docker-compose.yml build",
+    "docker:up": "docker-compose -f docker/compose/docker-compose.yml up -d",
+    "docker:down": "docker-compose -f docker/compose/docker-compose.yml down"
   },
-  "keywords": [
-    "automation",
-    "workflow",
-    "integration",
-    "platform",
-    "citadel",
-    "n8n-alternative"
-  ],
-  "author": "Citadel Team",
+  "keywords": ["workflow", "automation", "ai", "agent", "n8n", "prefect", "temporal"],
+  "author": "Citadel Agent Team",
   "license": "Apache-2.0",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/citadel-agent/citadel-agent.git"
-  },
-  "bugs": {
-    "url": "https://github.com/citadel-agent/citadel-agent/issues"
-  },
-  "homepage": "https://github.com/citadel-agent/citadel-agent#readme",
-  "dependencies": {
-    "commander": "^12.0.0",
-    "execa": "^8.0.1",
-    "ora": "^8.0.1",
-    "fs-extra": "^11.2.0",
-    "axios": "^1.6.0",
-    "dotenv": "^16.3.1",
-    "inquirer": "^9.2.12",
-    "chalk": "^5.3.0",
-    "shelljs": "^0.8.5"
-  },
   "devDependencies": {
-    "nodemon": "^3.0.2",
-    "jest": "^29.7.0"
+    "concurrently": "^8.0.0"
   },
-  "engines": {
-    "node": ">=16.0.0"
-  },
-  "files": [
-    "bin/",
-    "dist/",
-    "templates/",
-    "scripts/",
-    "README.md",
-    "LICENSE"
+  "workspaces": [
+    "apps/*",
+    "packages/*"
   ]
 }

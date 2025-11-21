@@ -1,0 +1,285 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://citadel-agent.com/schemas/node-definition.json",
+  "title": "Citadel Agent Node Definition",
+  "description": "Schema for defining nodes in Citadel Agent workflow system",
+  "type": "object",
+  "required": ["id", "type", "metadata", "inputs", "outputs"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the node",
+      "pattern": "^[a-z0-9_-]+$"
+    },
+    "type": {
+      "type": "string",
+      "description": "Type of the node (defines the execution behavior)",
+      "enum": [
+        "trigger",
+        "action",
+        "condition",
+        "loop",
+        "function",
+        "data_transform",
+        "api",
+        "database",
+        "email",
+        "http_request",
+        "delay",
+        "ai_agent"
+      ]
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Metadata about the node",
+      "required": ["name", "description", "version", "category"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Display name of the node"
+        },
+        "description": {
+          "type": "string",
+          "description": "Detailed description of what the node does"
+        },
+        "version": {
+          "type": "string",
+          "description": "Semantic version of the node",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "category": {
+          "type": "string",
+          "description": "Category for grouping similar nodes",
+          "enum": [
+            "AI/ML",
+            "API",
+            "Database",
+            "Email",
+            "File",
+            "HTTP",
+            "Logic",
+            "Utility",
+            "Trigger",
+            "Transformation"
+          ]
+        },
+        "icon": {
+          "type": "string",
+          "description": "Icon identifier or URL"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Tags for search and categorization"
+        },
+        "grade": {
+          "type": "string",
+          "enum": ["basic", "intermediate", "advanced", "elite"],
+          "description": "Difficulty level of the node"
+        }
+      }
+    },
+    "inputs": {
+      "type": "array",
+      "description": "Input parameters for the node",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "type", "required"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the input"
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name for the input"
+          },
+          "type": {
+            "type": "string",
+            "description": "Data type of the input",
+            "enum": [
+              "string",
+              "number",
+              "boolean",
+              "object",
+              "array",
+              "json",
+              "file",
+              "date",
+              "time",
+              "credential",
+              "expression"
+            ]
+          },
+          "required": {
+            "type": "boolean",
+            "description": "Whether this input is required"
+          },
+          "default": {
+            "description": "Default value for the input"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of what this input is for"
+          },
+          "validation": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": ["required", "pattern", "min", "max", "enum"]
+                },
+                "value": {
+                  "description": "Value for the validation rule"
+                },
+                "message": {
+                  "type": "string",
+                  "description": "Error message for validation failure"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "outputs": {
+      "type": "array",
+      "description": "Output parameters from the node",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "type"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the output"
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name for the output"
+          },
+          "type": {
+            "type": "string",
+            "description": "Data type of the output",
+            "enum": [
+              "string",
+              "number",
+              "boolean",
+              "object",
+              "array",
+              "json",
+              "file",
+              "date",
+              "time",
+              "expression"
+            ]
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of what this output contains"
+          }
+        }
+      }
+    },
+    "credentials": {
+      "type": "array",
+      "description": "Required credentials for the node",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "type", "required"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the credential"
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name for the credential"
+          },
+          "type": {
+            "type": "string",
+            "description": "Type of credential",
+            "enum": ["api_key", "oauth", "username_password", "custom"]
+          },
+          "required": {
+            "type": "boolean",
+            "description": "Whether this credential is required"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the credential"
+          }
+        }
+      }
+    },
+    "settings": {
+      "type": "array",
+      "description": "Configuration settings for the node",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "type", "required"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the setting"
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name for the setting"
+          },
+          "type": {
+            "type": "string",
+            "description": "Data type of the setting",
+            "enum": ["string", "number", "boolean", "object", "array", "json"]
+          },
+          "required": {
+            "type": "boolean",
+            "description": "Whether this setting is required"
+          },
+          "default": {
+            "description": "Default value for the setting"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of what this setting controls"
+          }
+        }
+      }
+    },
+    "errorHandling": {
+      "type": "object",
+      "description": "Error handling configuration for the node",
+      "properties": {
+        "retryPolicy": {
+          "type": "object",
+          "properties": {
+            "maxRetries": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 10
+            },
+            "retryDelay": {
+              "type": "number",
+              "description": "Delay in milliseconds between retries"
+            },
+            "backoffMultiplier": {
+              "type": "number",
+              "description": "Multiplier for exponential backoff"
+            }
+          }
+        },
+        "onError": {
+          "type": "string",
+          "enum": ["fail_workflow", "continue", "fallback"],
+          "description": "What to do when the node fails"
+        },
+        "fallbackValue": {
+          "description": "Value to use if fallback option is chosen"
+        }
+      }
+    }
+  }
+}

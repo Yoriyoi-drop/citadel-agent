@@ -4,65 +4,70 @@ import (
 	"log"
 	"os"
 
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/cors"
-	"github.com/gofiber/fiber/v2/middleware/logger"
-
-	"citadel-agent/backend/internal/api"
-	"citadel-agent/backend/internal/config"
-	"citadel-agent/backend/internal/database"
-	"citadel-agent/backend/internal/engine"
-	"citadel-agent/backend/internal/services"
+	"github.com/citadel-agent/backend/internal/api"
+	"github.com/citadel-agent/backend/internal/auth"
+	"github.com/citadel-agent/backend/internal/ai"
+	"github.com/citadel-agent/backend/internal/runtimes"
+	"github.com/citadel-agent/backend/internal/engine"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 func main() {
-	// Load configuration
-	cfg := config.LoadConfig()
+	// Database connection
+	dbURL := os.Getenv("DATABASE_URL")
+	if dbURL == "" {
+		// Build from environment variables
+		dbHost := getEnvOrDefault("DB_HOST", "localhost")
+		dbPort := getEnvOrDefault("DB_PORT", "5432")
+		dbUser := getEnvOrDefault("DB_USER", "postgres")
+		dbPassword := getEnvOrDefault("DB_PASSWORD", "postgres")
+		dbName := getEnvOrDefault("DB_NAME", "citadel_agent")
+		
+		dbURL = "postgresql://" + dbUser + ":" + dbPassword + "@" + dbHost + ":" + dbPort + "/" + dbName
+	}
 
-	// Initialize database connection
-	db, err := database.NewPostgresDB(&cfg.Database)
+	dbPool, err := pgxpool.New(
+		// context.Background(),
+		dbURL,
+	)
 	if err != nil {
 		log.Fatal("Failed to connect to database:", err)
 	}
+	defer dbPool.Close()
 
 	// Initialize services
-	workflowService := services.NewWorkflowService(db.GormDB)
-	nodeService := services.NewNodeService(db.GormDB)
-	executionService := services.NewExecutionService(db.GormDB)
-	userService := services.NewUserService(db.GormDB)
-
-	// Initialize engine components for execution manager
+	authService := auth.NewAuthService(dbPool)
+	aiService := ai.NewAIService()
+	runtimeMgr := runtimes.NewMultiRuntimeManager()
 	nodeRegistry := engine.NewNodeRegistry()
-	executor := engine.NewExecutor()
+	executor := engine.NewExecutor(nodeRegistry)
 	runner := engine.NewRunner(executor)
 
-	executionManagerService := services.NewExecutionManagerService(
-		workflowService,
-		nodeService,
-		executionService,
-		runner,
+	// Create API server
+	server := api.NewServer(
+		dbPool,
+		authService,
+		aiService,
 		nodeRegistry,
+		executor,
+		runner,
+		runtimeMgr,
 	)
 
-	// Initialize Fiber app
-	app := fiber.New(fiber.Config{
-		AppName:      "Citadel Agent API",
-		ServerHeader: "Citadel-Agent",
-	})
+	// Get port from environment or use default
+	port := getEnvOrDefault("SERVER_PORT", "5001")
 
-	// Setup middleware
-	app.Use(logger.New())
-	app.Use(cors.New())
-
-	// Setup routes
-	api.SetupRoutes(app, workflowService, nodeService, executionService, userService, executionManagerService)
-
-	// Start server
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "3000"
+	// Start the server
+	log.Printf("Starting Citadel Agent API server on port %s", port)
+	if err := server.Start(":" + port); err != nil {
+		log.Fatal("Failed to start server:", err)
 	}
+}
 
-	log.Printf("Starting Citadel Agent API on port %s", port)
-	log.Fatal(app.Listen(":" + port))
+// getEnvOrDefault returns the environment variable value or a default if not set
+func getEnvOrDefault(key, defaultValue string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+	return defaultValue
 }

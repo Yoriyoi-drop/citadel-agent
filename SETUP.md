@@ -1,253 +1,301 @@
-# Citadel Agent - Setup Guide
+# Citadel Agent Setup Guide
 
-## Prerequisites
+## Overview
+This guide provides detailed instructions for setting up and configuring Citadel Agent after installation.
 
-### System Requirements
-- **Operating System**: Linux, macOS, or Windows with WSL2
-- **Docker**: Version 20.10+ with Docker Compose
-- **Memory**: Minimum 4GB RAM (8GB+ recommended)
-- **Storage**: Minimum 2GB free space
-- **CPU**: Modern processor with virtualization support
+## Initial Configuration
 
-### Required Software
-1. **Docker Desktop** or **Docker Engine** with Compose plugin
-2. **Git** (for cloning the repository)
-3. **Terminal/shell access**
+### 1. Environment Setup
+Before starting Citadel Agent, you need to configure environment variables:
 
-## Quick Start
-
-### 1. Clone the Repository
-```bash
-git clone https://github.com/citadel-agent/citadel-agent.git
-cd citadel-agent
-```
-
-### 2. Configure Environment
-
-Copy the sample environment file and customize as needed:
+1. Create a copy of the example environment file:
 ```bash
 cp .env.example .env
-# Edit .env to adjust configurations if needed
-vi .env  # or use your preferred editor
 ```
 
-### 3. Start the Services
+2. Edit the `.env` file to match your configuration:
 ```bash
-# Start all services (recommended for first time)
-./scripts/start.sh
+nano .env
 ```
 
-### 4. Verify Installation
-Open your browser and navigate to:
-- **API Health**: [http://localhost:5001/health](http://localhost:5001/health)
-- **API Documentation**: [http://localhost:5001](http://localhost:5001)
+### 2. Essential Configuration Variables
 
-## Manual Installation
+#### Security Settings
+- `JWT_SECRET`: Generate a secure JWT secret (at least 32 characters)
+  ```bash
+  openssl rand -base64 32
+  ```
+- `SECURE_COOKIES`: Set to `true` for HTTPS environments
+- `CORS_ORIGINS`: List allowed origins for CORS
 
-### Start Individual Services
-If you prefer to start services individually:
+#### Database Configuration  
+- `DATABASE_URL`: PostgreSQL connection string
+- `DB_SSL_MODE`: SSL mode for database connections (disable for development)
 
+#### Redis Configuration
+- `REDIS_URL`: Redis connection string
+- `REDIS_PREFIX`: Prefix for Citadel Agent keys (optional)
+
+#### Application Settings
+- `ENVIRONMENT`: Set to `development`, `staging`, or `production`
+- `PORT`: API server port (default: 5001)
+- `API_RATE_LIMIT`: API rate limiting (requests per minute)
+- `SESSION_TIMEOUT`: Session timeout in seconds
+
+## Database Setup
+
+### 1. PostgreSQL Configuration
+Citadel Agent requires PostgreSQL version 12 or higher:
+
+1. Install PostgreSQL:
+   - Ubuntu: `sudo apt install postgresql postgresql-contrib`
+   - CentOS: `sudo yum install postgresql-server postgresql-contrib`
+   - macOS: `brew install postgresql`
+
+2. Start the PostgreSQL service:
 ```bash
-# Start database services only
-docker-compose -f docker/docker-compose.yml up postgres redis -d
+# Ubuntu/Debian
+sudo systemctl start postgresql
+sudo systemctl enable postgresql
 
-# Start API first to initialize database
-docker-compose -f docker/docker-compose.yml up api -d
+# CentOS/RHEL
+sudo systemctl start postgresql
+sudo systemctl enable postgresql
 
-# Then start worker and scheduler
-docker-compose -f docker/docker-compose.yml up worker scheduler -d
+# macOS
+brew services start postgresql
 ```
 
-### Check Service Status
+3. Create database and user:
+```sql
+CREATE DATABASE citadel_agent;
+CREATE USER citadel_user WITH PASSWORD 'your-secure-password';
+GRANT ALL PRIVILEGES ON DATABASE citadel_agent TO citadel_user;
+```
+
+4. Update your `.env` file:
+```
+DATABASE_URL=postgresql://citadel_user:your-secure-password@localhost:5432/citadel_agent
+```
+
+### 2. Run Database Migrations
+If using the command-line tool:
 ```bash
-# View all running services
-./scripts/status.sh
-
-# View detailed logs
-docker-compose -f docker/docker-compose.yml logs -f
+cd backend
+go run cmd/migrate/main.go
 ```
 
-## Configuration Options
+## Redis Setup
 
-### Environment Variables
-Edit the `.env` file to customize your installation:
+### 1. Install Redis
+1. Install Redis:
+   - Ubuntu: `sudo apt install redis-server`
+   - CentOS: `sudo yum install redis`
+   - macOS: `brew install redis`
 
-```
-# Database Configuration
-DB_HOST=localhost
-DB_PORT=5432
-DB_USER=postgres
-DB_PASSWORD=postgres
-DB_NAME=citadel_agent
-
-# API Server
-SERVER_PORT=5001
-
-# Security (change these for production!)
-JWT_SECRET=your-super-secret-jwt-key-here-change-in-production
-JWT_EXPIRY=86400
-
-# Redis Configuration
-REDIS_ADDR=localhost:6379
-```
-
-### Scaling Services
-You can scale individual services as needed:
-
+2. Start Redis:
 ```bash
-# Scale worker service to 3 instances
-docker-compose -f docker/docker-compose.yml up -d --scale worker=3
+# Ubuntu/Debian
+sudo systemctl start redis-server
+sudo systemctl enable redis-server
 
-# Scale scheduler service to 2 instances  
-docker-compose -f docker/docker-compose.yml up -d --scale scheduler=2
+# CentOS/RHEL
+sudo systemctl start redis
+sudo systemctl enable redis
+
+# macOS
+brew services start redis
 ```
 
-## Service Architecture
+3. Verify Redis is running:
+```bash
+redis-cli ping
+# Should return PONG
+```
 
-The Citadel Agent consists of several services:
+## Backend Configuration
 
-### Core Services
-- **API Service** (`api`): Handles REST API requests, workflow management, and user authentication
-- **Worker Service** (`worker`): Executes workflow nodes in isolated environments
-- **Scheduler Service** (`scheduler`): Manages scheduled workflows and triggers
+### 1. Service Configuration
+Each backend service requires specific configuration:
 
-### Supporting Services
-- **PostgreSQL** (`postgres`): Main database for workflows, nodes, and executions
-- **Redis** (`redis`): Caching, sessions, and job queues
+#### API Service
+Located at `cmd/api/main.go`
+- Handles authentication
+- Manages workflow creation and execution
+- Provides user management endpoints
 
-### Ports Used
-- **5001**: API Service (adjustable via SERVER_PORT in .env)
-- **5432**: PostgreSQL Database
-- **6379**: Redis
+#### Worker Service
+Located at `cmd/worker/main.go`
+- Processes workflow executions
+- Executes nodes
+- Manages background jobs
 
-## Production Setup
+#### Scheduler Service
+Located at `cmd/scheduler/main.go`
+- Manages scheduled workflows
+- Handles cron-based executions
+- Maintains execution queues
 
-### Security Recommendations
-1. **Change Default Credentials**: Update passwords in `.env` file
-2. **Enable SSL/HTTPS**: Use a reverse proxy (Nginx) with SSL termination
-3. **Secure JWT Secret**: Use a strong, randomly generated JWT secret
-4. **Network Isolation**: Restrict database access to internal network only
+### 2. SSL Configuration
+For production environments:
 
-### SSL Setup
-For production environments, set up SSL using Nginx:
+1. Obtain SSL certificates (e.g., from Let's Encrypt)
+2. Configure SSL in your reverse proxy (Nginx, Apache)
+3. Set `SECURE_COOKIES=true` in your `.env` file
 
+## Frontend Configuration
+
+### 1. Build Configuration
+1. Navigate to the frontend directory:
+```bash
+cd frontend
+```
+
+2. Install dependencies:
+```bash
+npm install
+```
+
+3. For production builds:
+```bash
+npm run build
+```
+
+### 2. Environment Variables
+Create a `.env.production` file for production settings:
+```env
+REACT_APP_API_URL=https://yourdomain.com/api/v1
+REACT_APP_ENVIRONMENT=production
+```
+
+## Network Configuration
+
+### 1. Firewall Rules
+Configured ports for Citadel Agent:
+
+- **5001**: Primary API endpoint
+- **3000**: Frontend application (development)
+- **5432**: PostgreSQL database
+- **6379**: Redis cache
+- **80/443**: Web server ports (when using reverse proxy)
+
+### 2. Reverse Proxy Configuration
+Example Nginx configuration:
 ```nginx
+upstream citadel-api {
+    server localhost:5001;
+}
+
 server {
-    listen 443 ssl;
-    server_name your-domain.com;
+    listen 80;
+    server_name yourdomain.com;
+    
+    # Redirect HTTP to HTTPS
+    return 301 https://$server_name$request_uri;
+}
 
-    ssl_certificate /path/to/certificate.crt;
-    ssl_certificate_key /path/to/private.key;
-
-    location / {
-        proxy_pass http://localhost:5001;
+server {
+    listen 443 ssl http2;
+    server_name yourdomain.com;
+    
+    ssl_certificate /path/to/your/cert.pem;
+    ssl_certificate_key /path/to/your/key.pem;
+    
+    # API endpoints
+    location /api {
+        proxy_pass http://citadel-api;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
     }
+    
+    # Serve frontend files
+    location / {
+        root /path/to/your/frontend/build;
+        try_files $uri $uri/ /index.html;
+    }
 }
 ```
 
-### Backup Strategy
-Regular backups are essential for production:
+## Testing Configuration
 
+### 1. Health Checks
+Verify all components are running:
+
+1. API health check:
 ```bash
-# Backup PostgreSQL database
-docker-compose -f docker/docker-compose.yml exec postgres pg_dump -U postgres citadel_agent > backup.sql
-
-# Backup Redis data (if persistence is enabled)
-docker-compose -f docker/docker-compose.yml exec redis redis-cli BGSAVE
+curl http://localhost:5001/api/v1/health
 ```
 
-## Monitoring and Maintenance
-
-### Service Health
-Monitor service health with:
+2. Database connectivity:
 ```bash
-# Check service status
-./scripts/status.sh
-
-# Monitor logs continuously
-docker-compose -f docker/docker-compose.yml logs -f --tail=100
-
-# Check resource usage
-docker stats
+# Check if you can connect to PostgreSQL
+psql $DATABASE_URL -c "SELECT version();"
 ```
 
-### Performance Tuning
-#### PostgreSQL
-- Adjust shared_buffers (typically 25% of available RAM)
-- Tune effective_cache_size (typically 50-75% of available RAM)
-- Configure connection pooling
-
-#### Redis
-- Set appropriate maxmemory limits
-- Choose appropriate eviction policies
-- Enable persistence if needed
-
-### Update Process
-To update to a newer version:
-
+3. Redis connectivity:
 ```bash
-# Stop current services
-./scripts/stop.sh
-
-# Pull latest changes
-git pull origin main
-
-# Pull latest Docker images
-docker-compose -f docker/docker-compose.yml pull
-
-# Start services
-./scripts/start.sh
+redis-cli -u $REDIS_URL ping
 ```
 
-## Troubleshooting
+### 2. Initial User Setup
+1. Access the web interface
+2. Register a new account or use existing admin credentials
+3. Verify admin panel access
 
-Refer to the [TROUBLESHOOTING.md](TROUBLESHOOTING.md) file for common issues and solutions.
+## Security Configuration
 
-## Development Setup
+### 1. Authentication Settings
+- Enable Two-Factor Authentication (2FA) for admin accounts
+- Set up Single Sign-On (SSO) if needed
+- Configure role-based access controls (RBAC)
 
-For development, use the development compose file:
+### 2. Network Security
+- Use VPN for internal access
+- Restrict API access by IP when possible
+- Implement rate limiting at network level
+
+## Performance Tuning
+
+### 1. Database Optimization
+- Enable PostgreSQL connection pooling
+- Configure appropriate memory settings
+- Set up database connection limits
+
+### 2. Application Settings
+- Adjust worker pool sizes based on available resources
+- Tune timeout settings for long-running workflows
+- Configure appropriate logging levels for production
+
+## Monitoring Setup
+
+### 1. Logging Configuration
+Ensure proper logging is set up:
+- Centralized log aggregation
+- Alerting for critical errors
+- Log rotation settings
+
+### 2. System Metrics
+Consider setting up monitoring with:
+- Prometheus and Grafana
+- ELK stack (Elasticsearch, Logstash, Kibana)
+- Application Performance Monitoring (APM) tool
+
+## Backup and Recovery
+
+### 1. Database Backup
+Set up regular PostgreSQL backups:
 ```bash
-# Start with hot-reloading enabled
-docker-compose -f docker/docker-compose.dev.yml up --build
+pg_dump citadel_agent > backup_$(date +%Y%m%d_%H%M%S).sql
 ```
 
-### Running Tests
-```bash
-# Run backend tests
-cd backend && go test ./...
-
-# Run specific service tests
-cd backend && go test ./internal/engine/... -v
-```
-
-## Uninstalling
-
-To completely remove Citadel Agent:
-
-```bash
-# Stop all services
-./scripts/stop.sh
-
-# Remove all containers, networks, and volumes (data will be lost!)
-docker-compose -f docker/docker-compose.yml down -v
-
-# Remove Docker images (optional)
-docker rmi $(docker images "citadel-*" -q)
-
-# Clean up system
-docker system prune -a
-```
-
-## Support
-
-- **Documentation**: [https://citadel-agent.com/docs](https://citadel-agent.com/docs)
-- **Issues**: [GitHub Issues](https://github.com/citadel-agent/citadel-agent/issues)
-- **Community**: [Join our Discord](https://discord.gg/citadel-agent) (if available)
+### 2. Configuration Backup
+Backup your configuration files:
+- `.env` file (store securely)
+- Database schema exports
+- SSL certificates (if applicable)
 
 ---
 
-**Note**: This software is under active development. For best results, always use the latest stable release.
+**Citadel Agent v0.1.0** - Advanced Workflow Automation Platform
