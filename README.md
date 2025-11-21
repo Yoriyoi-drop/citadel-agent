@@ -221,6 +221,140 @@ cd backend
 go test ./test/integration/... -v
 ```
 
+## 🧩 Node Categories & Nodes
+
+Citadel Agent menyediakan berbagai kategori nodes untuk memenuhi berbagai kebutuhan otomasi. Berikut adalah 10 kategori utama dan nodes yang tersedia:
+
+### 1. Network Management
+Nodes untuk pengelolaan jaringan, koneksi, dan komunikasi antar sistem:
+- Connection Handler
+- Packet Router
+- Bandwidth Monitor
+- Firewall Controller
+- Protocol Adapter
+- Load Balancer
+- VPN Connector
+- DNS Resolver
+- Proxy Manager
+- Network Scanner
+
+### 2. Data Processing
+Nodes untuk pengolahan data, transformasi, filter, dan agregasi informasi:
+- Data Transformer
+- Filter Engine
+- Aggregator
+- Validator
+- Serializer
+- Deserializer
+- Parser
+- Compressor
+- Encryptor
+- Decryptor
+
+### 3. Security & Authentication
+Nodes yang menangani keamanan, otentikasi, dan otorisasi sistem:
+- User Authenticator
+- Token Generator
+- Permission Checker
+- Session Manager
+- Password Hasher
+- Certificate Validator
+- Access Controller
+- Threat Detector
+- Audit Logger
+- CORS Handler
+
+### 4. Database Operations
+Nodes untuk operasi basis data, query, transaksi, dan manajemen data:
+- Query Builder
+- Transaction Manager
+- Connection Pool
+- Migrator
+- Result Mapper
+- Cache Manager
+- Backup Handler
+- Index Manager
+- Connection Monitor
+- Query Optimizer
+
+### 5. Monitoring & Logging
+Nodes untuk pemantauan kinerja, logging, dan analisis metrik sistem:
+- Metric Collector
+- Log Writer
+- Alert Generator
+- Dashboard Publisher
+- Performance Monitor
+- Error Tracker
+- Health Checker
+- Event Publisher
+- Resource Tracker
+- Trace Collector
+
+### 6. File System Operations
+Nodes untuk operasi sistem file, manipulasi dokumen, dan manajemen direktori:
+- File Reader
+- File Writer
+- Directory Scanner
+- Permission Setter
+- File Mover
+- File Copier
+- Archive Creator
+- Archive Extractor
+- File Validator
+- Storage Cleaner
+
+### 7. API & Integration
+Nodes untuk integrasi API, eksternal service, dan komunikasi antar sistem:
+- REST Client
+- SOAP Client
+- WebSocket Handler
+- OAuth Manager
+- API Gateway
+- Message Queue
+- Event Publisher
+- Hook Handler
+- Adapter Factory
+- Rate Limiter
+
+### 8. Task Scheduling
+Nodes untuk penjadwalan tugas, cron jobs, dan eksekusi otomatis:
+- Cron Scheduler
+- Event Scheduler
+- Recurring Task Manager
+- Job Queue
+- Task Executor
+- Dependency Resolver
+- Retry Handler
+- Task Monitor
+- Scheduler Controller
+- Trigger Manager
+
+### 9. Resource Management
+Nodes untuk manajemen sumber daya sistem, memory, CPU, dan storage:
+- Memory Manager
+- CPU Scheduler
+- Storage Allocator
+- Resource Monitor
+- Pool Manager
+- Throttler
+- Garbage Collector
+- Resource Tracker
+- Capacity Planner
+- Resource Allocator
+
+### 10. Event Handling
+Nodes untuk menangani event, notifikasi, dan reaksi terhadap perubahan sistem:
+- Event Publisher
+- Event Subscriber
+- Event Router
+- Event Filter
+- Event Processor
+- Event Queue
+- Event Dispatcher
+- Event Logger
+- Event Validator
+- Event Monitor
+
 ## 📚 Dokumentasi
 
 ### Struktur Dokumentasi
