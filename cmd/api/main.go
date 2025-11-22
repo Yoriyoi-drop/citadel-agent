@@ -5,8 +5,10 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/citadel-agent/backend/internal/api"
+	"github.com/citadel-agent/backend/internal/startup"
 	"github.com/citadel-agent/backend/internal/temporal"
 	"github.com/citadel-agent/backend/internal/plugins"
 	"github.com/citadel-agent/backend/internal/workflow/core/engine"
@@ -37,13 +39,16 @@ func main() {
 
 	// Initialize Temporal workflow service
 	workflowService := temporal.NewTemporalWorkflowService(temporalClient, baseEngine)
-	
+
 	// Register node types for compatibility
 	workflowService.RegisterNodeTypes()
 
 	// Create API server
 	serverConfig := api.GetDefaultConfig()
 	server := api.NewServer(workflowService, pluginManager, baseEngine, serverConfig)
+
+	// Check if auto-open browser is enabled
+	autoOpen := getEnv("AUTO_OPEN_BROWSER", "true") == "true"
 
 	// Set up graceful shutdown
 	stop := make(chan os.Signal, 1)
@@ -56,8 +61,21 @@ func main() {
 		}
 	}()
 
-	log.Println("Citadel Agent API server started. Press Ctrl+C to stop.")
-	
+	// Open browser automatically if enabled (in a separate goroutine to not block)
+	if autoOpen {
+		go func() {
+			startup.WaitForServer(serverConfig.Port, 10*time.Second)
+		}()
+	}
+
+	log.Printf("🚀 Citadel Agent API server started on http://localhost:%s", serverConfig.Port)
+	if autoOpen {
+		log.Println("🌐 Browser will open automatically in a few seconds...")
+	} else {
+		log.Println("💡 AUTO_OPEN_BROWSER is disabled. Start manually at: http://localhost:" + serverConfig.Port)
+	}
+	log.Println("Press Ctrl+C to stop.")
+
 	// Wait for interrupt signal
 	<-stop
 	log.Println("Shutting down server...")
