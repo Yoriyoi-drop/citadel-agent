@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/citadel-agent/backend/internal/interfaces"
 	"github.com/citadel-agent/backend/internal/workflow/core/engine"
 )
 
@@ -955,7 +956,7 @@ func getFloat64Value(v interface{}, defaultValue float64) float64 {
 }
 
 // UtilityNodeFromConfig creates a new utility node from a configuration map
-func UtilityNodeFromConfig(config map[string]interface{}) (engine.NodeInstance, error) {
+func UtilityNodeFromConfig(config map[string]interface{}) (interfaces.NodeInstance, error) {
 	var operation UtilityOperationType
 	if op, exists := config["operation"]; exists {
 		if opStr, ok := op.(string); ok {
@@ -1082,7 +1083,7 @@ func UtilityNodeFromConfig(config map[string]interface{}) (engine.NodeInstance, 
 
 // RegisterUtilityNode registers the utility node type with the engine
 func RegisterUtilityNode(registry *engine.NodeRegistry) {
-	registry.RegisterNodeType("utility", func(config map[string]interface{}) (engine.NodeInstance, error) {
+	registry.RegisterNodeType("utility", func(config map[string]interface{}) (interfaces.NodeInstance, error) {
 		return UtilityNodeFromConfig(config)
 	})
 }

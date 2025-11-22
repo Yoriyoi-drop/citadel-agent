@@ -8,7 +8,8 @@ import (
 
 	"github.com/spf13/viper"
 
-	"github.com/citadel-agent/backend/internal/workflow/core/engine"
+	"github.com/citadel-agent/backend/internal/interfaces"
+	"github.com/citadel-agent/backend/internal/nodes/utils"
 )
 
 // ConfigManagerNodeConfig represents the configuration for a ConfigManager node
@@ -28,11 +29,11 @@ type ConfigManagerNode struct {
 }
 
 // NewConfigManagerNode creates a new ConfigManager node with the given configuration
-func NewConfigManagerNode(config map[string]interface{}) (engine.NodeInstance, error) {
+func NewConfigManagerNode(config map[string]interface{}) (interfaces.NodeInstance, error) {
 	// Extract config values
-	source := getStringValue(config["source"], "defaults")
-	configPath := getStringValue(config["config_path"], "")
-	remoteURL := getStringValue(config["remote_url"], "")
+	source := utils.GetStringValue(config["source"], "defaults")
+	configPath := utils.GetStringValue(config["config_path"], "")
+	remoteURL := utils.GetStringValue(config["remote_url"], "")
 
 	watchChanges := false
 	if wc, exists := config["watch_changes"]; exists {
@@ -239,13 +240,3 @@ func (c *ConfigManagerNode) handleDefaultsSource(input map[string]interface{}) m
 	return result
 }
 
-// getStringValue safely extracts a string value
-func getStringValue(v interface{}, defaultValue string) string {
-	if v == nil {
-		return defaultValue
-	}
-	if s, ok := v.(string); ok {
-		return s
-	}
-	return defaultValue
-}

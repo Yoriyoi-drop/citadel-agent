@@ -15,6 +15,7 @@ import (
 	"github.com/citadel-agent/backend/internal/nodes/utilities"
 	"github.com/citadel-agent/backend/internal/nodes/basic"
 	"github.com/citadel-agent/backend/internal/nodes/plugins"
+	"github.com/citadel-agent/backend/internal/nodes/ai"
 )
 
 // NodeType represents different types of nodes
@@ -73,6 +74,27 @@ const (
 
 	// Plugin Node Types
 	PluginNodeType               NodeType = "plugin"
+
+	// Elite AI Node Types
+	VisionAIProcessorNodeType          NodeType = "vision_ai_processor"
+	SpeechToTextNodeType               NodeType = "speech_to_text"
+	TextToSpeechNodeType               NodeType = "text_to_speech"
+	ContextualReasoningNodeType        NodeType = "contextual_reasoning"
+	AnomalyDetectionAINodeType         NodeType = "anomaly_detection_ai"
+	PredictionModelNodeType            NodeType = "prediction_model"
+	SentimentAnalysisNodeType          NodeType = "sentiment_analysis"
+	AIAgentOrchestratorNodeType        NodeType = "ai_agent_orchestrator"
+	MLModelTrainingNodeType            NodeType = "ml_model_training"
+	AdvancedMLInferenceNodeType        NodeType = "advanced_ml_inference"
+	MultiModalAIProcessorNodeType      NodeType = "multi_modal_ai_processor"
+	AdvancedNaturalLanguageProcessorNodeType NodeType = "advanced_natural_language_processor"
+	RealTimeMLTrainingNodeType         NodeType = "real_time_ml_training"
+	AdvancedRecommendationEngineNodeType NodeType = "advanced_recommendation_engine"
+	AdvancedAIAgentManagerNodeType     NodeType = "advanced_ai_agent_manager"
+	AdvancedDecisionEngineNodeType     NodeType = "advanced_decision_engine"
+	AdvancedPredictiveAnalyticsNodeType NodeType = "advanced_predictive_analytics"
+	AdvancedContentIntelligenceNodeType NodeType = "advanced_content_intelligence"
+	AdvancedDataIntelligenceNodeType   NodeType = "advanced_data_intelligence"
 )
 
 // NodeFactory creates node instances based on type
@@ -103,156 +125,233 @@ func NewNodeFactory() *NodeFactory {
 	}
 
 	// Register all node types
-	nf.RegisterNodeType(HTTPRequestNodeType, func(config map[string]interface{}) (engine.NodeInstance, error) {
+	nf.RegisterNodeType(HTTPRequestNodeType, func(config map[string]interface{}) (interfaces.NodeInstance, error) {
 		return engine.NewHTTPRequestNode(config)
 	})
 
-	nf.RegisterNodeType(ConditionNodeType, func(config map[string]interface{}) (engine.NodeInstance, error) {
+	nf.RegisterNodeType(ConditionNodeType, func(config map[string]interface{}) (interfaces.NodeInstance, error) {
 		return engine.NewConditionNode(config)
 	})
 
-	nf.RegisterNodeType(DelayNodeType, func(config map[string]interface{}) (engine.NodeInstance, error) {
+	nf.RegisterNodeType(DelayNodeType, func(config map[string]interface{}) (interfaces.NodeInstance, error) {
 		return engine.NewDelayNode(config)
 	})
 
-	nf.RegisterNodeType(DatabaseQueryNodeType, func(config map[string]interface{}) (engine.NodeInstance, error) {
+	nf.RegisterNodeType(DatabaseQueryNodeType, func(config map[string]interface{}) (interfaces.NodeInstance, error) {
 		return engine.NewDatabaseQueryNode(config)
 	})
 
-	nf.RegisterNodeType(ScriptExecutionNodeType, func(config map[string]interface{}) (engine.NodeInstance, error) {
+	nf.RegisterNodeType(ScriptExecutionNodeType, func(config map[string]interface{}) (interfaces.NodeInstance, error) {
 		return engine.NewScriptExecutionNode(config)
 	})
 
-	nf.RegisterNodeType(AIAgentNodeType, func(config map[string]interface{}) (engine.NodeInstance, error) {
+	nf.RegisterNodeType(AIAgentNodeType, func(config map[string]interface{}) (interfaces.NodeInstance, error) {
 		return engine.NewAIAgentNode(config)
 	})
 
-	nf.RegisterNodeType(DataTransformerNodeType, func(config map[string]interface{}) (engine.NodeInstance, error) {
+	nf.RegisterNodeType(DataTransformerNodeType, func(config map[string]interface{}) (interfaces.NodeInstance, error) {
 		return engine.NewDataTransformerNode(config)
 	})
 
-	nf.RegisterNodeType(NotificationNodeType, func(config map[string]interface{}) (engine.NodeInstance, error) {
+	nf.RegisterNodeType(NotificationNodeType, func(config map[string]interface{}) (interfaces.NodeInstance, error) {
 		return engine.NewNotificationNode(config)
 	})
 
-	nf.RegisterNodeType(LoopNodeType, func(config map[string]interface{}) (engine.NodeInstance, error) {
+	nf.RegisterNodeType(LoopNodeType, func(config map[string]interface{}) (interfaces.NodeInstance, error) {
 		return engine.NewLoopNode(config)
 	})
 
-	nf.RegisterNodeType(ErrorHandlerNodeType, func(config map[string]interface{}) (engine.NodeInstance, error) {
+	nf.RegisterNodeType(ErrorHandlerNodeType, func(config map[string]interface{}) (interfaces.NodeInstance, error) {
 		return engine.NewErrorHandlerNode(config)
 	})
 
 	// Register Core Backend & HTTP nodes
-	nf.RegisterNodeType(ValidatorNodeType, func(config map[string]interface{}) (engine.NodeInstance, error) {
+	nf.RegisterNodeType(ValidatorNodeType, func(config map[string]interface{}) (interfaces.NodeInstance, error) {
 		return core.NewValidatorNode(config)
 	})
 
-	nf.RegisterNodeType(LoggerNodeType, func(config map[string]interface{}) (engine.NodeInstance, error) {
+	nf.RegisterNodeType(LoggerNodeType, func(config map[string]interface{}) (interfaces.NodeInstance, error) {
 		return core.NewLoggerNode(config)
 	})
 
-	nf.RegisterNodeType(ConfigManagerNodeType, func(config map[string]interface{}) (engine.NodeInstance, error) {
+	nf.RegisterNodeType(ConfigManagerNodeType, func(config map[string]interface{}) (interfaces.NodeInstance, error) {
 		return core.NewConfigManagerNode(config)
 	})
 
-	nf.RegisterNodeType(UUIDGeneratorNodeType, func(config map[string]interface{}) (engine.NodeInstance, error) {
+	nf.RegisterNodeType(UUIDGeneratorNodeType, func(config map[string]interface{}) (interfaces.NodeInstance, error) {
 		return core.NewUUIDGeneratorNode(config)
 	})
 
 	// Register Database & ORM nodes
-	nf.RegisterNodeType(GORMDatabaseNodeType, func(config map[string]interface{}) (engine.NodeInstance, error) {
+	nf.RegisterNodeType(GORMDatabaseNodeType, func(config map[string]interface{}) (interfaces.NodeInstance, error) {
 		return database.NewGORMDatabaseNode(config)
 	})
 
-	nf.RegisterNodeType(BunDatabaseNodeType, func(config map[string]interface{}) (engine.NodeInstance, error) {
+	nf.RegisterNodeType(BunDatabaseNodeType, func(config map[string]interface{}) (interfaces.NodeInstance, error) {
 		return database.NewBunDatabaseNode(config)
 	})
 
-	nf.RegisterNodeType(EntDatabaseNodeType, func(config map[string]interface{}) (engine.NodeInstance, error) {
+	nf.RegisterNodeType(EntDatabaseNodeType, func(config map[string]interface{}) (interfaces.NodeInstance, error) {
 		return database.NewEntDatabaseNode(config)
 	})
 
-	nf.RegisterNodeType(SQLCDatabaseNodeType, func(config map[string]interface{}) (engine.NodeInstance, error) {
+	nf.RegisterNodeType(SQLCDatabaseNodeType, func(config map[string]interface{}) (interfaces.NodeInstance, error) {
 		return database.NewSQLCNode(config)
 	})
 
-	nf.RegisterNodeType(MigrateDatabaseNodeType, func(config map[string]interface{}) (engine.NodeInstance, error) {
+	nf.RegisterNodeType(MigrateDatabaseNodeType, func(config map[string]interface{}) (interfaces.NodeInstance, error) {
 		return database.NewMigrateNode(config)
 	})
 
 	// Register Workflow & Scheduling nodes
-	nf.RegisterNodeType(CronSchedulerNodeType, func(config map[string]interface{}) (engine.NodeInstance, error) {
+	nf.RegisterNodeType(CronSchedulerNodeType, func(config map[string]interface{}) (interfaces.NodeInstance, error) {
 		return workflow.NewCronSchedulerNode(config)
 	})
 
-	nf.RegisterNodeType(TaskQueueNodeType, func(config map[string]interface{}) (engine.NodeInstance, error) {
+	nf.RegisterNodeType(TaskQueueNodeType, func(config map[string]interface{}) (interfaces.NodeInstance, error) {
 		return workflow.NewTaskQueueNode(config)
 	})
 
-	nf.RegisterNodeType(JobSchedulerNodeType, func(config map[string]interface{}) (engine.NodeInstance, error) {
+	nf.RegisterNodeType(JobSchedulerNodeType, func(config map[string]interface{}) (interfaces.NodeInstance, error) {
 		return workflow.NewJobSchedulerNode(config)
 	})
 
-	nf.RegisterNodeType(WorkerPoolNodeType, func(config map[string]interface{}) (engine.NodeInstance, error) {
+	nf.RegisterNodeType(WorkerPoolNodeType, func(config map[string]interface{}) (interfaces.NodeInstance, error) {
 		return workflow.NewWorkerPoolNode(config)
 	})
 
-	nf.RegisterNodeType(CircuitBreakerNodeType, func(config map[string]interface{}) (engine.NodeInstance, error) {
+	nf.RegisterNodeType(CircuitBreakerNodeType, func(config map[string]interface{}) (interfaces.NodeInstance, error) {
 		return workflow.NewCircuitBreakerNode(config)
 	})
 
 	// Register Security nodes
-	nf.RegisterNodeType(FirewallManagerNodeType, func(config map[string]interface{}) (engine.NodeInstance, error) {
+	nf.RegisterNodeType(FirewallManagerNodeType, func(config map[string]interface{}) (interfaces.NodeInstance, error) {
 		return security.FirewallManagerNodeFromConfig(config)
 	})
 
-	nf.RegisterNodeType(EncryptionNodeType, func(config map[string]interface{}) (engine.NodeInstance, error) {
+	nf.RegisterNodeType(EncryptionNodeType, func(config map[string]interface{}) (interfaces.NodeInstance, error) {
 		return security.EncryptionNodeFromConfig(config)
 	})
 
-	nf.RegisterNodeType(AccessControlNodeType, func(config map[string]interface{}) (engine.NodeInstance, error) {
+	nf.RegisterNodeType(AccessControlNodeType, func(config map[string]interface{}) (interfaces.NodeInstance, error) {
 		return security.AccessControlNodeFromConfig(config)
 	})
 
-	nf.RegisterNodeType(APIKeyManagerNodeType, func(config map[string]interface{}) (engine.NodeInstance, error) {
+	nf.RegisterNodeType(APIKeyManagerNodeType, func(config map[string]interface{}) (interfaces.NodeInstance, error) {
 		return security.APIKeyManagerNodeFromConfig(config)
 	})
 
-	nf.RegisterNodeType(JWTHandlerNodeType, func(config map[string]interface{}) (engine.NodeInstance, error) {
+	nf.RegisterNodeType(JWTHandlerNodeType, func(config map[string]interface{}) (interfaces.NodeInstance, error) {
 		return security.JWTHandlerNodeFromConfig(config)
 	})
 
-	nf.RegisterNodeType(OAuth2ProviderNodeType, func(config map[string]interface{}) (engine.NodeInstance, error) {
+	nf.RegisterNodeType(OAuth2ProviderNodeType, func(config map[string]interface{}) (interfaces.NodeInstance, error) {
 		return security.OAuth2ProviderNodeFromConfig(config)
 	})
 
-	nf.RegisterNodeType(SecurityOperationNodeType, func(config map[string]interface{}) (engine.NodeInstance, error) {
+	nf.RegisterNodeType(SecurityOperationNodeType, func(config map[string]interface{}) (interfaces.NodeInstance, error) {
 		return security.NewSecurityNodeFromConfig(config)
 	})
 
 	// Register Debug & Logging nodes
-	nf.RegisterNodeType(DebugNodeType, func(config map[string]interface{}) (engine.NodeInstance, error) {
+	nf.RegisterNodeType(DebugNodeType, func(config map[string]interface{}) (interfaces.NodeInstance, error) {
 		return debug.DebugNodeFromConfig(config)
 	})
 
-	nf.RegisterNodeType(LoggingNodeType, func(config map[string]interface{}) (engine.NodeInstance, error) {
+	nf.RegisterNodeType(LoggingNodeType, func(config map[string]interface{}) (interfaces.NodeInstance, error) {
 		return core.NewLoggerNode(config)
 	})
 
 	// Register Utility nodes
-	nf.RegisterNodeType(UtilityNodeType, func(config map[string]interface{}) (engine.NodeInstance, error) {
+	nf.RegisterNodeType(UtilityNodeType, func(config map[string]interface{}) (interfaces.NodeInstance, error) {
 		return utilities.UtilityNodeFromConfig(config)
 	})
 
 	// Register Basic nodes
-	nf.RegisterNodeType(BasicNodeType, func(config map[string]interface{}) (engine.NodeInstance, error) {
+	nf.RegisterNodeType(BasicNodeType, func(config map[string]interface{}) (interfaces.NodeInstance, error) {
 		return basic.BasicNodeFromConfig(config)
 	})
 
 	// Register Plugin nodes
-	nf.RegisterNodeType(PluginNodeType, func(config map[string]interface{}) (engine.NodeInstance, error) {
+	nf.RegisterNodeType(PluginNodeType, func(config map[string]interface{}) (interfaces.NodeInstance, error) {
 		return plugins.PluginNodeFromConfig(config)
+	})
+
+	// Register Elite AI nodes
+	nf.RegisterNodeType(VisionAIProcessorNodeType, func(config map[string]interface{}) (interfaces.NodeInstance, error) {
+		return ai.NewVisionAIProcessorNode(config)
+	})
+
+	nf.RegisterNodeType(SpeechToTextNodeType, func(config map[string]interface{}) (interfaces.NodeInstance, error) {
+		return ai.NewSpeechToTextNode(config)
+	})
+
+	nf.RegisterNodeType(TextToSpeechNodeType, func(config map[string]interface{}) (interfaces.NodeInstance, error) {
+		return ai.NewTextToSpeechNode(config)
+	})
+
+	nf.RegisterNodeType(ContextualReasoningNodeType, func(config map[string]interface{}) (interfaces.NodeInstance, error) {
+		return ai.NewContextualReasoningNode(config)
+	})
+
+	nf.RegisterNodeType(AnomalyDetectionAINodeType, func(config map[string]interface{}) (interfaces.NodeInstance, error) {
+		return ai.NewAnomalyDetectionAINode(config)
+	})
+
+	nf.RegisterNodeType(PredictionModelNodeType, func(config map[string]interface{}) (interfaces.NodeInstance, error) {
+		return ai.NewPredictionModelNode(config)
+	})
+
+	nf.RegisterNodeType(SentimentAnalysisNodeType, func(config map[string]interface{}) (interfaces.NodeInstance, error) {
+		return ai.NewSentimentAnalysisNode(config)
+	})
+
+	nf.RegisterNodeType(AIAgentOrchestratorNodeType, func(config map[string]interface{}) (interfaces.NodeInstance, error) {
+		return ai.NewAIAgentOrchestratorNode(config)
+	})
+
+	nf.RegisterNodeType(MLModelTrainingNodeType, func(config map[string]interface{}) (interfaces.NodeInstance, error) {
+		return ai.NewMLModelTrainingNode(config)
+	})
+
+	nf.RegisterNodeType(AdvancedMLInferenceNodeType, func(config map[string]interface{}) (interfaces.NodeInstance, error) {
+		return ai.NewAdvancedMLInferenceNode(config)
+	})
+
+	nf.RegisterNodeType(MultiModalAIProcessorNodeType, func(config map[string]interface{}) (interfaces.NodeInstance, error) {
+		return ai.NewMultiModalAIProcessorNode(config)
+	})
+
+	nf.RegisterNodeType(AdvancedNaturalLanguageProcessorNodeType, func(config map[string]interface{}) (interfaces.NodeInstance, error) {
+		return ai.NewAdvancedNLPProcessorNode(config)
+	})
+
+	nf.RegisterNodeType(RealTimeMLTrainingNodeType, func(config map[string]interface{}) (interfaces.NodeInstance, error) {
+		return ai.NewRealTimeMLTrainingNode(config)
+	})
+
+	nf.RegisterNodeType(AdvancedRecommendationEngineNodeType, func(config map[string]interface{}) (interfaces.NodeInstance, error) {
+		return ai.NewAdvancedRecommendationEngineNode(config)
+	})
+
+	nf.RegisterNodeType(AdvancedAIAgentManagerNodeType, func(config map[string]interface{}) (interfaces.NodeInstance, error) {
+		return ai.NewAdvancedAIAgentManagerNode(config)
+	})
+
+	nf.RegisterNodeType(AdvancedDecisionEngineNodeType, func(config map[string]interface{}) (interfaces.NodeInstance, error) {
+		return ai.NewAdvancedDecisionEngineNode(config)
+	})
+
+	nf.RegisterNodeType(AdvancedPredictiveAnalyticsNodeType, func(config map[string]interface{}) (interfaces.NodeInstance, error) {
+		return ai.NewAdvancedPredictiveAnalyticsNode(config)
+	})
+
+	nf.RegisterNodeType(AdvancedContentIntelligenceNodeType, func(config map[string]interface{}) (interfaces.NodeInstance, error) {
+		return ai.NewAdvancedContentIntelligenceNode(config)
+	})
+
+	nf.RegisterNodeType(AdvancedDataIntelligenceNodeType, func(config map[string]interface{}) (interfaces.NodeInstance, error) {
+		return ai.NewAdvancedDataIntelligenceNode(config)
 	})
 
 	return nf

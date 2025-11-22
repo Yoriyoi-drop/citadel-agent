@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/citadel-agent/backend/internal/interfaces"
 	"github.com/citadel-agent/backend/internal/workflow/core/engine"
 )
 
@@ -159,7 +160,7 @@ func (ln *LogNode) logToHTTP(endpoint, level LogLevel, message string, fields ma
 
 // RegisterLogNode registers the log node type with the engine
 func RegisterLogNode(registry *engine.NodeRegistry) {
-	registry.RegisterNodeType("logging", func(config map[string]interface{}) (engine.NodeInstance, error) {
+	registry.RegisterNodeType("logging", func(config map[string]interface{}) (interfaces.NodeInstance, error) {
 		var level LogLevel
 		if levelVal, exists := config["level"]; exists {
 			if levelStr, ok := levelVal.(string); ok {

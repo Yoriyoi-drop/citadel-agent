@@ -8,7 +8,8 @@ import (
 
 	"github.com/go-playground/validator/v10"
 
-	"github.com/citadel-agent/backend/internal/workflow/core/engine"
+	"github.com/citadel-agent/backend/internal/interfaces"
+	"github.com/citadel-agent/backend/internal/nodes/utils"
 )
 
 // ValidatorNodeConfig represents the configuration for a Validator node
@@ -26,7 +27,7 @@ type ValidatorNode struct {
 }
 
 // NewValidatorNode creates a new Validator node with the given configuration
-func NewValidatorNode(config map[string]interface{}) (engine.NodeInstance, error) {
+func NewValidatorNode(config map[string]interface{}) (interfaces.NodeInstance, error) {
 	// Extract config values
 	structTags := make(map[string]string)
 	if tags, exists := config["struct_tags"]; exists {
@@ -39,8 +40,8 @@ func NewValidatorNode(config map[string]interface{}) (engine.NodeInstance, error
 		}
 	}
 
-	fieldName := getStringValue(config["field_name"], "")
-	validation := getStringValue(config["validation"], "")
+	fieldName := utils.GetStringValue(config["field_name"], "")
+	validation := utils.GetStringValue(config["validation"], "")
 
 	customRules := make(map[string]string)
 	if rules, exists := config["custom_rules"]; exists {
@@ -127,13 +128,13 @@ func (v *ValidatorNode) validateStruct(input map[string]interface{}) []string {
 			continue
 		}
 
-		// Validate the field value
-		err := v.validate.Field(fieldValue, validationTag)
+		// Validate the field value by validating against a temporary variable
+		err := v.validate.Var(fieldValue, validationTag)
 		if err != nil {
 			validatorErrs, ok := err.(validator.ValidationErrors)
 			if ok {
 				for _, errDetail := range validatorErrs {
-					errors = append(errors, fmt.Sprintf("%s: %s", errDetail.Field(), errDetail.Tag()))
+					errors = append(errors, fmt.Sprintf("%s: %s", fieldName, errDetail.Tag()))
 				}
 			} else {
 				errors = append(errors, fmt.Sprintf("%s: %s", fieldName, err.Error()))
@@ -144,13 +145,3 @@ func (v *ValidatorNode) validateStruct(input map[string]interface{}) []string {
 	return errors
 }
 
-// getStringValue safely extracts a string value
-func getStringValue(v interface{}, defaultValue string) string {
-	if v == nil {
-		return defaultValue
-	}
-	if s, ok := v.(string); ok {
-		return s
-	}
-	return defaultValue
-}

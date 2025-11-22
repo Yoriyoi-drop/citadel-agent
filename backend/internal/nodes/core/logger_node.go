@@ -8,7 +8,7 @@ import (
 
 	"github.com/rs/zerolog"
 
-	"github.com/citadel-agent/backend/internal/workflow/core/engine"
+	"github.com/citadel-agent/backend/internal/nodes/utils"
 	"github.com/citadel-agent/backend/internal/interfaces"
 )
 
@@ -32,11 +32,11 @@ type LoggerNode struct {
 // NewLoggerNode creates a new Logger node with the given configuration
 func NewLoggerNode(config map[string]interface{}) (interfaces.NodeInstance, error) {
 	// Extract config values
-	level := getStringValue(config["level"], "info")
-	message := getStringValue(config["message"], "")
-	output := getStringValue(config["output"], "stdout")
-	filePath := getStringValue(config["file_path"], "")
-	format := getStringValue(config["format"], "json")
+	level := utils.GetStringValue(config["level"], "info")
+	message := utils.GetStringValue(config["message"], "")
+	output := utils.GetStringValue(config["output"], "stdout")
+	filePath := utils.GetStringValue(config["file_path"], "")
+	format := utils.GetStringValue(config["format"], "json")
 	withTrace := getBoolValue(config["with_trace"], false)
 
 	// Extract fields
@@ -208,16 +208,6 @@ func replaceAll(s, old, new string) string {
 	return result
 }
 
-// getStringValue safely extracts a string value with default fallback
-func getStringValue(v interface{}, defaultValue string) string {
-	if v == nil {
-		return defaultValue
-	}
-	if s, ok := v.(string); ok {
-		return s
-	}
-	return defaultValue
-}
 
 // getBoolValue safely extracts a boolean value with default fallback
 func getBoolValue(v interface{}, defaultValue bool) bool {

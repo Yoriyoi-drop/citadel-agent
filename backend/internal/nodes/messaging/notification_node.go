@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/citadel-agent/backend/internal/interfaces"
 	"github.com/citadel-agent/backend/internal/workflow/core/engine"
 )
 
@@ -56,7 +57,7 @@ type NotificationNode struct {
 }
 
 // NewNotificationNode membuat node Notification baru
-func NewNotificationNode(config map[string]interface{}) (engine.NodeInstance, error) {
+func NewNotificationNode(config map[string]interface{}) (interfaces.NodeInstance, error) {
 	// Konversi map interface{} ke JSON lalu ke struct
 	jsonData, err := json.Marshal(config)
 	if err != nil {
@@ -433,7 +434,7 @@ func (n *NotificationNode) GetID() string {
 
 // RegisterNotificationNode mendaftarkan node Notification dengan engine
 func RegisterNotificationNode(registry *engine.NodeRegistry) {
-	registry.RegisterNodeType("notification", func(config map[string]interface{}) (engine.NodeInstance, error) {
+	registry.RegisterNodeType("notification", func(config map[string]interface{}) (interfaces.NodeInstance, error) {
 		return NewNotificationNode(config)
 	})
 }

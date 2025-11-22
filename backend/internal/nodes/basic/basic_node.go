@@ -5,7 +5,9 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
+	"github.com/citadel-agent/backend/internal/interfaces"
 	"github.com/citadel-agent/backend/internal/nodes/utils"
 	"github.com/citadel-agent/backend/internal/workflow/core/engine"
 )
@@ -197,21 +199,21 @@ func (bn *BasicNode) conditionOperation(inputs map[string]interface{}) (map[stri
 	case "!=", "ne":
 		resultValue = fmt.Sprintf("%v", leftValue) != fmt.Sprintf("%v", rightValue)
 	case ">", "gt":
-		left, leftOk := toFloat64(leftValue)
-		right, rightOk := toFloat64(rightValue)
-		resultValue = leftOk && rightOk && left > right
+		left, leftErr := toFloat64(leftValue)
+		right, rightErr := toFloat64(rightValue)
+		resultValue = leftErr == nil && rightErr == nil && left > right
 	case "<", "lt":
-		left, leftOk := toFloat64(leftValue)
-		right, rightOk := toFloat64(rightValue)
-		resultValue = leftOk && rightOk && left < right
+		left, leftErr := toFloat64(leftValue)
+		right, rightErr := toFloat64(rightValue)
+		resultValue = leftErr == nil && rightErr == nil && left < right
 	case ">=", "gte":
-		left, leftOk := toFloat64(leftValue)
-		right, rightOk := toFloat64(rightValue)
-		resultValue = leftOk && rightOk && left >= right
+		left, leftErr := toFloat64(leftValue)
+		right, rightErr := toFloat64(rightValue)
+		resultValue = leftErr == nil && rightErr == nil && left >= right
 	case "<=", "lte":
-		left, leftOk := toFloat64(leftValue)
-		right, rightOk := toFloat64(rightValue)
-		resultValue = leftOk && rightOk && left <= right
+		left, leftErr := toFloat64(leftValue)
+		right, rightErr := toFloat64(rightValue)
+		resultValue = leftErr == nil && rightErr == nil && left <= right
 	case "contains":
 		leftStr := fmt.Sprintf("%v", leftValue)
 		rightStr := fmt.Sprintf("%v", rightValue)
@@ -438,7 +440,7 @@ func toFloat64(value interface{}) (float64, error) {
 
 
 // BasicNodeFromConfig creates a new basic node from a configuration map
-func BasicNodeFromConfig(config map[string]interface{}) (engine.NodeInstance, error) {
+func BasicNodeFromConfig(config map[string]interface{}) (interfaces.NodeInstance, error) {
 	var operation BasicOperationType
 	if op, exists := config["operation"]; exists {
 		if opStr, ok := op.(string); ok {
@@ -517,7 +519,7 @@ func BasicNodeFromConfig(config map[string]interface{}) (engine.NodeInstance, er
 
 // RegisterBasicNode registers the basic node type with the engine
 func RegisterBasicNode(registry *engine.NodeRegistry) {
-	registry.RegisterNodeType("basic", func(config map[string]interface{}) (engine.NodeInstance, error) {
+	registry.RegisterNodeType("basic", func(config map[string]interface{}) (interfaces.NodeInstance, error) {
 		return BasicNodeFromConfig(config)
 	})
 }

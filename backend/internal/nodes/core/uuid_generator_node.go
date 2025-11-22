@@ -7,7 +7,8 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/citadel-agent/backend/internal/workflow/core/engine"
+	"github.com/citadel-agent/backend/internal/interfaces"
+	"github.com/citadel-agent/backend/internal/nodes/utils"
 )
 
 // UUIDGeneratorNodeConfig represents the configuration for a UUIDGenerator node
@@ -25,7 +26,7 @@ type UUIDGeneratorNode struct {
 }
 
 // NewUUIDGeneratorNode creates a new UUIDGenerator node with the given configuration
-func NewUUIDGeneratorNode(config map[string]interface{}) (engine.NodeInstance, error) {
+func NewUUIDGeneratorNode(config map[string]interface{}) (interfaces.NodeInstance, error) {
 	// Extract config values
 	version := 4 // Default to version 4 (random)
 	if v, exists := config["version"]; exists {
@@ -34,8 +35,8 @@ func NewUUIDGeneratorNode(config map[string]interface{}) (engine.NodeInstance, e
 		}
 	}
 
-	nameSpace := getStringValue(config["namespace"], "")
-	name := getStringValue(config["name"], "")
+	nameSpace := utils.GetStringValue(config["namespace"], "")
+	name := utils.GetStringValue(config["name"], "")
 
 	count := 1
 	if c, exists := config["count"]; exists {
@@ -44,7 +45,7 @@ func NewUUIDGeneratorNode(config map[string]interface{}) (engine.NodeInstance, e
 		}
 	}
 
-	outputFormat := getStringValue(config["output_format"], "string")
+	outputFormat := utils.GetStringValue(config["output_format"], "string")
 
 	// Validate version
 	if version != 1 && version != 3 && version != 4 && version != 5 {
@@ -119,7 +120,11 @@ func (u *UUIDGeneratorNode) Execute(ctx context.Context, input map[string]interf
 
 		switch version {
 		case 1:
-			generatedUUID = uuid.NewUUID()
+			var err error
+			generatedUUID, err = uuid.NewUUID()
+			if err != nil {
+				return nil, fmt.Errorf("failed to generate UUID v1: %w", err)
+			}
 		case 3:
 			// Use namespace and name to generate UUID
 			ns := getNamespace(namespaceStr)
@@ -186,13 +191,3 @@ func getNamespace(nsStr string) uuid.UUID {
 	}
 }
 
-// getStringValue safely extracts a string value
-func getStringValue(v interface{}, defaultValue string) string {
-	if v == nil {
-		return defaultValue
-	}
-	if s, ok := v.(string); ok {
-		return s
-	}
-	return defaultValue
-}
