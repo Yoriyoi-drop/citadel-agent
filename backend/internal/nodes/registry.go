@@ -5,7 +5,15 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/citadel-agent/backend/internal/workflow/core/engine"
+	"citadel-agent/backend/internal/workflow/core/engine"
+	"citadel-agent/backend/internal/nodes/core"
+	"citadel-agent/backend/internal/nodes/database"
+	"citadel-agent/backend/internal/nodes/workflow"
+	"citadel-agent/backend/internal/nodes/security"
+	"citadel-agent/backend/internal/nodes/debug"
+	"citadel-agent/backend/internal/nodes/utilities"
+	"citadel-agent/backend/internal/nodes/basic"
+	"citadel-agent/backend/internal/nodes/plugins"
 )
 
 // NodeType represents different types of nodes
@@ -22,6 +30,48 @@ const (
 	NotificationNodeType   NodeType = "notification"
 	LoopNodeType           NodeType = "loop"
 	ErrorHandlerNodeType   NodeType = "error_handler"
+
+	// Core Backend & HTTP Node Types
+	ValidatorNodeType      NodeType = "validator"
+	LoggerNodeType         NodeType = "logger"
+	ConfigManagerNodeType  NodeType = "config_manager"
+	UUIDGeneratorNodeType  NodeType = "uuid_generator"
+
+	// Database & ORM Node Types
+	GORMDatabaseNodeType   NodeType = "gorm_database"
+	BunDatabaseNodeType    NodeType = "bun_database"
+	EntDatabaseNodeType    NodeType = "ent_database"
+	SQLCDatabaseNodeType   NodeType = "sqlc_database"
+	MigrateDatabaseNodeType NodeType = "migrate_database"
+
+	// Workflow & Scheduling Node Types
+	CronSchedulerNodeType  NodeType = "cron_scheduler"
+	TaskQueueNodeType      NodeType = "task_queue"
+	JobSchedulerNodeType   NodeType = "job_scheduler"
+	WorkerPoolNodeType     NodeType = "worker_pool"
+	CircuitBreakerNodeType NodeType = "circuit_breaker"
+
+	// Security Node Types
+	FirewallManagerNodeType      NodeType = "firewall_manager"
+	EncryptionNodeType           NodeType = "encryption"
+	AccessControlNodeType        NodeType = "access_control"
+	APIKeyManagerNodeType        NodeType = "api_key_manager"
+	JWTHandlerNodeType           NodeType = "jwt_handler"
+	OAuth2ProviderNodeType       NodeType = "oauth2_provider"
+	SecurityOperationNodeType    NodeType = "security_operation"
+
+	// Debug & Logging Node Types
+	DebugNodeType                NodeType = "debug"
+	LoggingNodeType              NodeType = "logging"
+
+	// Utility Node Types
+	UtilityNodeType              NodeType = "utility"
+
+	// Basic Node Types
+	BasicNodeType                NodeType = "basic"
+
+	// Plugin Node Types
+	PluginNodeType               NodeType = "plugin"
 )
 
 // NodeFactory creates node instances based on type
@@ -90,6 +140,118 @@ func NewNodeFactory() *NodeFactory {
 
 	nf.RegisterNodeType(ErrorHandlerNodeType, func(config map[string]interface{}) (engine.NodeInstance, error) {
 		return engine.NewErrorHandlerNode(config)
+	})
+
+	// Register Core Backend & HTTP nodes
+	nf.RegisterNodeType(ValidatorNodeType, func(config map[string]interface{}) (engine.NodeInstance, error) {
+		return core.NewValidatorNode(config)
+	})
+
+	nf.RegisterNodeType(LoggerNodeType, func(config map[string]interface{}) (engine.NodeInstance, error) {
+		return core.NewLoggerNode(config)
+	})
+
+	nf.RegisterNodeType(ConfigManagerNodeType, func(config map[string]interface{}) (engine.NodeInstance, error) {
+		return core.NewConfigManagerNode(config)
+	})
+
+	nf.RegisterNodeType(UUIDGeneratorNodeType, func(config map[string]interface{}) (engine.NodeInstance, error) {
+		return core.NewUUIDGeneratorNode(config)
+	})
+
+	// Register Database & ORM nodes
+	nf.RegisterNodeType(GORMDatabaseNodeType, func(config map[string]interface{}) (engine.NodeInstance, error) {
+		return database.NewGORMDatabaseNode(config)
+	})
+
+	nf.RegisterNodeType(BunDatabaseNodeType, func(config map[string]interface{}) (engine.NodeInstance, error) {
+		return database.NewBunDatabaseNode(config)
+	})
+
+	nf.RegisterNodeType(EntDatabaseNodeType, func(config map[string]interface{}) (engine.NodeInstance, error) {
+		return database.NewEntDatabaseNode(config)
+	})
+
+	nf.RegisterNodeType(SQLCDatabaseNodeType, func(config map[string]interface{}) (engine.NodeInstance, error) {
+		return database.NewSQLCNode(config)
+	})
+
+	nf.RegisterNodeType(MigrateDatabaseNodeType, func(config map[string]interface{}) (engine.NodeInstance, error) {
+		return database.NewMigrateNode(config)
+	})
+
+	// Register Workflow & Scheduling nodes
+	nf.RegisterNodeType(CronSchedulerNodeType, func(config map[string]interface{}) (engine.NodeInstance, error) {
+		return workflow.NewCronSchedulerNode(config)
+	})
+
+	nf.RegisterNodeType(TaskQueueNodeType, func(config map[string]interface{}) (engine.NodeInstance, error) {
+		return workflow.NewTaskQueueNode(config)
+	})
+
+	nf.RegisterNodeType(JobSchedulerNodeType, func(config map[string]interface{}) (engine.NodeInstance, error) {
+		return workflow.NewJobSchedulerNode(config)
+	})
+
+	nf.RegisterNodeType(WorkerPoolNodeType, func(config map[string]interface{}) (engine.NodeInstance, error) {
+		return workflow.NewWorkerPoolNode(config)
+	})
+
+	nf.RegisterNodeType(CircuitBreakerNodeType, func(config map[string]interface{}) (engine.NodeInstance, error) {
+		return workflow.NewCircuitBreakerNode(config)
+	})
+
+	// Register Security nodes
+	nf.RegisterNodeType(FirewallManagerNodeType, func(config map[string]interface{}) (engine.NodeInstance, error) {
+		return security.FirewallManagerNodeFromConfig(config)
+	})
+
+	nf.RegisterNodeType(EncryptionNodeType, func(config map[string]interface{}) (engine.NodeInstance, error) {
+		return security.EncryptionNodeFromConfig(config)
+	})
+
+	nf.RegisterNodeType(AccessControlNodeType, func(config map[string]interface{}) (engine.NodeInstance, error) {
+		return security.AccessControlNodeFromConfig(config)
+	})
+
+	nf.RegisterNodeType(APIKeyManagerNodeType, func(config map[string]interface{}) (engine.NodeInstance, error) {
+		return security.APIKeyManagerNodeFromConfig(config)
+	})
+
+	nf.RegisterNodeType(JWTHandlerNodeType, func(config map[string]interface{}) (engine.NodeInstance, error) {
+		return security.JWTHandlerNodeFromConfig(config)
+	})
+
+	nf.RegisterNodeType(OAuth2ProviderNodeType, func(config map[string]interface{}) (engine.NodeInstance, error) {
+		return security.OAuth2ProviderNodeFromConfig(config)
+	})
+
+	nf.RegisterNodeType(SecurityOperationNodeType, func(config map[string]interface{}) (engine.NodeInstance, error) {
+		return security.NewSecurityNodeFromConfig(config)
+	})
+
+	// Register Debug & Logging nodes
+	nf.RegisterNodeType(DebugNodeType, func(config map[string]interface{}) (engine.NodeInstance, error) {
+		return debug.DebugNodeFromConfig(config)
+	})
+
+	nf.RegisterNodeType(LoggingNodeType, func(config map[string]interface{}) (engine.NodeInstance, error) {
+		return core.NewLoggerNode(config)
+	})
+
+	// Register Utility nodes
+	nf.RegisterNodeType(UtilityNodeType, func(config map[string]interface{}) (engine.NodeInstance, error) {
+		return utilities.UtilityNodeFromConfig(config)
+	})
+
+	// Register Basic nodes
+	nf.RegisterNodeType(BasicNodeType, func(config map[string]interface{}) (engine.NodeInstance, error) {
+		return basic.BasicNodeFromConfig(config)
+	})
+
+	// Register Plugin nodes
+	nf.RegisterNodeType(PluginNodeType, func(config map[string]interface{}) (engine.NodeInstance, error) {
+		return plugins.PluginNodeFromConfig(config)
 	})
 
 	return nf

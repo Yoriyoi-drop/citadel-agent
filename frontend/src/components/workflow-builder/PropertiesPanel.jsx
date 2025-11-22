@@ -356,6 +356,334 @@ const PropertiesPanel = ({ selectedNode, onSave, onCancel }) => {
             </div>
           </div>
         );
+      case 'firewallManager':
+        return (
+          <div>
+            <h4 className="font-semibold mb-3">Firewall Manager Node</h4>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Operation</label>
+                <select
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={config.operation || 'check'}
+                  onChange={(e) => handleInputChange('operation', e.target.value)}
+                >
+                  <option value="check">Check Access</option>
+                  <option value="validate">Validate IP</option>
+                  <option value="filter">Filter Request</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Default Action</label>
+                <select
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={config.default_action || 'block'}
+                  onChange={(e) => handleInputChange('default_action', e.target.value)}
+                >
+                  <option value="allow">Allow</option>
+                  <option value="block">Block</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Whitelist IPs (comma separated)</label>
+                <input
+                  type="text"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="192.168.1.1, 10.0.0.0/24"
+                  value={config.whitelist_ips?.join(', ') || ''}
+                  onChange={(e) => handleInputChange('whitelist_ips', e.target.value.split(',').map(ip => ip.trim()))}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Blacklist IPs (comma separated)</label>
+                <input
+                  type="text"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="192.168.1.10, 203.0.113.0/24"
+                  value={config.blacklist_ips?.join(', ') || ''}
+                  onChange={(e) => handleInputChange('blacklist_ips', e.target.value.split(',').map(ip => ip.trim()))}
+                />
+              </div>
+            </div>
+          </div>
+        );
+      case 'encryption':
+        return (
+          <div>
+            <h4 className="font-semibold mb-3">Encryption/Decryption Node</h4>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Operation</label>
+                <select
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={config.operation || 'encrypt'}
+                  onChange={(e) => handleInputChange('operation', e.target.value)}
+                >
+                  <option value="encrypt">Encrypt</option>
+                  <option value="decrypt">Decrypt</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Algorithm</label>
+                <select
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={config.algorithm || 'AES256'}
+                  onChange={(e) => handleInputChange('algorithm', e.target.value)}
+                >
+                  <option value="AES256">AES-256</option>
+                  <option value="AES128">AES-128</option>
+                  <option value="RSA">RSA</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Encryption Key</label>
+                <input
+                  type="password"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter encryption key"
+                  value={config.encryption_key || ''}
+                  onChange={(e) => handleInputChange('encryption_key', e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+        );
+      case 'accessControl':
+        return (
+          <div>
+            <h4 className="font-semibold mb-3">Access Control Node</h4>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Control Type</label>
+                <select
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={config.control_type || 'rbac'}
+                  onChange={(e) => handleInputChange('control_type', e.target.value)}
+                >
+                  <option value="rbac">Role-Based Access Control (RBAC)</option>
+                  <option value="ldap">LDAP Authentication</option>
+                  <option value="ad">Active Directory</option>
+                  <option value="custom">Custom Access Control</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Default Allow</label>
+                <select
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={config.default_allow ? 'true' : 'false'}
+                  onChange={(e) => handleInputChange('default_allow', e.target.value === 'true')}
+                >
+                  <option value="true">Allow by Default</option>
+                  <option value="false">Deny by Default</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">LDAP Server</label>
+                <input
+                  type="text"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="ldap://ldap.example.com:389"
+                  value={config.ldap_server || ''}
+                  onChange={(e) => handleInputChange('ldap_server', e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+        );
+      case 'apiKeyManager':
+        return (
+          <div>
+            <h4 className="font-semibold mb-3">API Key Manager Node</h4>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Operation</label>
+                <select
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={config.operation || 'create'}
+                  onChange={(e) => handleInputChange('operation', e.target.value)}
+                >
+                  <option value="create">Create Key</option>
+                  <option value="validate">Validate Key</option>
+                  <option value="revoke">Revoke Key</option>
+                  <option value="list">List Keys</option>
+                  <option value="rotate">Rotate Key</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Default Expiry (hours)</label>
+                <input
+                  type="number"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="24"
+                  value={config.default_expiry ? Math.floor(config.default_expiry / 1000 / 60 / 60) : 24}
+                  onChange={(e) => handleInputChange('default_expiry', parseInt(e.target.value) * 1000 * 60 * 60)}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Max Keys Per User</label>
+                <input
+                  type="number"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="5"
+                  value={config.max_keys_per_user || ''}
+                  onChange={(e) => handleInputChange('max_keys_per_user', parseInt(e.target.value))}
+                />
+              </div>
+            </div>
+          </div>
+        );
+      case 'jwtHandler':
+        return (
+          <div>
+            <h4 className="font-semibold mb-3">JWT Handler Node</h4>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Operation</label>
+                <select
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={config.operation || 'create'}
+                  onChange={(e) => handleInputChange('operation', e.target.value)}
+                >
+                  <option value="create">Create Token</option>
+                  <option value="validate">Validate Token</option>
+                  <option value="refresh">Refresh Token</option>
+                  <option value="decode">Decode Token</option>
+                  <option value="revoke">Revoke Token</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Algorithm</label>
+                <select
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={config.algorithm || 'HS256'}
+                  onChange={(e) => handleInputChange('algorithm', e.target.value)}
+                >
+                  <option value="HS256">HS256 (HMAC)</option>
+                  <option value="HS384">HS384 (HMAC)</option>
+                  <option value="HS512">HS512 (HMAC)</option>
+                  <option value="RS256">RS256 (RSA)</option>
+                  <option value="RS384">RS384 (RSA)</option>
+                  <option value="RS512">RS512 (RSA)</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Issuer</label>
+                <input
+                  type="text"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="your-app-name"
+                  value={config.issuer || ''}
+                  onChange={(e) => handleInputChange('issuer', e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Secret Key</label>
+                <input
+                  type="password"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter secret key"
+                  value={config.secret_key || ''}
+                  onChange={(e) => handleInputChange('secret_key', e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+        );
+      case 'oauth2Provider':
+        return (
+          <div>
+            <h4 className="font-semibold mb-3">OAuth2 Provider Node</h4>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Operation</label>
+                <select
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={config.operation || 'authorize'}
+                  onChange={(e) => handleInputChange('operation', e.target.value)}
+                >
+                  <option value="authorize">Authorize</option>
+                  <option value="token">Token</option>
+                  <option value="refresh">Refresh Token</option>
+                  <option value="user_info">User Info</option>
+                  <option value="revoke">Revoke Token</option>
+                  <option value="introspect">Introspect Token</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Enable PKCE</label>
+                <select
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={config.enable_pkce ? 'true' : 'false'}
+                  onChange={(e) => handleInputChange('enable_pkce', e.target.value === 'true')}
+                >
+                  <option value="true">Yes</option>
+                  <option value="false">No</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Issuer URL</label>
+                <input
+                  type="text"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="https://auth.example.com"
+                  value={config.issuer || ''}
+                  onChange={(e) => handleInputChange('issuer', e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+        );
+      case 'securityOperation':
+        return (
+          <div>
+            <h4 className="font-semibold mb-3">Security Operations Node</h4>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Operation</label>
+                <select
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={config.operation || 'hash'}
+                  onChange={(e) => handleInputChange('operation', e.target.value)}
+                >
+                  <option value="hash">Hash Data</option>
+                  <option value="encrypt">Encrypt Data</option>
+                  <option value="decrypt">Decrypt Data</option>
+                  <option value="sign">Sign Data</option>
+                  <option value="verify">Verify Signature</option>
+                  <option value="validate">Validate Data</option>
+                  <option value="mask">Mask Data</option>
+                  <option value="generate_token">Generate Token</option>
+                  <option value="validate_token">Validate Token</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Algorithm</label>
+                <select
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={config.algorithm || 'SHA256'}
+                  onChange={(e) => handleInputChange('algorithm', e.target.value)}
+                >
+                  <option value="SHA256">SHA-256</option>
+                  <option value="SHA512">SHA-512</option>
+                  <option value="AES256">AES-256</option>
+                  <option value="HMACSHA256">HMAC-SHA256</option>
+                  <option value="BCrypt">BCrypt</option>
+                  <option value="Scrypt">Scrypt</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Secret Key</label>
+                <input
+                  type="password"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter secret key if required"
+                  value={config.secret_key || ''}
+                  onChange={(e) => handleInputChange('secret_key', e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+        );
       default:
         return (
           <div>

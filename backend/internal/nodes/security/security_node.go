@@ -7,13 +7,16 @@ import (
 	"crypto/cipher"
 	"crypto/hmac"
 	"crypto/rand"
-	"crypto/sha256"
+	"crypto/sha512"
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
 	"hash"
+	"regexp"
+	"strconv"
 	"strings"
 	"time"
+	"unicode"
 
 	"citadel-agent/backend/internal/workflow/core/engine"
 	"golang.org/x/crypto/bcrypt"
@@ -51,19 +54,21 @@ const (
 
 // SecurityNodeConfig represents the configuration for a security node
 type SecurityNodeConfig struct {
-	Operation    SecurityOperationType `json:"operation"`
-	Algorithm    SecurityAlgorithm     `json:"algorithm"`
-	SecretKey    string              `json:"secret_key"`
-	PublicKey    string              `json:"public_key"`
-	PrivateKey   string              `json:"private_key"`
-	Iterations   int                 `json:"iterations"`
-	KeyLength    int                 `json:"key_length"`
-	Salt         string              `json:"salt"`
-	IV           string              `json:"iv"`
-	IncludeSalt  bool                `json:"include_salt"`
-	ExcludeChars []string           `json:"exclude_chars"`
-	TokenExpiry  time.Duration       `json:"token_expiry"`
-	ValidateRules []ValidationRule    `json:"validate_rules"`
+	Operation       SecurityOperationType `json:"operation"`
+	Algorithm       SecurityAlgorithm     `json:"algorithm"`
+	SecretKey       string              `json:"secret_key"`
+	PublicKey       string              `json:"public_key"`
+	PrivateKey      string              `json:"private_key"`
+	Iterations      int                 `json:"iterations"`
+	KeyLength       int                 `json:"key_length"`
+	Salt            string              `json:"salt"`
+	IV              string              `json:"iv"`
+	IncludeSalt     bool                `json:"include_salt"`
+	ExcludeChars    []string            `json:"exclude_chars"`
+	TokenExpiry     time.Duration       `json:"token_expiry"`
+	ValidateRules   []ValidationRule      `json:"validate_rules"`
+	MaskPattern     string              `json:"mask_pattern"`
+	MaskCustomPattern string            `json:"mask_custom_pattern"`
 }
 
 // ValidationRule represents a validation rule for data
@@ -215,12 +220,12 @@ func (sn *SecurityNode) hashData(data string, algorithm SecurityAlgorithm, secre
 				return nil, fmt.Errorf("failed to generate salt: %w", err)
 			}
 		}
-		
+
 		dk, err := scrypt.Key([]byte(data), salt, sn.config.Iterations, 8, 1, sn.config.KeyLength)
 		if err != nil {
 			return nil, fmt.Errorf("scrypt hash failed: %w", err)
 		}
-		
+
 		if sn.config.IncludeSalt {
 			hashResult = base64.StdEncoding.EncodeToString(salt) + ":" + base64.StdEncoding.EncodeToString(dk)
 		} else {
@@ -418,7 +423,7 @@ func (sn *SecurityNode) validateData(data string, inputs map[string]interface{})
 
 	// Get validation rules from config or inputs
 	rules := sn.config.ValidateRules
-	
+
 	// Override with input rules if provided
 	if inputRules, exists := inputs["validation_rules"]; exists {
 		if rulesSlice, ok := inputRules.([]interface{}); ok {
@@ -432,7 +437,7 @@ func (sn *SecurityNode) validateData(data string, inputs map[string]interface{})
 					if max, exists := ruleMap["max"]; exists {
 						maxVal = max
 					}
-					
+
 					rules[i] = ValidationRule{
 						Type:     getStringValue(ruleMap["type"]),
 						Pattern:  getStringValue(ruleMap["pattern"]),
@@ -449,14 +454,14 @@ func (sn *SecurityNode) validateData(data string, inputs map[string]interface{})
 	// Apply each validation rule
 	for i, rule := range rules {
 		ruleName := fmt.Sprintf("rule_%d", i)
-		
+
 		valid, message := sn.validateRule(data, rule)
 		results[ruleName] = map[string]interface{}{
 			"valid":   valid,
 			"rule":    rule,
 			"message": message,
 		}
-		
+
 		if !valid {
 			allValid = false
 		}
@@ -496,7 +501,7 @@ func (sn *SecurityNode) validateRule(data string, rule ValidationRule) (bool, st
 		switch rule.Type {
 		case "string", "text":
 			length := len(data)
-			
+
 			if rule.Min != nil {
 				if minInt, ok := rule.Min.(float64); ok {
 					if float64(length) < minInt {
@@ -504,7 +509,7 @@ func (sn *SecurityNode) validateRule(data string, rule ValidationRule) (bool, st
 					}
 				}
 			}
-			
+
 			if rule.Max != nil {
 				if maxInt, ok := rule.Max.(float64); ok {
 					if float64(length) > maxInt {
@@ -517,7 +522,7 @@ func (sn *SecurityNode) validateRule(data string, rule ValidationRule) (bool, st
 			if err != nil {
 				return false, "Value is not a valid number"
 			}
-			
+
 			if rule.Min != nil {
 				if minFloat, ok := rule.Min.(float64); ok {
 					if num < minFloat {
@@ -525,7 +530,7 @@ func (sn *SecurityNode) validateRule(data string, rule ValidationRule) (bool, st
 					}
 				}
 			}
-			
+
 			if rule.Max != nil {
 				if maxFloat, ok := rule.Max.(float64); ok {
 					if num > maxFloat {
@@ -733,7 +738,7 @@ func (sn *SecurityNode) maskSSN(ssn string) string {
 
 // maskCustom applies custom masking pattern
 func (sn *SecurityNode) maskCustom(data, pattern string) string {
-	// Pattern format: "start:length:end" 
+	// Pattern format: "start:length:end"
 	// e.g., "2:4:2" means show first 2, mask next 4, show last 2
 	parts := strings.Split(pattern, ":")
 	if len(parts) != 3 {
@@ -766,14 +771,14 @@ func (sn *SecurityNode) generateToken(payload, secretKey string, expiry time.Dur
 	// Create a simple token by combining payload, timestamp, and signature
 	timestamp := time.Now().Unix()
 	expireAt := time.Now().Add(expiry).Unix()
-	
+
 	tokenData := fmt.Sprintf("%s|%d|%d", payload, timestamp, expireAt)
-	
+
 	// Sign the token data
 	h := hmac.New(sha256.New, []byte(secretKey))
 	h.Write([]byte(tokenData))
 	signature := hex.EncodeToString(h.Sum(nil))
-	
+
 	// Combine token data and signature
 	fullToken := tokenData + "|" + signature
 
@@ -813,12 +818,12 @@ func (sn *SecurityNode) validateToken(token, secretKey string) (map[string]inter
 	if err != nil {
 		return nil, fmt.Errorf("invalid issued timestamp")
 	}
-	
+
 	expiresAt, err := strconv.ParseInt(parts[2], 10, 64)
 	if err != nil {
 		return nil, fmt.Errorf("invalid expiry timestamp")
 	}
-	
+
 	signature := parts[3]
 
 	// Verify expiration
@@ -863,14 +868,14 @@ func (sn *SecurityNode) validateToken(token, secretKey string) (map[string]inter
 func createKey(key string, length int) []byte {
 	result := make([]byte, length)
 	copy(result, []byte(key))
-	
+
 	// If key is shorter than required length, extend it
 	if len(key) < length {
 		for i := len(key); i < length; i++ {
 			result[i] = 0 // Fill with zeros
 		}
 	}
-	
+
 	return result
 }
 
@@ -903,120 +908,141 @@ func getBoolValue(v interface{}) bool {
 	return false
 }
 
-// RegisterSecurityNode registers the security node type with the engine
-func RegisterSecurityNode(registry *engine.NodeRegistry) {
-	registry.RegisterNodeType("security_operation", func(config map[string]interface{}) (engine.NodeInstance, error) {
-		var operation SecurityOperationType
-		if op, exists := config["operation"]; exists {
-			if opStr, ok := op.(string); ok {
-				operation = SecurityOperationType(opStr)
-			}
+// NewSecurityNodeFromConfig creates a new security node from a configuration map
+func NewSecurityNodeFromConfig(config map[string]interface{}) (engine.NodeInstance, error) {
+	var operation SecurityOperationType
+	if op, exists := config["operation"]; exists {
+		if opStr, ok := op.(string); ok {
+			operation = SecurityOperationType(opStr)
 		}
+	}
 
-		var algorithm SecurityAlgorithm
-		if algo, exists := config["algorithm"]; exists {
-			if algoStr, ok := algo.(string); ok {
-				algorithm = SecurityAlgorithm(algoStr)
-			}
+	var algorithm SecurityAlgorithm
+	if algo, exists := config["algorithm"]; exists {
+		if algoStr, ok := algo.(string); ok {
+			algorithm = SecurityAlgorithm(algoStr)
 		}
+	}
 
-		var secretKey string
-		if key, exists := config["secret_key"]; exists {
-			if keyStr, ok := key.(string); ok {
-				secretKey = keyStr
-			}
+	var secretKey string
+	if key, exists := config["secret_key"]; exists {
+		if keyStr, ok := key.(string); ok {
+			secretKey = keyStr
 		}
+	}
 
-		var publicKey string
-		if key, exists := config["public_key"]; exists {
-			if keyStr, ok := key.(string); ok {
-				publicKey = keyStr
-			}
+	var publicKey string
+	if key, exists := config["public_key"]; exists {
+		if keyStr, ok := key.(string); ok {
+			publicKey = keyStr
 		}
+	}
 
-		var privateKey string
-		if key, exists := config["private_key"]; exists {
-			if keyStr, ok := key.(string); ok {
-				privateKey = keyStr
-			}
+	var privateKey string
+	if key, exists := config["private_key"]; exists {
+		if keyStr, ok := key.(string); ok {
+			privateKey = keyStr
 		}
+	}
 
-		var iterations float64
-		if iter, exists := config["iterations"]; exists {
-			if iterFloat, ok := iter.(float64); ok {
-				iterations = iterFloat
-			}
+	var iterations float64
+	if iter, exists := config["iterations"]; exists {
+		if iterFloat, ok := iter.(float64); ok {
+			iterations = iterFloat
 		}
+	}
 
-		var keyLength float64
-		if length, exists := config["key_length"]; exists {
-			if lengthFloat, ok := length.(float64); ok {
-				keyLength = lengthFloat
-			}
+	var keyLength float64
+	if length, exists := config["key_length"]; exists {
+		if lengthFloat, ok := length.(float64); ok {
+			keyLength = lengthFloat
 		}
+	}
 
-		var salt string
-		if s, exists := config["salt"]; exists {
-			if sStr, ok := s.(string); ok {
-				salt = sStr
-			}
+	var salt string
+	if s, exists := config["salt"]; exists {
+		if sStr, ok := s.(string); ok {
+			salt = sStr
 		}
+	}
 
-		var includeSalt bool
-		if inc, exists := config["include_salt"]; exists {
-			if incBool, ok := inc.(bool); ok {
-				includeSalt = incBool
-			}
+	var includeSalt bool
+	if inc, exists := config["include_salt"]; exists {
+		if incBool, ok := inc.(bool); ok {
+			includeSalt = incBool
 		}
+	}
 
-		var tokenExpiry float64
-		if exp, exists := config["token_expiry_seconds"]; exists {
-			if expFloat, ok := exp.(float64); ok {
-				tokenExpiry = expFloat
-			}
+	var tokenExpiry float64
+	if exp, exists := config["token_expiry_seconds"]; exists {
+		if expFloat, ok := exp.(float64); ok {
+			tokenExpiry = expFloat
 		}
+	}
 
-		var validateRules []ValidationRule
-		if rules, exists := config["validate_rules"]; exists {
-			if rulesSlice, ok := rules.([]interface{}); ok {
-				validateRules = make([]ValidationRule, len(rulesSlice))
-				for i, rule := range rulesSlice {
-					if ruleMap, ok := rule.(map[string]interface{}); ok {
-						var minVal, maxVal interface{}
-						if min, exists := ruleMap["min"]; exists {
-							minVal = min
-						}
-						if max, exists := ruleMap["max"]; exists {
-							maxVal = max
-						}
-						
-						validateRules[i] = ValidationRule{
-							Type:     getStringValue(ruleMap["type"]),
-							Pattern:  getStringValue(ruleMap["pattern"]),
-							Min:      minVal,
-							Max:      maxVal,
-							Required: getBoolValue(ruleMap["required"]),
-							Message:  getStringValue(ruleMap["message"]),
-						}
+	var validateRules []ValidationRule
+	if rules, exists := config["validate_rules"]; exists {
+		if rulesSlice, ok := rules.([]interface{}); ok {
+			validateRules = make([]ValidationRule, len(rulesSlice))
+			for i, rule := range rulesSlice {
+				if ruleMap, ok := rule.(map[string]interface{}); ok {
+					var minVal, maxVal interface{}
+					if min, exists := ruleMap["min"]; exists {
+						minVal = min
+					}
+					if max, exists := ruleMap["max"]; exists {
+						maxVal = max
+					}
+
+					validateRules[i] = ValidationRule{
+						Type:     getStringValue(ruleMap["type"]),
+						Pattern:  getStringValue(ruleMap["pattern"]),
+						Min:      minVal,
+						Max:      maxVal,
+						Required: getBoolValue(ruleMap["required"]),
+						Message:  getStringValue(ruleMap["message"]),
 					}
 				}
 			}
 		}
+	}
 
-		nodeConfig := &SecurityNodeConfig{
-			Operation:     operation,
-			Algorithm:     algorithm,
-			SecretKey:     secretKey,
-			PublicKey:     publicKey,
-			PrivateKey:    privateKey,
-			Iterations:    int(iterations),
-			KeyLength:     int(keyLength),
-			Salt:          salt,
-			IncludeSalt:   includeSalt,
-			TokenExpiry:   time.Duration(tokenExpiry) * time.Second,
-			ValidateRules: validateRules,
+	var maskPattern string
+	if pattern, exists := config["mask_pattern"]; exists {
+		if patternStr, ok := pattern.(string); ok {
+			maskPattern = patternStr
 		}
+	}
 
-		return NewSecurityNode(nodeConfig), nil
+	var maskCustomPattern string
+	if pattern, exists := config["mask_custom_pattern"]; exists {
+		if patternStr, ok := pattern.(string); ok {
+			maskCustomPattern = patternStr
+		}
+	}
+
+	nodeConfig := &SecurityNodeConfig{
+		Operation:       operation,
+		Algorithm:       algorithm,
+		SecretKey:       secretKey,
+		PublicKey:       publicKey,
+		PrivateKey:      privateKey,
+		Iterations:      int(iterations),
+		KeyLength:       int(keyLength),
+		Salt:            salt,
+		IncludeSalt:     includeSalt,
+		TokenExpiry:     time.Duration(tokenExpiry) * time.Second,
+		ValidateRules:   validateRules,
+		MaskPattern:     maskPattern,
+		MaskCustomPattern: maskCustomPattern,
+	}
+
+	return NewSecurityNode(nodeConfig), nil
+}
+
+// RegisterSecurityNode registers the security node type with the engine
+func RegisterSecurityNode(registry *engine.NodeRegistry) {
+	registry.RegisterNodeType("security_operation", func(config map[string]interface{}) (engine.NodeInstance, error) {
+		return NewSecurityNodeFromConfig(config)
 	})
 }

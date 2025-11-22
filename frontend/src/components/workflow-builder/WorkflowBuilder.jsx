@@ -11,15 +11,23 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 
-import { 
-  StartNode, 
-  EndNode, 
-  HTTPNode, 
-  DatabaseNode, 
-  DecisionNode, 
-  DelayNode, 
+import {
+  StartNode,
+  EndNode,
+  HTTPNode,
+  DatabaseNode,
+  DecisionNode,
+  DelayNode,
   AINode,
-  NotificationNode
+  NotificationNode,
+  // Security Nodes
+  FirewallManagerNode,
+  EncryptionNode,
+  AccessControlNode,
+  APIKeyManagerNode,
+  JWTHandlerNode,
+  OAuth2ProviderNode,
+  SecurityOperationNode
 } from './nodes';
 
 const nodeTypes = {
@@ -31,6 +39,14 @@ const nodeTypes = {
   delay: DelayNode,
   ai: AINode,
   notification: NotificationNode,
+  // Security Nodes
+  firewallManager: FirewallManagerNode,
+  encryption: EncryptionNode,
+  accessControl: AccessControlNode,
+  apiKeyManager: APIKeyManagerNode,
+  jwtHandler: JWTHandlerNode,
+  oauth2Provider: OAuth2ProviderNode,
+  securityOperation: SecurityOperationNode,
 };
 
 const WorkflowBuilder = ({ initialWorkflow = null }) => {
@@ -64,11 +80,77 @@ const WorkflowBuilder = ({ initialWorkflow = null }) => {
     { id: 'delay', label: 'Delay', type: 'delay', icon: '⏱️' },
     { id: 'ai', label: 'AI Agent', type: 'ai', icon: '🤖' },
     { id: 'notification', label: 'Notification', type: 'notification', icon: '🔔' },
+    // Security Nodes
+    { id: 'firewallManager', label: 'Firewall Manager', type: 'firewallManager', icon: '🛡️' },
+    { id: 'encryption', label: 'Encryption/Decryption', type: 'encryption', icon: '🔒' },
+    { id: 'accessControl', label: 'Access Control', type: 'accessControl', icon: '🔐' },
+    { id: 'apiKeyManager', label: 'API Key Manager', type: 'apiKeyManager', icon: '🔑' },
+    { id: 'jwtHandler', label: 'JWT Handler', type: 'jwtHandler', icon: '.JWT' },
+    { id: 'oauth2Provider', label: 'OAuth2 Provider', type: 'oauth2Provider', icon: 'OAuth' },
+    { id: 'securityOperation', label: 'Security Operations', type: 'securityOperation', icon: '🛡️' },
   ];
 
   const onDragStart = (event, nodeType) => {
     event.dataTransfer.setData('application/reactflow', nodeType);
     event.dataTransfer.effectAllowed = 'move';
+  };
+
+  // Helper functions for drag and drop
+  const onDragOver = (event) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+  };
+
+  const onDrop = (event, rfInstance) => {
+    event.preventDefault();
+
+    const type = event.dataTransfer.getData('application/reactflow');
+
+    if (typeof type === 'undefined' || !type) {
+      return;
+    }
+
+    const position = rfInstance.screenToFlowPosition({
+      x: event.clientX,
+      y: event.clientY,
+    });
+
+    const newNode = {
+      id: `node-${Date.now()}`,
+      type,
+      position,
+      data: {
+        label: getNodeLabel(type),
+        config: {}
+      },
+    };
+
+    rfInstance.addNodes(newNode);
+  };
+
+  // Helper function to generate proper labels based on node type
+  const getNodeLabel = (type) => {
+    const labelMap = {
+      // Standard nodes
+      'start': 'Start',
+      'end': 'End',
+      'http': 'HTTP Request',
+      'database': 'Database Query',
+      'decision': 'Decision',
+      'delay': 'Delay',
+      'ai': 'AI Agent',
+      'notification': 'Notification',
+      // Security nodes
+      'firewallManager': 'Firewall Manager',
+      'encryption': 'Encryption/Decryption',
+      'accessControl': 'Access Control',
+      'apiKeyManager': 'API Key Manager',
+      'jwtHandler': 'JWT Handler',
+      'oauth2Provider': 'OAuth2 Provider',
+      'securityOperation': 'Security Operations',
+    };
+
+    return labelMap[type] || `${type.charAt(0).toUpperCase() + type.slice(1)} Node`;
   };
 
   return (
@@ -89,7 +171,7 @@ const WorkflowBuilder = ({ initialWorkflow = null }) => {
             </div>
           ))}
         </div>
-        
+
         <div className="mt-6">
           <h4 className="font-medium text-gray-700 mb-2">Controls</h4>
           <div className="space-y-2 text-sm text-gray-600">
@@ -131,39 +213,6 @@ const WorkflowBuilder = ({ initialWorkflow = null }) => {
       </div>
     </div>
   );
-};
-
-// Helper functions for drag and drop
-const onDragOver = (event) => {
-  event.preventDefault();
-  event.dataTransfer.dropEffect = 'move';
-};
-
-const onDrop = (event, rfInstance) => {
-  event.preventDefault();
-
-  const type = event.dataTransfer.getData('application/reactflow');
-  
-  if (typeof type === 'undefined' || !type) {
-    return;
-  }
-
-  const position = rfInstance.screenToFlowPosition({
-    x: event.clientX,
-    y: event.clientY,
-  });
-
-  const newNode = {
-    id: `node-${Date.now()}`,
-    type,
-    position,
-    data: { 
-      label: `${type.charAt(0).toUpperCase() + type.slice(1)} Node`,
-      config: {}
-    },
-  };
-
-  rfInstance.addNodes(newNode);
 };
 
 export default WorkflowBuilder;
