@@ -12,20 +12,20 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-// MemoryType represents the type of memory
-type MemoryType string
+// AgentMemoryType represents the type of agent memory (different from memory_system.go to avoid conflicts)
+type AgentMemoryType string
 
 const (
-	MemoryTypeShortTerm MemoryType = "short_term" // For current session
-	MemoryTypeLongTerm  MemoryType = "long_term"  // For persistent knowledge
-	MemoryTypeWorking   MemoryType = "working"    // For immediate tasks
-	MemoryTypeEpisodic  MemoryType = "episodic"   // For experiences
+	AgentMemoryTypeShortTerm AgentMemoryType = "short_term" // For current session
+	AgentMemoryTypeLongTerm  AgentMemoryType = "long_term"  // For persistent knowledge
+	AgentMemoryTypeWorking   AgentMemoryType = "working"    // For immediate tasks
+	AgentMemoryTypeEpisodic  AgentMemoryType = "episodic"   // For experiences
 )
 
-// Memory represents a piece of information stored in AI memory
-type Memory struct {
+// AgentMemory represents a piece of information stored in AI memory
+type AgentMemory struct {
 	ID        string                 `json:"id"`
-	Type      MemoryType             `json:"type"`
+	Type      AgentMemoryType        `json:"type"`
 	AgentID   string                 `json:"agent_id"`
 	Content   string                 `json:"content"`
 	Embedding []float32              `json:"embedding,omitempty"`
@@ -50,13 +50,6 @@ type AgentState struct {
 	UpdatedAt time.Time              `json:"updated_at"`
 }
 
-// Tool represents a tool available to the AI agent
-type Tool struct {
-	Name        string                 `json:"name"`
-	Description string                 `json:"description"`
-	Parameters  map[string]interface{} `json:"parameters"`
-	ExecuteFunc func(map[string]interface{}) (map[string]interface{}, error)
-}
 
 // AgentMemoryManager manages AI agent memory
 type AgentMemoryManager struct {
@@ -91,15 +84,15 @@ func (amm *AgentMemoryManager) StoreMemory(ctx context.Context, memory *Memory) 
 }
 
 // RetrieveMemory retrieves memory based on query and agent
-func (amm *AgentMemoryManager) RetrieveMemory(ctx context.Context, agentID, query string, memoryType MemoryType, limit int) ([]*Memory, error) {
+func (amm *AgentMemoryManager) RetrieveMemory(ctx context.Context, agentID, query string, memoryType AgentMemoryType, limit int) ([]*AgentMemory, error) {
 	// In a real implementation, this would involve semantic search
 	// For now, we'll do a simple retrieval from memory cache
 	amm.mu.RLock()
 	defer amm.mu.RUnlock()
 
-	var results []*Memory
+	var results []*AgentMemory
 	for _, memory := range amm.memories {
-		if memory.AgentID == agentID && 
+		if memory.AgentID == agentID &&
 		   (memoryType == "" || memory.Type == memoryType) {
 			// Simple text matching for demo purposes
 			if query == "" || containsIgnoreCase(memory.Content, query) {
@@ -173,7 +166,7 @@ func (amm *AgentMemoryManager) saveMemoryToDB(ctx context.Context, memory *Memor
 func containsIgnoreCase(text, query string) bool {
 	textLower := toLowerCase(text)
 	queryLower := toLowerCase(query)
-	return contains(textLower, queryLower)
+	return agentContains(textLower, queryLower)
 }
 
 // toLowerCase converts string to lowercase
@@ -189,8 +182,8 @@ func toLowerCase(s string) string {
 	return string(result)
 }
 
-// contains checks if text contains substring
-func contains(text, substr string) bool {
+// agentContains checks if text contains substring
+func agentContains(text, substr string) bool {
 	for i := 0; i <= len(text)-len(substr); i++ {
 		match := true
 		for j := 0; j < len(substr); j++ {
@@ -415,26 +408,6 @@ func (mac *MultiAgentCoordinator) AddAgent(agentState *AgentState) {
 }
 
 // HumanInLoopManager manages human-in-the-loop interactions
-type HumanInLoopManager struct {
-	db          *pgxpool.Pool
-	pendingTasks map[string]*HumanTask
-	mutex       sync.RWMutex
-}
-
-// HumanTask represents a task requiring human intervention
-type HumanTask struct {
-	ID          string                 `json:"id"`
-	AgentID     string                 `json:"agent_id"`
-	TaskType    string                 `json:"task_type"`
-	Description string                 `json:"description"`
-	Context     map[string]interface{} `json:"context"`
-	Status      TaskStatus             `json:"status"`
-	CreatedAt   time.Time              `json:"created_at"`
-	ExpiresAt   *time.Time             `json:"expires_at,omitempty"`
-	Response    *string                `json:"response,omitempty"`
-	RespondedAt *time.Time             `json:"responded_at,omitempty"`
-	AssignedTo  *string                `json:"assigned_to,omitempty"`
-}
 
 // TaskStatus represents the status of a human task
 type TaskStatus string
@@ -447,12 +420,6 @@ const (
 )
 
 // NewHumanInLoopManager creates a new human-in-the-loop manager
-func NewHumanInLoopManager(db *pgxpool.Pool) *HumanInLoopManager {
-	return &HumanInLoopManager{
-		db:           db,
-		pendingTasks: make(map[string]*HumanTask),
-	}
-}
 
 // CreateTask creates a new human task
 func (hil *HumanInLoopManager) CreateTask(ctx context.Context, agentID, taskType, description string, contextData map[string]interface{}) (*HumanTask, error) {

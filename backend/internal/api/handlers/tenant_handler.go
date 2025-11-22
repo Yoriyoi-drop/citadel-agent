@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"citadel-agent/backend/internal/services"
+	"github.com/citadel-agent/backend/internal/services"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )

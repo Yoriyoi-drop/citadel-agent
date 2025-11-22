@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"citadel-agent/backend/internal/auth"
-	"citadel-agent/backend/internal/models"
-	"citadel-agent/backend/internal/repositories"
+	"github.com/citadel-agent/backend/internal/auth"
+	"github.com/citadel-agent/backend/internal/models"
+	"github.com/citadel-agent/backend/internal/repositories"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"

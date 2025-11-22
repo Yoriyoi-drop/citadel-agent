@@ -1,475 +1,267 @@
-# 🛡️ Citadel Agent - Autonomous Secure Workflow Engine
-
-[![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)](https://github.com/citadel-agent/citadel-agent)
-[![License](https://img.shields.io/badge/license-Apache2.0-green.svg)](LICENSE)
-[![Go](https://img.shields.io/badge/language-Go-lightgrey.svg)](https://golang.org/)
-[![TypeScript](https://img.shields.io/badge/language-TypeScript-blue.svg)](https://www.typescriptlang.org/)
-
-> **Citadel Agent** adalah platform otomasi workflow modern dengan kemampuan AI agent, multi-language runtime, dan sandboxing keamanan lanjutan. Platform ini dirancang untuk menggantikan solusi seperti n8n, Windmill, Temporal, dan Prefect dengan integrasi AI agent yang canggih.
-
-## 🚀 Fitur Utama
-
-### 🔐 Keamanan Tingkat Enterprise
-- **Sandboxing Node**: Eksekusi node dalam lingkungan terisolasi
-- **RBAC (Role-Based Access Control)**: Sistem otorisasi berbasis peran
-- **Enkripsi End-to-End**: Perlindungan data sensitif
-- **Audit Logging**: Pelacakan aktivitas penuh
-- **Policy Isolation**: Pembatasan akses berbasis kebijakan
-
-### 🧠 AI Agent Runtime
-- **Memori Agent**: Sistem memori jangka pendek dan panjang
-- **Tool Integration**: Integrasi dengan layanan eksternal
-- **Multi-Agent Coordination**: Koordinasi antar agent AI
-- **Human-in-the-Loop**: Involvement manusia dalam alur AI
-
-### 🌐 Multi-Language Runtime
-- **Go Native**: Eksekusi Go dengan kinerja tinggi
-- **JavaScript/Node.js**: Eksekusi JavaScript dalam sandbox
-- **Python**: Eksekusi Python dalam sandbox aman
-- **Java, Ruby, PHP, Rust, C#**: Dukungan bahasa tambahan
-- **Container Execution**: Eksekusi dalam container terisolasi
-
-### ⚙️ Workflow Engine
-- **Dependency Resolution**: Resolusi dependensi otomatis
-- **Parallel Execution**: Eksekusi paralel node
-- **Retry Mechanisms**: Strategi retry otomatis
-- **Error Handling**: Penanganan error canggih
-- **Monitoring**: Pemantauan real-time
-
-### 🧩 Plugin & Node System
-- **200+ Pre-built Nodes**: Kategori node dari dasar hingga lanjut
-- **Plugin Marketplace**: Marketplace plugin yang aman
-- **Custom Node SDK**: Toolkit untuk pembuatan node kustom
-- **Version Management**: Manajemen versi plugin
-- **Security Scanning**: Pemindaian keamanan otomatis
-
-## 🎯 Use Cases
-
-### 🏢 Enterprise Automation
-- Integrasi sistem antar departemen
-- Otomasi proses bisnis kompleks
-- Pengelolaan workflow yang aman
-
-### 🤖 AI Agent Workflows
-- Chatbot cerdas dengan memori
-- Asisten otomatis dengan alat eksternal
-- Koordinasi tugas-tugas kompleks
-
-### 🌐 Multi-Language Integration
-- Eksekusi kode dalam berbagai bahasa
-- Integrasi dengan layanan legacy
-- Pengolahan data poliglot
-
-## 📊 Arsitektur Sistem
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    CITADEL-AGENT ARCHITECTURE                   │
-├─────────────────────────────────────────────────────────────────┤
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐            │
-│  │   FRONTEND  │  │   ENGINE    │  │     AI      │            │
-│  │    UI       │  │   CORE      │  │   AGENTS    │            │
-│  │             │  │             │  │             │            │
-│  └─────────────┘  └─────────────┘  └─────────────┘            │
-│         │                   │                   │             │
-│         ▼                   ▼                   ▼             │
-│  ┌─────────────────────────────────────────────────────────┐  │
-│  │                  WORKFLOW ENGINE                        │  │
-│  │  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐      │  │
-│  │  │   RUNNER    │ │  EXECUTOR   │ │ SCHEDULER   │      │  │
-│  │  └─────────────┘ └─────────────┘ └─────────────┘      │  │
-│  └─────────────────────────────────────────────────────────┘  │
-│                              │                                │
-│                              ▼                                │
-│  ┌─────────────────────────────────────────────────────────┐  │
-│  │                   NODE RUNTIME                          │  │
-│  │  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐      │  │
-│  │  │    GO       │ │  JS/TS      │ │ PYTHON      │      │  │
-│  │  │  RUNTIME    │ │  SANDBOX    │ │  SANDBOX    │      │  │
-│  │  └─────────────┘ └─────────────┘ └─────────────┘      │  │
-│  └─────────────────────────────────────────────────────────┘  │
-│                              │                                │
-│                              ▼                                │
-│  ┌─────────────────────────────────────────────────────────┐  │
-│  │                    STORAGE LAYER                        │  │
-│  │  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐      │  │
-│  │  │   POSTGRES  │ │    REDIS    │ │   FILES     │      │  │
-│  │  │             │ │             │ │             │      │  │
-│  │  └─────────────┘ └─────────────┘ └─────────────┘      │  │
-│  └─────────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-## 🛠️ Instalasi
-
-### Persyaratan Sistem
-- **OS**: Linux/macOS/Windows
-- **Git**: v2.20+
-- **Go**: v1.19+
-- **Node.js**: v16+
-- **Docker**: v20+ (opsional)
-- **Docker Compose**: v2+ (opsional)
-
-### Melalui Installer Otomatis
-```bash
-# Download dan jalankan installer
-curl -O https://raw.githubusercontent.com/citadel-agent/citadel-agent/main/install.sh
-chmod +x install.sh
-./install.sh
-```
-
-### Instalasi Manual
-```bash
-# Clone repositori
-git clone https://github.com/citadel-agent/citadel-agent.git
-cd citadel-agent
-
-# Pindah ke direktori backend
-cd backend
-
-# Install dependensi Go
-go mod tidy
-
-# Bangun service API
-go build -o ../bin/api cmd/api/main.go
-
-# Pindah ke direktori frontend
-cd ../frontend
-
-# Install dependensi Node.js
-npm install
-```
-
-## 🖥️ Jalankan Citra Terminal
-
-Citadel Agent dilengkapi dengan antarmuka terminal interaktif:
-
-```bash
-# Jalankan CLI sederhana
-python citadel_cli.py
-
-# Atau versi lanjutan dengan Rich UI
-python citadel_advanced_cli.py
-```
-
-## 🌐 API Endpoint
-
-Citadel Agent menyediakan API RESTful yang lengkap:
-
-### Autentikasi
-```bash
-# Login
-curl -X POST http://localhost:5001/api/v1/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"admin@citadel-agent.com", "password":"secure_password"}'
-```
-
-### Manajemen Workflow
-```bash
-# Buat workflow baru
-curl -X POST http://localhost:5001/api/v1/workflows \
-  -H "Authorization: Bearer <token>" \
-  -H "Content-Type: application/json" \
-  -d '{...workflow_definition}'
-```
-
-### Eksekusi Workflow
-```bash
-# Jalankan workflow
-curl -X POST http://localhost:5001/api/v1/workflows/{id}/run \
-  -H "Authorization: Bearer <token>"
-```
-
-## 🔐 Konfigurasi Keamanan
-
-### File .env
-**PENTING**: File `.env` berisi kredensial dan informasi sensitif, sehingga tidak disertakan dalam repository. Anda perlu membuat file ini sendiri:
-
-1. Buat salinan dari file `.env.example`:
-```bash
-cp .env.example .env
-```
-
-2. Edit file `.env` dan ganti placeholder dengan nilai-nilai sebenarnya sesuai kebutuhan Anda.
-
-**Catatan**: Jangan pernah mengunggah file `.env` ke repository publik karena berisi informasi sensitif.
-
-### Sandboxing Konfigurasi
-Citadel Agent menggunakan sistem sandboxing untuk keamanan:
-- **JavaScript**: Dieksekusi dalam vm2 sandbox
-- **Python**: Dieksekusi sebagai proses terisolasi
-- **Go**: Dieksekusi langsung dengan kontrol sumber daya
-- **Container**: Opsi untuk eksekusi dalam container Docker
-
-## 🧪 Testing
-
-### Jalankan Unit Test
-```bash
-# Backend tests
-cd backend
-go test ./internal/... -v
-
-# Frontend tests
-cd frontend
-npm test
-```
-
-### Jalankan Integration Test
-```bash
-# Backend integration tests
-cd backend
-go test ./test/integration/... -v
-```
-
-## 🧩 Node Categories & Nodes
-
-Citadel Agent menyediakan berbagai kategori nodes untuk memenuhi berbagai kebutuhan otomasi. Berikut adalah 10 kategori utama dan nodes yang tersedia:
-
-### 1. Network Management
-Nodes untuk pengelolaan jaringan, koneksi, dan komunikasi antar sistem:
-- Connection Handler
-- Packet Router
-- Bandwidth Monitor
-- Firewall Controller
-- Protocol Adapter
-- Load Balancer
-- VPN Connector
-- DNS Resolver
-- Proxy Manager
-- Network Scanner
-
-### 2. Data Processing
-Nodes untuk pengolahan data, transformasi, filter, dan agregasi informasi:
-- Data Transformer
-- Filter Engine
-- Aggregator
-- Validator
-- Serializer
-- Deserializer
-- Parser
-- Compressor
-- Encryptor
-- Decryptor
-
-### 3. Security & Authentication
-Nodes yang menangani keamanan, otentikasi, dan otorisasi sistem:
-- User Authenticator
-- Token Generator
-- Permission Checker
-- Session Manager
-- Password Hasher
-- Certificate Validator
-- Access Controller
-- Threat Detector
-- Audit Logger
-- CORS Handler
-
-### 4. Database Operations
-Nodes untuk operasi basis data, query, transaksi, dan manajemen data:
-- Query Builder
-- Transaction Manager
-- Connection Pool
-- Migrator
-- Result Mapper
-- Cache Manager
-- Backup Handler
-- Index Manager
-- Connection Monitor
-- Query Optimizer
-
-### 5. Monitoring & Logging
-Nodes untuk pemantauan kinerja, logging, dan analisis metrik sistem:
-- Metric Collector
-- Log Writer
-- Alert Generator
-- Dashboard Publisher
-- Performance Monitor
-- Error Tracker
-- Health Checker
-- Event Publisher
-- Resource Tracker
-- Trace Collector
-
-### 6. File System Operations
-Nodes untuk operasi sistem file, manipulasi dokumen, dan manajemen direktori:
-- File Reader
-- File Writer
-- Directory Scanner
-- Permission Setter
-- File Mover
-- File Copier
-- Archive Creator
-- Archive Extractor
-- File Validator
-- Storage Cleaner
-
-### 7. API & Integration
-Nodes untuk integrasi API, eksternal service, dan komunikasi antar sistem:
-- REST Client
-- SOAP Client
-- WebSocket Handler
-- OAuth Manager
-- API Gateway
-- Message Queue
-- Event Publisher
-- Hook Handler
-- Adapter Factory
-- Rate Limiter
-
-### 8. Task Scheduling
-Nodes untuk penjadwalan tugas, cron jobs, dan eksekusi otomatis:
-- Cron Scheduler
-- Event Scheduler
-- Recurring Task Manager
-- Job Queue
-- Task Executor
-- Dependency Resolver
-- Retry Handler
-- Task Monitor
-- Scheduler Controller
-- Trigger Manager
-
-### 9. Resource Management
-Nodes untuk manajemen sumber daya sistem, memory, CPU, dan storage:
-- Memory Manager
-- CPU Scheduler
-- Storage Allocator
-- Resource Monitor
-- Pool Manager
-- Throttler
-- Garbage Collector
-- Resource Tracker
-- Capacity Planner
-- Resource Allocator
-
-### 10. Event Handling
-Nodes untuk menangani event, notifikasi, dan reaksi terhadap perubahan sistem:
-- Event Publisher
-- Event Subscriber
-- Event Router
-- Event Filter
-- Event Processor
-- Event Queue
-- Event Dispatcher
-- Event Logger
-- Event Validator
-- Event Monitor
-
-## 📚 Dokumentasi
-
-### Struktur Project
-Lihat [STRUCTURE.md](./STRUCTURE.md) untuk penjelasan lengkap tentang struktur direktori dan komponen Citadel Agent.
-
-### Struktur Dokumentasi
-```
-docs/
-├── api/              # Dokumentasi API dan OpenAPI/Swagger
-├── guides/           # Panduan penggunaan dan tutorial
-├── architecture/     # Dokumentasi arsitektur sistem
-└── nodes/            # Dokumentasi node dan workflow
-```
-
-Untuk kontribusi dan pengembangan lebih lanjut, lihat [CONTRIBUTING.md](./CONTRIBUTING.md).
-
-### Panduan Awal
-1. **Getting Started**: Mulai dengan Citadel Agent
-2. **Workflow Creation**: Membuat workflow pertama
-3. **Node Development**: Membangun node kustom
-4. **AI Agent Setup**: Konfigurasi agent AI
-5. **Security Guide**: Panduan keamanan
-
-## 🚀 Deployment
-
-### Development
-```bash
-# Jalankan semua service
-docker-compose -f docker/compose/docker-compose.dev.yml up -d
-
-# Atau run secara manual
-cd backend && go run cmd/api/main.go
-```
-
-### Production
-```bash
-# Deployment dengan Docker Compose
-docker-compose -f docker/compose/docker-compose.prod.yml up -d
-
-# Atau deployment dengan Kubernetes
-kubectl apply -f k8s/
-```
-
-## 🤝 Kontribusi
-
-Kami menyambut kontribusi dari komunitas! Silakan baca [CONTRIBUTING.md](./CONTRIBUTING.md) untuk detail cara berkontribusi.
-
-### Panduan Kontribusi
-1. Fork repositori
-2. Buat branch fitur (`git checkout -b feature/amazing-feature`)
-3. Lakukan perubahan
-4. Commit perubahan (`git commit -m 'Add amazing feature'`)
-5. Push ke branch (`git push origin feature/amazing-feature`)
-6. Buka Pull Request
-
-## 📄 Lisensi
-
-Distributed under the Apache 2.0 License. See [LICENSE](./LICENSE) for more information.
-
-## 🆘 Dukungan
-
-- **Issues**: [GitHub Issues](https://github.com/citadel-agent/citadel-agent/issues)
-- **Documentation**: [Citadel Agent Documentation](https://citadel-agent.com/docs)
-- **Community**: [Discord Community](https://discord.gg/citadel-agent) (jika tersedia)
+# Citadel Agent
+
+<p align="center">
+  <img src="logo.png" alt="Citadel Agent Logo" width="120" height="120">
+</p>
+
+<h3 align="center">AI-Powered Workflow Automation Engine</h3>
+
+<p align="center">
+  <strong>Advanced orchestration platform with modular node system, visual workflow builder, and AI integration</strong>
+</p>
+
+<p align="center">
+  <a href="#features">Features</a> •
+  <a href="#architecture">Architecture</a> •
+  <a href="#installation">Installation</a> •
+  <a href="#usage">Usage</a> •
+  <a href="#contributing">Contributing</a>
+</p>
 
 ---
 
-## 🎮 Tampilan Sistem
+Citadel Agent adalah platform otomasi workflow sumber terbuka yang kuat yang menyatukan kecerdasan buatan, database, kriptografi, dan sistem terdistribusi dalam mesin orkestrasi visual. Dengan sistem node modular dan antarmuka visual yang intuitif, Citadel Agent memungkinkan pengembang dan non-pengembang untuk membuat, menyebarkan, dan mengelola workflow kompleks dengan mudah.
 
-Berikut beberapa ilustrasi tampilan sistem Citadel-Agent:
+## ✨ Features
 
-### Login Screen
-Citadel Agent mendukung berbagai metode otentikasi termasuk login tradisional dan otentikasi OAuth melalui GitHub dan Google:
+- **Visual Workflow Builder** - Drag-and-drop interface untuk membangun workflow kompleks
+- **Modular Node System** - Lebih dari 40 jenis node yang dapat dengan mudah disambungkan
+- **AI Integration** - Dukungan untuk model AI lanjutan termasuk LLM, Computer Vision, dan NLP
+- **Security First** - Built-in security features termasuk encryption, access control, dan OAuth2
+- **Database Connectors** - Integrasi native dengan PostgreSQL, MySQL, MongoDB, dan lainnya
+- **Real-time Execution** - Eksekusi workflow real-time dengan log dan monitoring
+- **Scalable Architecture** - Arsitektur yang dapat diskalakan untuk enterprise
+- **Plugin System** - Ekstensibilitas melalui sistem plugin yang fleksibel
 
-#### Terminal Login Interface
+## 🏗️ Architecture
+
+Citadel Agent dibangun dengan arsitektur modular yang memisahkan concerns dan memungkinkan ekstensibilitas:
+
 ```
-=========================================================
-                     CITADEL-AGENT
-              Autonomous Secure Workflow Engine
-=========================================================
-
-[ AUTHENTICATION REQUIRED ]
-
- > Username : ________________________________
- > Password : ________________________________
-
----------------------------------------------------------
-  STATUS : Secure channel initialized
-  ENGINE : Foundation-Core v0.1.0
-  MODE   : Operator Login
-
-  ALTERNATIF :
-    - GitHub Login : Tekan [G] untuk login via GitHub
-    - Google Login : Tekan [O] untuk login via Google
-
-  NOTE :
-    - Pastikan kredensial benar.
-    - Akses ini akan dicatat dalam event-log.
-    - Sistem menggunakan sandbox & policy isolation.
----------------------------------------------------------
-
-   Tekan ENTER untuk memulai sesi operasional...
-=========================================================
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Frontend      │    │   Workflow      │    │   Node Engine   │
+│   (React)       │    │   Engine        │    │   Core          │
+│   ┌───────────┐ │    │   ┌───────────┐ │    │   ┌───────────┐ │
+│   │ ReactFlow │ │◄──►│   │ Orchestrator│ │◄──►│   │ Node      │ │
+│   │ Visual    │ │    │   │ Core        │ │    │   │ Registry│ │
+│   │ Builder   │ │    │   │             │ │    │   │         │ │
+│   └───────────┘ │    │   └───────────┘ │    │   └───────────┘ │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 
-#### Web Interface
-Citadel Agent juga menyediakan opsi login melalui GitHub dan Google di antarmuka web:
-- Login dengan GitHub: `/api/v1/auth/github`
-- Login dengan Google: `/api/v1/auth/google`
-- Callback endpoint: `/api/v1/auth/github/callback` dan `/api/v1/auth/google/callback`
+### Node Categories
 
-**Citadel Agent v0.1.0** - *Platform otomasi workflow generasi berikutnya dengan integrasi AI agent*
+Citadel Agent menyediakan berbagai kategori node untuk setiap kebutuhan workflow:
+
+#### 🤖 Elite AI Nodes
+- **Vision AI Processor** - Image recognition dan computer vision
+- **Speech-to-Text/Text-to-Speech** - Audio processing dan synthesis
+- **Advanced ML Models** - Training dan inference model ML
+- **Natural Language Processor** - Pemrosesan bahasa lanjutan
+- **Anomaly Detection AI** - Deteksi anomali dan outlier
+
+#### 🔐 Security Nodes
+- **Firewall Manager** - Pengelolaan aturan firewall dan akses
+- **Encryption/Decryption** - Enkripsi data dengan berbagai algoritma
+- **Access Control** - RBAC dan integrasi LDAP/Active Directory
+- **API Key Manager** - Manajemen dan validasi API keys
+- **JWT Handler** - Penanganan token JWT
+- **OAuth2 Provider** - Server OAuth2 untuk authentication
+
+#### ⚙️ Core & Utility Nodes
+- **HTTP Request** - HTTP client untuk integrasi API
+- **Data Transformer** - Transformasi dan mapping data
+- **Logger** - Logging dengan berbagai output
+- **Config Manager** - Manajemen konfigurasi
+- **Validator** - Validasi data dengan aturan kompleks
+- **UUID Generator** - Pembuatan UUID unik
+
+#### 📊 Database & ORM Nodes
+- **GORM/Bun/Ent** - ORM untuk berbagai database
+- **SQLC Integration** - SQL compilation dan eksekusi
+- **Migrate** - Manajemen skema database
+
+#### 🔄 Workflow & Scheduling
+- **Cron Scheduler** - Penjadwalan berbasis Cron
+- **Task Queue** - Queue management untuk task async
+- **Job Scheduler** - Penjadwalan task cerdas
+- **Worker Pool** - Manajemen pool worker
+- **Circuit Breaker** - Resiliensi dan fault tolerance
+
+#### 🔌 Integration Nodes
+- **REST API Client** - Klien untuk API eksternal
+- **AWS S3 Manager** - Integrasi penyimpanan cloud
+- **Slack Messenger** - Notifikasi dan komunikasi
+
+## 🚀 Installation
+
+### Prerequisites
+- Go 1.21+
+- PostgreSQL 12+ (opsional)
+- Redis (opsional untuk caching)
+- Node.js 18+ (untuk frontend)
+
+### Quick Start
+
+1. Clone repository:
+```bash
+git clone https://github.com/citadel-agent/citadel-agent.git
+cd citadel-agent
+```
+
+2. Install dependencies:
+```bash
+# Backend dependencies
+go mod tidy
+
+# Frontend dependencies (if applicable)
+cd frontend && npm install
+```
+
+3. Configure environment:
+```bash
+cp .env.example .env
+# Edit .env with your configuration
+```
+
+4. Run the application:
+```bash
+go run cmd/server/main.go
+```
+
+## 📖 Usage
+
+### Creating Your First Workflow
+
+1. Akses dashboard Citadel Agent
+2. Klik "Create New Workflow"
+3. Gunakan drag-and-drop untuk menambahkan node
+4. Sambungkan node dengan mengklik port mereka
+5. Konfigurasi parameter setiap node
+6. Simpan dan eksekusi workflow
+
+### Example Workflow: Data Processing Pipeline
+
+```yaml
+workflow:
+  name: "Data Processing Pipeline"
+  nodes:
+    - id: http_source
+      type: http_request
+      config:
+        url: "https://api.example.com/data"
+        method: "GET"
+    
+    - id: validator
+      type: validator
+      config:
+        struct_tags:
+          email: "required,email"
+          age: "required,min=18"
+      inputs:
+        from: "http_source.output"
+    
+    - id: processor
+      type: utility
+      config:
+        operation: "string_operation"
+        string_operation: "to_upper"
+      inputs:
+        from: "validator.result"
+    
+    - id: storage
+      type: database_query
+      config:
+        query: "INSERT INTO processed_data (data) VALUES (?)"
+        params: ["processor.result"]
+```
+
+## 🛠️ Development
+
+### Adding New Node Types
+
+1. Buat file node baru di direktori kategori yang sesuai:
+```go
+// backend/internal/nodes/category/new_node.go
+package category
+
+import (
+    "context"
+    "citadel-agent/backend/internal/workflow/core/engine"
+)
+
+// NewNodeConfig represents configuration for new node
+type NewNodeConfig struct {
+    // Define your config fields
+}
+
+// NewNode represents the node
+type NewNode struct {
+    config *NewNodeConfig
+}
+
+// Implement NodeInstance interface
+func (n *NewNode) Execute(ctx context.Context, inputs map[string]interface{}) (map[string]interface{}, error) {
+    // Your logic here
+    return map[string]interface{}{
+        "success": true,
+        "result":  "result",
+    }, nil
+}
+
+// Register in node registry
+func RegisterNewNode(registry *engine.NodeRegistry) {
+    registry.RegisterNodeType("new_node", func(config map[string]interface{}) (engine.NodeInstance, error) {
+        return NewNodeFromConfig(config)
+    })
+}
+```
+
+2. Daftarkan node ke registry:
+```go
+// backend/internal/nodes/registry.go
+// Tambahkan tipe node baru dan registrasinya
+```
+
+3. Buat UI component untuk node (opsional)
+
+## 🔒 Security
+
+Citadel Agent dirancang dengan keamanan sebagai prioritas:
+
+- **Sandboxing** - Eksekusi kode dalam lingkungan terisolasi
+- **Node Isolation** - Pembatasan resource antar node
+- **Authentication** - Sistem OAuth2 dan JWT bawaan
+- **Authorization** - RBAC dan sistem access control
+- **Encryption** - Enkripsi data di transit dan di rest
+- **Audit Logging** - Rekaman komprehensif untuk compliance
+
+## 🤝 Contributing
+
+Kami menyambut kontribusi dari komunitas! Untuk berkontribusi:
+
+1. Fork repository
+2. Buat branch fitur (`git checkout -b feature/amazing-feature`)
+3. Commit perubahan (`git commit -m 'Add amazing feature'`)
+4. Push ke branch (`git push origin feature/amazing-feature`)
+5. Buka Pull Request
+
+Silakan lihat `CONTRIBUTING.md` untuk panduan kontribusi lengkap.
+
+## 📄 License
+
+Distributed under the Apache License 2.0. See `LICENSE` for more information.
+
+## ⭐ Support
+
+Jika Anda menyukai proyek ini, jangan lupa untuk memberikan ⭐ star! Setiap dukungan sangat berarti.
 
 ---
 
 <p align="center">
-  <em>Dibangun untuk organisasi yang mengutamakan keamanan, skalabilitas, dan otomasi cerdas.</em>
+Made with ❤️ for the open-source community
+</p>
+
+<p align="center">
+<a href="https://github.com/citadel-agent/citadel-agent/stargazers"><img src="https://img.shields.io/github/stars/citadel-agent/citadel-agent?style=social"></a>
 </p>

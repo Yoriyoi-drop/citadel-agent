@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -24,7 +25,7 @@ func main() {
 
 	// Connect to database
 	pool, err := pgxpool.New(
-		// context.Background(),
+		context.Background(),
 		dbURL,
 	)
 	if err != nil {
@@ -95,7 +96,7 @@ func runMigrations(pool *pgxpool.Pool) error {
 
 	for _, query := range queries {
 		_, err := pool.Exec(
-			// context.Background(),
+			context.Background(),
 			query,
 		)
 		if err != nil {

@@ -8,7 +8,7 @@ import (
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
-	"citadel-agent/backend/internal/models"
+	"github.com/citadel-agent/backend/internal/models"
 )
 
 func setupTestDB() *gorm.DB {
@@ -119,9 +119,20 @@ func TestUserService(t *testing.T) {
 	// Test user creation
 	user := &models.User{
 		ID:       "test-user-id",
-		Email:    "test@example.com",
-		Username: "testuser",
-		Password: "password123",
+		Email:    os.Getenv("TEST_USER_EMAIL"),
+		Username: os.Getenv("TEST_USER_USERNAME"),
+		Password: os.Getenv("TEST_USER_PASSWORD"),
+	}
+
+	// Set defaults for test if environment variables are not set
+	if user.Email == "" {
+		user.Email = "test@example.com"
+	}
+	if user.Username == "" {
+		user.Username = "testuser"
+	}
+	if user.Password == "" {
+		user.Password = "password123"
 	}
 	
 	err := userService.CreateUser(user)

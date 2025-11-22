@@ -9,8 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"citadel-agent/backend/internal/workflow/core/engine"
-	"citadel-agent/backend/internal/nodes/ai"
+	"github.com/citadel-agent/backend/internal/interfaces"
 
 	"github.com/google/uuid"
 	"github.com/tmc/langchaingo/llms"
@@ -125,7 +124,7 @@ type AIAgentRuntime struct {
 	availableTools  map[string]AIAgentTool
 	threadManager   *ThreadManager
 	coordinationMgr *CoordinationManager
-	humanInLoopMgr  *HumanInLoopManager
+	humanInLoopMgr  *HumanInteractionManager
 	modelCache      map[string]llms.Model
 	mutex           sync.RWMutex
 }
@@ -236,8 +235,8 @@ const (
 	CoordinationMessageError    CoordinationMessageType = "error"
 )
 
-// HumanInLoopManager manages human interaction in AI workflows
-type HumanInLoopManager struct {
+// HumanInteractionManager manages human interaction in AI workflows
+type HumanInteractionManager struct {
 	enabled bool
 	requests map[string]*HumanInteractionRequest
 	mutex   sync.RWMutex
@@ -317,7 +316,7 @@ func NewAIAgentRuntime(config *AIAgentConfig) (*AIAgentRuntime, error) {
 	}
 
 	// Initialize human-in-loop manager
-	humanInLoopMgr := &HumanInLoopManager{
+	humanInLoopMgr := &HumanInteractionManager{
 		enabled: config.HumanInLoop,
 		requests: make(map[string]*HumanInteractionRequest),
 	}

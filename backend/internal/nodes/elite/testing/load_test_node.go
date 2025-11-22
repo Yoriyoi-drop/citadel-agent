@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"citadel-agent/backend/internal/engine"
+	"github.com/citadel-agent/backend/internal/engine"
 )
 
 // LoadTestNode performs load testing on target endpoints

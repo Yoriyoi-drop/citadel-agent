@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/citadel-agent/backend/internal/engine"
+	"github.com/citadel-agent/backend/internal/interfaces"
 )
 
 // SQLCNodeConfig represents the configuration for a SQLC database node
@@ -33,7 +33,7 @@ type SQLCNode struct {
 }
 
 // NewSQLCNode creates a new SQLC database node
-func NewSQLCNode(config map[string]interface{}) (engine.NodeInstance, error) {
+func NewSQLCNode(config map[string]interface{}) (interfaces.NodeInstance, error) {
 	// Convert interface{} map to JSON and back to struct
 	jsonData, err := json.Marshal(config)
 	if err != nil {
@@ -102,7 +102,7 @@ func NewSQLCNode(config map[string]interface{}) (engine.NodeInstance, error) {
 }
 
 // Execute implements the NodeInstance interface
-func (s *SQLCNode) Execute(ctx context.Context, input map[string]interface{}) (*engine.ExecutionResult, error) {
+func (s *SQLCNode) Execute(ctx context.Context, input map[string]interface{}) (map[string]interface{}, error) {
 	// Override configuration with input values if provided
 	query := s.config.Query
 	if inputQuery, ok := input["query"].(string); ok && inputQuery != "" {
@@ -145,23 +145,23 @@ func (s *SQLCNode) Execute(ctx context.Context, input map[string]interface{}) (*
 	}
 
 	if err != nil {
-		return &engine.ExecutionResult{
-			Status:    "error",
-			Error:     err.Error(),
-			Timestamp: time.Now(),
+		return map[string]interface{}{
+			"status":    "error",
+			"error":     err.Error(),
+			"timestamp": time.Now().Unix(),
 		}, nil
 	}
 
-	return &engine.ExecutionResult{
-		Status: "success",
-		Data: map[string]interface{}{
+	return map[string]interface{}{
+		"status": "success",
+		"data": map[string]interface{}{
 			"result":      result,
 			"query_type":  queryType,
 			"database":    s.config.Type,
 			"query":       query,
 			"timestamp":   time.Now().Unix(),
 		},
-		Timestamp: time.Now(),
+		"timestamp": time.Now().Unix(),
 	}, nil
 }
 

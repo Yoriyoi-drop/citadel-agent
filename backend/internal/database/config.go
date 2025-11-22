@@ -3,6 +3,8 @@ package database
 
 import (
 	"fmt"
+	"os"
+	"strconv"
 	"time"
 )
 
@@ -27,12 +29,12 @@ type Config struct {
 // DefaultConfig returns the default database configuration
 func DefaultConfig() *Config {
 	return &Config{
-		Host:            "localhost",
-		Port:            5432,
-		User:            "postgres",
-		Password:        "postgres",
-		Database:        "citadel_agent",
-		SSLMode:         "disable",
+		Host:            getEnvOrDefault("DB_HOST", "localhost"),
+		Port:            getEnvOrDefaultInt("DB_PORT", 5432),
+		User:            getEnvOrDefault("DB_USER", "postgres"),
+		Password:        getEnvOrDefault("DB_PASSWORD", "postgres"),
+		Database:        getEnvOrDefault("DB_NAME", "citadel_agent"),
+		SSLMode:         getEnvOrDefault("DB_SSL_MODE", "disable"),
 		MaxConns:        20,
 		MinConns:        5,
 		MaxConnLifetime: 30 * time.Minute,
@@ -42,6 +44,23 @@ func DefaultConfig() *Config {
 		DriverName:      "pgx",
 		URL:             "",
 	}
+}
+
+// Helper functions to get environment variables with defaults
+func getEnvOrDefault(key, defaultValue string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+	return defaultValue
+}
+
+func getEnvOrDefaultInt(key string, defaultValue int) int {
+	if value := os.Getenv(key); value != "" {
+		if intVal, err := strconv.Atoi(value); err == nil {
+			return intVal
+		}
+	}
+	return defaultValue
 }
 
 // Validate validates the database configuration

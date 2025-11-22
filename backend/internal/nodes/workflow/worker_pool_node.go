@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/citadel-agent/backend/internal/engine"
+	"github.com/citadel-agent/backend/internal/interfaces"
 )
 
 // WorkerPoolNodeConfig represents the configuration for a Worker Pool node
@@ -52,7 +52,7 @@ type WorkerPoolNode struct {
 }
 
 // NewWorkerPoolNode creates a new Worker Pool node
-func NewWorkerPoolNode(config map[string]interface{}) (engine.NodeInstance, error) {
+func NewWorkerPoolNode(config map[string]interface{}) (interfaces.NodeInstance, error) {
 	// Convert interface{} map to JSON and back to struct
 	jsonData, err := json.Marshal(config)
 	if err != nil {

@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"citadel-agent/backend/internal/workflow/core/engine"
+	"github.com/citadel-agent/backend/internal/workflow/core/engine"
 
 	_ "github.com/lib/pq"        // PostgreSQL driver
 	_ "github.com/go-sql-driver/mysql"  // MySQL driver

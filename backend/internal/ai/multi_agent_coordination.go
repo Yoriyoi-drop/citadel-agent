@@ -84,8 +84,8 @@ type Task struct {
 	Metadata    map[string]interface{} `json:"metadata"`
 }
 
-// Agent represents an individual AI agent in the multi-agent system
-type Agent struct {
+// CoordinatedAgent represents an individual AI agent in the multi-agent system
+type CoordinatedAgent struct {
 	ID          string    `json:"id"`
 	Name        string    `json:"name"`
 	Role        AgentRole `json:"role"`
@@ -140,7 +140,7 @@ const (
 // MultiAgentCoordinator manages coordination between multiple AI agents
 type MultiAgentCoordinator struct {
 	config      *MultiAgentConfig
-	agents      map[string]*Agent
+	agents      map[string]*CoordinatedAgent
 	tasks       map[string]*Task
 	messages    chan *Message
 	agentMutex  sync.RWMutex
@@ -157,7 +157,7 @@ type MultiAgentCoordinator struct {
 
 // TaskAssigner interface for different task assignment strategies
 type TaskAssigner interface {
-	AssignTask(agents []*Agent, task *Task) (*Agent, error)
+	AssignTask(agents []*CoordinatedAgent, task *Task) (*CoordinatedAgent, error)
 }
 
 // NewMultiAgentCoordinator creates a new multi-agent coordinator
@@ -176,7 +176,7 @@ func NewMultiAgentCoordinator(config *MultiAgentConfig) *MultiAgentCoordinator {
 
 	coordinator := &MultiAgentCoordinator{
 		config:      config,
-		agents:      make(map[string]*Agent),
+		agents:      make(map[string]*CoordinatedAgent),
 		tasks:       make(map[string]*Task),
 		messages:    make(chan *Message, 1000), // Buffered channel for messages
 		taskQueue:   make(chan *Task, 100),     // Buffered channel for tasks
@@ -205,7 +205,7 @@ func NewMultiAgentCoordinator(config *MultiAgentConfig) *MultiAgentCoordinator {
 }
 
 // AddAgent adds an agent to the coordination system
-func (mc *MultiAgentCoordinator) AddAgent(agent *Agent) error {
+func (mc *MultiAgentCoordinator) AddAgent(agent *CoordinatedAgent) error {
 	mc.agentMutex.Lock()
 	defer mc.agentMutex.Unlock()
 

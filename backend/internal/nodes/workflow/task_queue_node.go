@@ -8,7 +8,7 @@ import (
 
 	"github.com/hibiken/asynq"
 
-	"github.com/citadel-agent/backend/internal/engine"
+	"github.com/citadel-agent/backend/internal/interfaces"
 )
 
 // TaskQueueNodeConfig represents the configuration for a Task Queue node
@@ -36,7 +36,7 @@ type TaskQueueNode struct {
 }
 
 // NewTaskQueueNode creates a new Task Queue node
-func NewTaskQueueNode(config map[string]interface{}) (engine.NodeInstance, error) {
+func NewTaskQueueNode(config map[string]interface{}) (interfaces.NodeInstance, error) {
 	// Convert interface{} map to JSON and back to struct
 	jsonData, err := json.Marshal(config)
 	if err != nil {
@@ -68,7 +68,7 @@ func NewTaskQueueNode(config map[string]interface{}) (engine.NodeInstance, error
 }
 
 // Execute implements the NodeInstance interface
-func (t *TaskQueueNode) Execute(ctx context.Context, input map[string]interface{}) (*engine.ExecutionResult, error) {
+func (t *TaskQueueNode) Execute(ctx context.Context, input map[string]interface{}) (map[string]interface{}, error) {
 	// Override configuration with input values if provided
 	taskType := t.config.TaskType
 	if inputTaskType, ok := input["task_type"].(string); ok && inputTaskType != "" {
@@ -149,10 +149,10 @@ func (t *TaskQueueNode) Execute(ctx context.Context, input map[string]interface{
 		// Schedule the task for later execution
 		schedTime, parseErr := time.Parse(time.RFC3339, scheduleAt)
 		if parseErr != nil {
-			return &engine.ExecutionResult{
-				Status:    "error",
-				Error:     fmt.Sprintf("failed to parse schedule time: %v", parseErr),
-				Timestamp: time.Now(),
+			return map[string]interface{}{
+				"status":    "error",
+				"error":     fmt.Sprintf("failed to parse schedule time: %v", parseErr),
+				"timestamp": time.Now().Unix(),
 			}, nil
 		}
 		
@@ -162,9 +162,9 @@ func (t *TaskQueueNode) Execute(ctx context.Context, input map[string]interface{
 		info, err = t.client.Enqueue(task, opts...)
 	} else {
 		// Just return info about the task without enqueuing
-		return &engine.ExecutionResult{
-			Status: "success",
-			Data: map[string]interface{}{
+		return map[string]interface{}{
+			"status": "success",
+			"data": map[string]interface{}{
 				"message":      "task ready to be enqueued",
 				"task_type":    taskType,
 				"task_payload": taskPayload,
@@ -172,21 +172,21 @@ func (t *TaskQueueNode) Execute(ctx context.Context, input map[string]interface{
 				"options":      opts,
 				"timestamp":    time.Now().Unix(),
 			},
-			Timestamp: time.Now(),
+			"timestamp": time.Now().Unix(),
 		}, nil
 	}
 
 	if err != nil {
-		return &engine.ExecutionResult{
-			Status:    "error",
-			Error:     fmt.Sprintf("failed to enqueue task: %v", err),
-			Timestamp: time.Now(),
+		return map[string]interface{}{
+			"status":    "error",
+			"error":     fmt.Sprintf("failed to enqueue task: %v", err),
+			"timestamp": time.Now().Unix(),
 		}, nil
 	}
 
-	return &engine.ExecutionResult{
-		Status: "success",
-		Data: map[string]interface{}{
+	return map[string]interface{}{
+		"status": "success",
+		"data": map[string]interface{}{
 			"message":      "task enqueued successfully",
 			"task_id":      info.ID,
 			"task_type":    taskType,
@@ -195,7 +195,7 @@ func (t *TaskQueueNode) Execute(ctx context.Context, input map[string]interface{
 			"task_payload": taskPayload,
 			"timestamp":    time.Now().Unix(),
 		},
-		Timestamp: time.Now(),
+		"timestamp": time.Now().Unix(),
 	}, nil
 }
 

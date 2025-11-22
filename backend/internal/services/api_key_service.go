@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
-	"citadel-agent/backend/internal/models"
-	"citadel-agent/backend/internal/repositories"
+	"github.com/citadel-agent/backend/internal/models"
+	"github.com/citadel-agent/backend/internal/repositories"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"

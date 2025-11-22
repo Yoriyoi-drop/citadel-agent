@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"citadel-agent/backend/internal/workflow/core/engine"
+	"github.com/citadel-agent/backend/internal/interfaces"
 )
 
 // RealTimeMLTrainingConfig mewakili konfigurasi untuk node Real-Time ML Training
@@ -52,7 +52,7 @@ type RealTimeMLTrainingNode struct {
 }
 
 // NewRealTimeMLTrainingNode membuat node Real-Time ML Training baru
-func NewRealTimeMLTrainingNode(config map[string]interface{}) (engine.NodeInstance, error) {
+func NewRealTimeMLTrainingNode(config map[string]interface{}) (interfaces.NodeInstance, error) {
 	// Konversi map interface{} ke JSON lalu ke struct
 	jsonData, err := json.Marshal(config)
 	if err != nil {
@@ -355,7 +355,7 @@ func (r *RealTimeMLTrainingNode) GetID() string {
 
 // RegisterRealTimeMLTrainingNode mendaftarkan node Real-Time ML Training dengan engine
 func RegisterRealTimeMLTrainingNode(registry *engine.NodeRegistry) {
-	registry.RegisterNodeType("real_time_ml_training", func(config map[string]interface{}) (engine.NodeInstance, error) {
+	registry.RegisterNodeType("real_time_ml_training", func(config map[string]interface{}) (interfaces.NodeInstance, error) {
 		return NewRealTimeMLTrainingNode(config)
 	})
 }

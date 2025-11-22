@@ -1,7 +1,7 @@
 package messaging
 
 import (
-	"citadel-agent/backend/internal/workflow/core/engine"
+	"github.com/citadel-agent/backend/internal/workflow/core/engine"
 )
 
 // RegisterNotificationNode registers all available notification and messaging nodes with the engine

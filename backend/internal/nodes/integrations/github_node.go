@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"time"
 
-	"citadel-agent/backend/internal/workflow/core/engine"
+	"github.com/citadel-agent/backend/internal/workflow/core/engine"
 )
 
 // GitHubNodeConfig represents the configuration for a GitHub node

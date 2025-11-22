@@ -2,11 +2,11 @@ package ai
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"time"
 
-	"github.com/citadel-agent/backend/internal/engine"
+	"github.com/citadel-agent/backend/internal/interfaces"
+	"github.com/citadel-agent/backend/internal/nodes/utils"
 )
 
 // ContextualReasoningNodeConfig represents the configuration for a Contextual Reasoning node
@@ -31,141 +31,166 @@ type ContextualReasoningNode struct {
 }
 
 // NewContextualReasoningNode creates a new Contextual Reasoning node
-func NewContextualReasoningNode(config map[string]interface{}) (engine.NodeInstance, error) {
-	// Convert interface{} map to JSON and back to struct
-	jsonData, err := json.Marshal(config)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal config: %v", err)
+func NewContextualReasoningNode(config map[string]interface{}) (interfaces.NodeInstance, error) {
+	// Extract config values
+	provider := utils.GetStringVal(config["provider"], "openai")
+	apiKey := utils.GetStringVal(config["api_key"], "")
+	model := utils.GetStringVal(config["model"], "gpt-4")
+	inputText := utils.GetStringVal(config["input_text"], "")
+	contextText := utils.GetStringVal(config["context"], "")
+	reasoningType := utils.GetStringVal(config["reasoning_type"], "")
+
+	maxSteps := utils.GetIntVal(config["max_steps"], 10)
+	returnSteps := utils.GetBoolVal(config["return_steps"], false)
+	confidence := utils.GetFloat64Val(config["confidence"], 0.7)
+	timeout := utils.GetIntVal(config["timeout"], 60)
+	enabled := utils.GetBoolVal(config["enabled"], true)
+
+	customParams := make(map[string]interface{})
+	if paramsVal, exists := config["custom_params"]; exists {
+		if paramsMap, ok := paramsVal.(map[string]interface{}); ok {
+			customParams = paramsMap
+		}
 	}
 
-	var reasoningConfig ContextualReasoningNodeConfig
-	err = json.Unmarshal(jsonData, &reasoningConfig)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal config: %v", err)
-	}
-
-	// Validate required fields
-	if reasoningConfig.Provider == "" {
-		reasoningConfig.Provider = "openai" // default provider
-	}
-
-	if reasoningConfig.Model == "" {
-		reasoningConfig.Model = "gpt-4" // default model
-	}
-
-	if reasoningConfig.MaxSteps == 0 {
-		reasoningConfig.MaxSteps = 10 // default to 10 steps
-	}
-
-	if reasoningConfig.Timeout == 0 {
-		reasoningConfig.Timeout = 60 // default timeout of 60 seconds for complex reasoning
-	}
-
-	if reasoningConfig.Confidence == 0 {
-		reasoningConfig.Confidence = 0.7 // default confidence of 70%
+	nodeConfig := &ContextualReasoningNodeConfig{
+		Provider:       provider,
+		ApiKey:         apiKey,
+		Model:          model,
+		InputText:      inputText,
+		Context:        contextText,
+		MaxSteps:       maxSteps,
+		ReasoningType:  reasoningType,
+		ReturnSteps:    returnSteps,
+		Confidence:     confidence,
+		CustomParams:   customParams,
+		Timeout:        timeout,
+		Enabled:        enabled,
 	}
 
 	return &ContextualReasoningNode{
-		config: &reasoningConfig,
+		config: nodeConfig,
 	}, nil
 }
 
 // Execute implements the NodeInstance interface
-func (c *ContextualReasoningNode) Execute(ctx context.Context, input map[string]interface{}) (*engine.ExecutionResult, error) {
+func (c *ContextualReasoningNode) Execute(ctx context.Context, input map[string]interface{}) (map[string]interface{}, error) {
 	// Override configuration with input values if provided
 	provider := c.config.Provider
-	if inputProvider, ok := input["provider"].(string); ok && inputProvider != "" {
-		provider = inputProvider
+	if inputProvider, exists := input["provider"]; exists {
+		if inputProviderStr, ok := inputProvider.(string); ok && inputProviderStr != "" {
+			provider = inputProviderStr
+		}
 	}
 
 	apiKey := c.config.ApiKey
-	if inputApiKey, ok := input["api_key"].(string); ok && inputApiKey != "" {
-		apiKey = inputApiKey
+	if inputApiKey, exists := input["api_key"]; exists {
+		if inputApiKeyStr, ok := inputApiKey.(string); ok && inputApiKeyStr != "" {
+			apiKey = inputApiKeyStr
+		}
 	}
 
 	model := c.config.Model
-	if inputModel, ok := input["model"].(string); ok && inputModel != "" {
-		model = inputModel
+	if inputModel, exists := input["model"]; exists {
+		if inputModelStr, ok := inputModel.(string); ok && inputModelStr != "" {
+			model = inputModelStr
+		}
 	}
 
 	inputText := c.config.InputText
-	if inputInputText, ok := input["input_text"].(string); ok && inputInputText != "" {
-		inputText = inputInputText
+	if inputInputText, exists := input["input_text"]; exists {
+		if inputInputTextStr, ok := inputInputText.(string); ok && inputInputTextStr != "" {
+			inputText = inputInputTextStr
+		}
 	}
 
 	contextText := c.config.Context
-	if inputContext, ok := input["context"].(string); ok && inputContext != "" {
-		contextText = inputContext
+	if inputContext, exists := input["context"]; exists {
+		if inputContextStr, ok := inputContext.(string); ok && inputContextStr != "" {
+			contextText = inputContextStr
+		}
 	}
 
 	maxSteps := c.config.MaxSteps
-	if inputMaxSteps, ok := input["max_steps"].(float64); ok {
-		maxSteps = int(inputMaxSteps)
+	if inputMaxSteps, exists := input["max_steps"]; exists {
+		if inputMaxStepsFloat, ok := inputMaxSteps.(float64); ok {
+			maxSteps = int(inputMaxStepsFloat)
+		}
 	}
 
 	reasoningType := c.config.ReasoningType
-	if inputReasoningType, ok := input["reasoning_type"].(string); ok && inputReasoningType != "" {
-		reasoningType = inputReasoningType
+	if inputReasoningType, exists := input["reasoning_type"]; exists {
+		if inputReasoningTypeStr, ok := inputReasoningType.(string); ok && inputReasoningTypeStr != "" {
+			reasoningType = inputReasoningTypeStr
+		}
 	}
 
 	returnSteps := c.config.ReturnSteps
-	if inputReturnSteps, ok := input["return_steps"].(bool); ok {
-		returnSteps = inputReturnSteps
+	if inputReturnSteps, exists := input["return_steps"]; exists {
+		if inputReturnStepsBool, ok := inputReturnSteps.(bool); ok {
+			returnSteps = inputReturnStepsBool
+		}
 	}
 
 	confidence := c.config.Confidence
-	if inputConfidence, ok := input["confidence"].(float64); ok {
-		confidence = inputConfidence
+	if inputConfidence, exists := input["confidence"]; exists {
+		if inputConfidenceFloat, ok := inputConfidence.(float64); ok {
+			confidence = inputConfidenceFloat
+		}
 	}
 
 	customParams := c.config.CustomParams
-	if inputCustomParams, ok := input["custom_params"].(map[string]interface{}); ok {
-		customParams = inputCustomParams
+	if inputCustomParams, exists := input["custom_params"]; exists {
+		if inputCustomParamsMap, ok := inputCustomParams.(map[string]interface{}); ok {
+			customParams = inputCustomParamsMap
+		}
 	}
 
 	timeout := c.config.Timeout
-	if inputTimeout, ok := input["timeout"].(float64); ok {
-		timeout = int(inputTimeout)
+	if inputTimeout, exists := input["timeout"]; exists {
+		if inputTimeoutFloat, ok := inputTimeout.(float64); ok {
+			timeout = int(inputTimeoutFloat)
+		}
 	}
 
 	enabled := c.config.Enabled
-	if inputEnabled, ok := input["enabled"].(bool); ok {
-		enabled = inputEnabled
+	if inputEnabled, exists := input["enabled"]; exists {
+		if inputEnabledBool, ok := inputEnabled.(bool); ok {
+			enabled = inputEnabledBool
+		}
 	}
 
 	// Check if node should be enabled
 	if !enabled {
-		return &engine.ExecutionResult{
-			Status: "success",
-			Data: map[string]interface{}{
-				"message": "contextual reasoning processor disabled, not executed",
-				"enabled": false,
-			},
-			Timestamp: time.Now(),
+		return map[string]interface{}{
+			"success": true,
+			"message": "contextual reasoning processor disabled, not executed",
+			"enabled": false,
+			"timestamp": time.Now().Unix(),
 		}, nil
 	}
 
 	// Validate required input
 	if inputText == "" {
-		return &engine.ExecutionResult{
-			Status:    "error",
-			Error:     "input_text is required for contextual reasoning",
-			Timestamp: time.Now(),
+		return map[string]interface{}{
+			"success": false,
+			"error":   "input_text is required for contextual reasoning",
+			"timestamp": time.Now().Unix(),
 		}, nil
 	}
 
 	if apiKey == "" {
-		return &engine.ExecutionResult{
-			Status:    "error",
-			Error:     "api_key is required for contextual reasoning",
-			Timestamp: time.Now(),
+		return map[string]interface{}{
+			"success": false,
+			"error":   "api_key is required for contextual reasoning",
+			"timestamp": time.Now().Unix(),
 		}, nil
 	}
 
 	// In a real implementation, this would call the actual reasoning AI service
 	// For now, we'll simulate the response with multi-step reasoning
 	reasoningSteps := []map[string]interface{}{}
-	
+
 	if returnSteps {
 		reasoningSteps = []map[string]interface{}{
 			{
@@ -203,32 +228,21 @@ func (c *ContextualReasoningNode) Execute(ctx context.Context, input map[string]
 	}
 
 	// Check if confidence meets threshold
-	if result["confidence"].(float64) < confidence {
-		result["warning"] = fmt.Sprintf("Confidence (%.2f) is below threshold (%.2f)", 
-			result["confidence"], confidence)
+	if resultConfidence, ok := result["confidence"].(float64); ok && resultConfidence < confidence {
+		result["warning"] = fmt.Sprintf("Confidence (%.2f) is below threshold (%.2f)",
+			resultConfidence, confidence)
 	}
 
-	return &engine.ExecutionResult{
-		Status: "success",
-		Data: map[string]interface{}{
-			"message":        "contextual reasoning completed",
-			"result":         result,
-			"provider":       provider,
-			"model":          model,
-			"reasoning_type": reasoningType,
-			"steps_returned": returnSteps,
-			"timestamp":      time.Now().Unix(),
-		},
-		Timestamp: time.Now(),
+	return map[string]interface{}{
+		"success": true,
+		"message":        "contextual reasoning completed",
+		"result":         result,
+		"provider":       provider,
+		"model":          model,
+		"reasoning_type": reasoningType,
+		"steps_returned": returnSteps,
+		"timestamp":      time.Now().Unix(),
 	}, nil
 }
 
-// GetType returns the type of the node
-func (c *ContextualReasoningNode) GetType() string {
-	return "contextual_reasoning"
-}
 
-// GetID returns a unique ID for the node instance
-func (c *ContextualReasoningNode) GetID() string {
-	return "contextual_reasoning_" + fmt.Sprintf("%d", time.Now().Unix())
-}

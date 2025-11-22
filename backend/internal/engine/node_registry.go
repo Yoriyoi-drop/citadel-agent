@@ -9,7 +9,7 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/citadel-agent/backend/internal/ai"
+	"github.com/citadel-agent/backend/internal/interfaces"
 	"github.com/citadel-agent/backend/internal/nodes"
 	"github.com/citadel-agent/backend/internal/runtimes"
 )
@@ -41,12 +41,12 @@ const (
 // NodeRegistry holds the registration of all available nodes
 type NodeRegistry struct {
 	nodes map[string]NodeExecutor
-	aiManager *ai.AIManager
+	aiManager interfaces.AIManagerInterface
 	runtimeMgr *runtimes.MultiRuntimeManager
 }
 
 // NewNodeRegistry creates a new instance of NodeRegistry
-func NewNodeRegistry(aiManager *ai.AIManager, runtimeMgr *runtimes.MultiRuntimeManager) *NodeRegistry {
+func NewNodeRegistry(aiManager interfaces.AIManagerInterface, runtimeMgr *runtimes.MultiRuntimeManager) *NodeRegistry {
 	registry := &NodeRegistry{
 		nodes: make(map[string]NodeExecutor),
 		aiManager: aiManager,

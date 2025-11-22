@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"citadel-agent/backend/internal/workflow/core/engine"
+	"github.com/citadel-agent/backend/internal/interfaces"
 )
 
 // AdvancedMLInferenceConfig represents the configuration for an Advanced ML Inference node
@@ -59,7 +59,7 @@ type AdvancedMLInferenceNode struct {
 }
 
 // NewAdvancedMLInferenceNode creates a new Advanced ML Inference node
-func NewAdvancedMLInferenceNode(config map[string]interface{}) (engine.NodeInstance, error) {
+func NewAdvancedMLInferenceNode(config map[string]interface{}) (interfaces.NodeInstance, error) {
 	// Convert interface{} map to JSON and back to struct
 	jsonData, err := json.Marshal(config)
 	if err != nil {
@@ -489,7 +489,7 @@ func (m *AdvancedMLInferenceNode) GetID() string {
 
 // RegisterAdvancedMLInferenceNode registers the Advanced ML Inference node type with the engine
 func RegisterAdvancedMLInferenceNode(registry *engine.NodeRegistry) {
-	registry.RegisterNodeType("advanced_ml_inference", func(config map[string]interface{}) (engine.NodeInstance, error) {
+	registry.RegisterNodeType("advanced_ml_inference", func(config map[string]interface{}) (interfaces.NodeInstance, error) {
 		return NewAdvancedMLInferenceNode(config)
 	})
 }

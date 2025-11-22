@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"citadel-agent/backend/internal/workflow/core/engine"
+	"github.com/citadel-agent/backend/internal/interfaces"
 )
 
 // AIProvider represents the AI service provider
@@ -378,7 +378,7 @@ func (an *AINode) convertToolsToOpenAIFormat() []map[string]interface{} {
 
 // RegisterAINode registers the AI node type with the engine
 func RegisterAINode(registry *engine.NodeRegistry) {
-	registry.RegisterNodeType("ai_agent", func(config map[string]interface{}) (engine.NodeInstance, error) {
+	registry.RegisterNodeType("ai_agent", func(config map[string]interface{}) (interfaces.NodeInstance, error) {
 		var provider AIProvider
 		if providerVal, exists := config["provider"]; exists {
 			if providerStr, ok := providerVal.(string); ok {

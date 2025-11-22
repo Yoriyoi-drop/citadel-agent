@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/citadel-agent/backend/internal/engine"
+	"github.com/citadel-agent/backend/internal/interfaces"
 )
 
 // JobSchedulerNodeConfig represents the configuration for a Job Scheduler node
@@ -47,7 +47,7 @@ type JobSchedulerNode struct {
 }
 
 // NewJobSchedulerNode creates a new Job Scheduler node
-func NewJobSchedulerNode(config map[string]interface{}) (engine.NodeInstance, error) {
+func NewJobSchedulerNode(config map[string]interface{}) (interfaces.NodeInstance, error) {
 	// Convert interface{} map to JSON and back to struct
 	jsonData, err := json.Marshal(config)
 	if err != nil {
@@ -81,7 +81,7 @@ func NewJobSchedulerNode(config map[string]interface{}) (engine.NodeInstance, er
 }
 
 // Execute implements the NodeInstance interface
-func (j *JobSchedulerNode) Execute(ctx context.Context, input map[string]interface{}) (*engine.ExecutionResult, error) {
+func (j *JobSchedulerNode) Execute(ctx context.Context, input map[string]interface{}) (map[string]interface{}, error) {
 	// Override configuration with input values if provided
 	scheduleType := j.config.ScheduleType
 	if inputType, ok := input["schedule_type"].(string); ok && inputType != "" {
@@ -125,13 +125,13 @@ func (j *JobSchedulerNode) Execute(ctx context.Context, input map[string]interfa
 
 	// Check if scheduler should be enabled
 	if !enabled {
-		return &engine.ExecutionResult{
-			Status: "success",
-			Data: map[string]interface{}{
+		return map[string]interface{}{
+			"status": "success",
+			"data": map[string]interface{}{
 				"message": "job scheduler disabled, not started",
 				"enabled": false,
 			},
-			Timestamp: time.Now(),
+			"timestamp": time.Now().Unix(),
 		}, nil
 	}
 
@@ -240,7 +240,7 @@ func (j *JobSchedulerNode) runIntervalJob(ctx context.Context, job *Job, interva
 }
 
 // executeJob executes a single job
-func (j *JobSchedulerNode) executeJob(job *Job, timeout int) (*engine.ExecutionResult, error) {
+func (j *JobSchedulerNode) executeJob(job *Job, timeout int) (map[string]interface{}, error) {
 	// Create a context with timeout
 	ctx := context.Background()
 	if timeout > 0 {

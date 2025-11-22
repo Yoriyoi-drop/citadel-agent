@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"citadel-agent/backend/internal/workflow/core/engine"
+	"github.com/citadel-agent/backend/internal/workflow/core/engine"
 )
 
 // SMSProvider represents different SMS service providers

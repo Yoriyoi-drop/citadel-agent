@@ -8,7 +8,7 @@ import (
 
 	"github.com/robfig/cron/v3"
 
-	"github.com/citadel-agent/backend/internal/engine"
+	"github.com/citadel-agent/backend/internal/interfaces"
 )
 
 // CronSchedulerNodeConfig represents the configuration for a Cron Scheduler node
@@ -29,7 +29,7 @@ type CronSchedulerNode struct {
 }
 
 // NewCronSchedulerNode creates a new Cron Scheduler node
-func NewCronSchedulerNode(config map[string]interface{}) (engine.NodeInstance, error) {
+func NewCronSchedulerNode(config map[string]interface{}) (interfaces.NodeInstance, error) {
 	// Convert interface{} map to JSON and back to struct
 	jsonData, err := json.Marshal(config)
 	if err != nil {
@@ -69,7 +69,7 @@ func NewCronSchedulerNode(config map[string]interface{}) (engine.NodeInstance, e
 
 // Execute implements the NodeInstance interface
 // For cron scheduler, executing means starting the scheduler
-func (c *CronSchedulerNode) Execute(ctx context.Context, input map[string]interface{}) (*engine.ExecutionResult, error) {
+func (c *CronSchedulerNode) Execute(ctx context.Context, input map[string]interface{}) (map[string]interface{}, error) {
 	// Update config with input if provided
 	nextAction := c.config.NextAction
 	if inputNextAction, ok := input["next_action"].(map[string]interface{}); ok {
@@ -83,13 +83,13 @@ func (c *CronSchedulerNode) Execute(ctx context.Context, input map[string]interf
 
 	// Check if scheduler should be enabled
 	if !enabled {
-		return &engine.ExecutionResult{
-			Status: "success",
-			Data: map[string]interface{}{
+		return map[string]interface{}{
+			"status": "success",
+			"data": map[string]interface{}{
 				"message": "scheduler disabled, not started",
 				"enabled": false,
 			},
-			Timestamp: time.Now(),
+			"timestamp": time.Now().Unix(),
 		}, nil
 	}
 
@@ -108,10 +108,10 @@ func (c *CronSchedulerNode) Execute(ctx context.Context, input map[string]interf
 	// Add the job to cron
 	jobID, err := c.cron.AddFunc(c.config.CronExpression, jobFunc)
 	if err != nil {
-		return &engine.ExecutionResult{
-			Status:    "error",
-			Error:     fmt.Sprintf("failed to schedule cron job: %v", err),
-			Timestamp: time.Now(),
+		return map[string]interface{}{
+			"status":    "error",
+			"error":     fmt.Sprintf("failed to schedule cron job: %v", err),
+			"timestamp": time.Now().Unix(),
 		}, nil
 	}
 
@@ -129,9 +129,9 @@ func (c *CronSchedulerNode) Execute(ctx context.Context, input map[string]interf
 	// Start the scheduler
 	c.cron.Start()
 
-	return &engine.ExecutionResult{
-		Status: "success",
-		Data: map[string]interface{}{
+	return map[string]interface{}{
+		"status": "success",
+		"data": map[string]interface{}{
 			"message":        "cron scheduler started",
 			"cron_expression": c.config.CronExpression,
 			"job_id":         int(jobID),
@@ -139,7 +139,7 @@ func (c *CronSchedulerNode) Execute(ctx context.Context, input map[string]interf
 			"enabled":        true,
 			"timestamp":      time.Now().Unix(),
 		},
-		Timestamp: time.Now(),
+		"timestamp": time.Now().Unix(),
 	}, nil
 }
 

@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"strings"
 
-	"citadel-agent/backend/internal/workflow/core/engine"
+	"github.com/citadel-agent/backend/internal/workflow/core/engine"
 )
 
 // TransformOperationType represents the type of data transformation operation

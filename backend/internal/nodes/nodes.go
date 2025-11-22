@@ -2,15 +2,15 @@
 package nodes
 
 import (
-	"citadel-agent/backend/internal/nodes/ai"
-	"citadel-agent/backend/internal/nodes/data"
-	"citadel-agent/backend/internal/nodes/file"
-	"citadel-agent/backend/internal/nodes/integrations"
-	"citadel-agent/backend/internal/nodes/logic"
-	"citadel-agent/backend/internal/nodes/logging"
-	"citadel-agent/backend/internal/nodes/security"
+	"github.com/citadel-agent/backend/internal/nodes/ai"
+	"github.com/citadel-agent/backend/internal/nodes/data"
+	"github.com/citadel-agent/backend/internal/nodes/file"
+	"github.com/citadel-agent/backend/internal/nodes/integrations"
+	"github.com/citadel-agent/backend/internal/nodes/logic"
+	"github.com/citadel-agent/backend/internal/nodes/logging"
+	"github.com/citadel-agent/backend/internal/nodes/security"
 
-	"citadel-agent/backend/internal/workflow/core/engine"
+	"github.com/citadel-agent/backend/internal/workflow/core/engine"
 )
 
 // RegisterAllNodes registers all available node types with the engine

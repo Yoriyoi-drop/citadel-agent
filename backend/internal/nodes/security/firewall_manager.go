@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"citadel-agent/backend/internal/workflow/core/engine"
+	"github.com/citadel-agent/backend/internal/interfaces"
 )
 
 // FirewallRuleType represents the type of firewall rule
@@ -231,7 +231,7 @@ func matchIP(targetIP, ruleIP string) bool {
 }
 
 // FirewallManagerNodeFromConfig creates a new firewall manager node from a configuration map
-func FirewallManagerNodeFromConfig(config map[string]interface{}) (engine.NodeInstance, error) {
+func FirewallManagerNodeFromConfig(config map[string]interface{}) (interfaces.NodeInstance, error) {
 	var rules []FirewallRule
 	if rulesSlice, exists := config["rules"]; exists {
 		if rulesInterface, ok := rulesSlice.([]interface{}); ok {
@@ -386,7 +386,7 @@ func getFloat64Value(v interface{}) float64 {
 
 // RegisterFirewallManagerNode registers the firewall manager node type with the engine
 func RegisterFirewallManagerNode(registry *engine.NodeRegistry) {
-	registry.RegisterNodeType("firewall_manager", func(config map[string]interface{}) (engine.NodeInstance, error) {
+	registry.RegisterNodeType("firewall_manager", func(config map[string]interface{}) (interfaces.NodeInstance, error) {
 		return FirewallManagerNodeFromConfig(config)
 	})
 }

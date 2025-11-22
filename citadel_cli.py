@@ -107,8 +107,12 @@ class CitadelTerminal:
         # Simulate authentication
         print(f"{TerminalStyle.CYAN}Authenticating...{TerminalStyle.RESET}")
         time.sleep(1)
-        
-        if username == "admin" and password == "citadel":  # Simple validation
+
+        # Use environment variables or default values
+        admin_username = os.getenv("ADMIN_USERNAME", "admin")
+        admin_password = os.getenv("ADMIN_PASSWORD", "citadel")
+
+        if username == admin_username and password == admin_password:
             self.current_user = username
             self.session_active = True
             print(f"{TerminalStyle.GREEN}✓ Authentication successful!{TerminalStyle.RESET}")

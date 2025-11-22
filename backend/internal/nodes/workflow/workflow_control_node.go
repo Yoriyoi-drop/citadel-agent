@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"citadel-agent/backend/internal/workflow/core/engine"
+	"github.com/citadel-agent/backend/internal/workflow/core/engine"
 )
 
 // WorkflowControlConfig mewakili konfigurasi untuk node Workflow Control
@@ -68,7 +68,7 @@ type WorkflowControlNode struct {
 }
 
 // NewWorkflowControlNode membuat node Workflow Control baru
-func NewWorkflowControlNode(config map[string]interface{}) (engine.NodeInstance, error) {
+func NewWorkflowControlNode(config map[string]interface{}) (interfaces.NodeInstance, error) {
 	// Konversi map interface{} ke JSON lalu ke struct
 	jsonData, err := json.Marshal(config)
 	if err != nil {
@@ -502,7 +502,7 @@ func (w *WorkflowControlNode) GetID() string {
 
 // RegisterWorkflowControlNode mendaftarkan node Workflow Control dengan engine
 func RegisterWorkflowControlNode(registry *engine.NodeRegistry) {
-	registry.RegisterNodeType("workflow_control", func(config map[string]interface{}) (engine.NodeInstance, error) {
+	registry.RegisterNodeType("workflow_control", func(config map[string]interface{}) (interfaces.NodeInstance, error) {
 		return NewWorkflowControlNode(config)
 	})
 }

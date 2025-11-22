@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"citadel-agent/backend/internal/observability"
+	"github.com/citadel-agent/backend/internal/observability"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )

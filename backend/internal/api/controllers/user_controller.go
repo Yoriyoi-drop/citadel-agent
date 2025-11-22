@@ -6,7 +6,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
-	"citadel-agent/backend/internal/services"
+	"github.com/citadel-agent/backend/internal/services"
 )
 
 // UserController handles user-related HTTP requests

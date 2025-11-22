@@ -8,8 +8,8 @@ import (
 	"sync"
 	"time"
 
-	"citadel-agent/backend/internal/engine"
-	"citadel-agent/backend/internal/models"
+	"github.com/citadel-agent/backend/internal/engine"
+	"github.com/citadel-agent/backend/internal/models"
 	"github.com/google/uuid"
 )
 

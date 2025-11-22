@@ -8,7 +8,7 @@ import (
 
 	"github.com/spf13/viper"
 
-	"citadel-agent/backend/internal/workflow/core/engine"
+	"github.com/citadel-agent/backend/internal/workflow/core/engine"
 )
 
 // ConfigManagerNodeConfig represents the configuration for a ConfigManager node

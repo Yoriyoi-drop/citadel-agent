@@ -245,10 +245,20 @@ func setupAuthRoutes(app *fiber.App, db *pgxpool.Pool) {
 		}
 
 		// In a real app, you'd get user profile from GitHub API here
+		username := os.Getenv("GITHUB_DEFAULT_USERNAME")
+		if username == "" {
+			username = generateRandomString(8, "github") // Generate random string as default
+		}
+
+		email := os.Getenv("GITHUB_DEFAULT_EMAIL")
+		if email == "" {
+			email = generateRandomString(8, "github") + "@example.com" // Generate random email as default
+		}
+
 		user := User{
 			ID:        "github_user_" + token.AccessToken[:8],
-			Email:     "github_user@example.com", // In real app, get from GitHub API
-			Username:  "GitHubUser",
+			Email:     email, // In real app, get from GitHub API
+			Username:  username,
 			Provider:  "github",
 			CreatedAt: time.Now().Unix(),
 			LastLoginAt: time.Now().Unix(),
@@ -334,10 +344,20 @@ func setupAuthRoutes(app *fiber.App, db *pgxpool.Pool) {
 		}
 
 		// In a real app, you'd get user profile from Google API here
+		username := os.Getenv("GOOGLE_DEFAULT_USERNAME")
+		if username == "" {
+			username = generateRandomString(8, "google") // Generate random string as default
+		}
+
+		email := os.Getenv("GOOGLE_DEFAULT_EMAIL")
+		if email == "" {
+			email = generateRandomString(8, "google") + "@example.com" // Generate random email as default
+		}
+
 		user := User{
 			ID:        "google_user_" + token.AccessToken[:8],
-			Email:     "google_user@example.com", // In real app, get from Google API
-			Username:  "GoogleUser",
+			Email:     email, // In real app, get from Google API
+			Username:  username,
 			Provider:  "google",
 			CreatedAt: time.Now().Unix(),
 			LastLoginAt: time.Now().Unix(),
@@ -420,4 +440,16 @@ func getEnv(key, defaultValue string) string {
 		return value
 	}
 	return defaultValue
+}
+
+// generateRandomString generates a random string with a prefix
+func generateRandomString(length int, prefix string) string {
+	b := make([]byte, length)
+	for i := range b {
+		b[i] = "abcdefghijklmnopqrstuvwxyz0123456789"[time.Now().UnixNano()%int64(len("abcdefghijklmnopqrstuvwxyz0123456789"))]
+	}
+	if prefix != "" {
+		return prefix + "_" + string(b)
+	}
+	return string(b)
 }

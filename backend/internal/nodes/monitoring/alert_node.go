@@ -7,11 +7,13 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
+	"bytes"
 	"strings"
 	"time"
 
-	"citadel-agent/backend/internal/workflow/core/engine"
-	"citadel-agent/backend/internal/workflow/core/observability"
+	"github.com/citadel-agent/backend/internal/workflow/core/engine"
+	"github.com/citadel-agent/backend/internal/observability"
 )
 
 // AlertConditionType represents the type of alert condition
@@ -72,14 +74,27 @@ type AlertNodeConfig struct {
 	AggregationType   string              `json:"aggregation_type"` // "avg", "sum", "min", "max", "count"
 }
 
+// TelemetryService defines the interface for telemetry operations
+type TelemetryService interface {
+	RecordAlertTriggered(severity AlertSeverity, metricName string, timestamp time.Time)
+}
+
 // AlertNode represents an alert node
 type AlertNode struct {
 	config    *AlertNodeConfig
-	telemetry observability.TelemetryService
+	telemetry TelemetryService
+}
+
+// NoOpTelemetryService is a no-op implementation of TelemetryService
+type NoOpTelemetryService struct{}
+
+// RecordAlertTriggered implements the TelemetryService interface
+func (n *NoOpTelemetryService) RecordAlertTriggered(severity AlertSeverity, metricName string, timestamp time.Time) {
+	// No-op implementation
 }
 
 // NewAlertNode creates a new alert node
-func NewAlertNode(config *AlertNodeConfig, telemetry observability.TelemetryService) *AlertNode {
+func NewAlertNode(config *AlertNodeConfig, telemetry TelemetryService) *AlertNode {
 	if config.EvaluationWindow == 0 {
 		config.EvaluationWindow = 5 * time.Minute
 	}
@@ -947,8 +962,8 @@ func RegisterAlertNode(registry *engine.NodeRegistry) {
 			AggregationType:   aggType,
 		}
 
-		// For now, we'll pass a nil telemetry service
-		// In a real implementation, this would come from the service context
-		return NewAlertNode(nodeConfig, nil), nil
+		// Create a no-op telemetry implementation
+		noopTelemetry := &NoOpTelemetryService{}
+		return NewAlertNode(nodeConfig, noopTelemetry), nil
 	})
 }

@@ -1,7 +1,7 @@
 package logic
 
 import (
-	"citadel-agent/backend/internal/workflow/core/engine"
+	"github.com/citadel-agent/backend/internal/workflow/core/engine"
 )
 
 // RegisterLogicNode registers all available logic nodes with the engine

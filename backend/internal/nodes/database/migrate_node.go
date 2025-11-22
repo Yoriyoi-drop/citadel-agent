@@ -13,7 +13,7 @@ import (
 	"github.com/golang-migrate/migrate/v4/database/sqlite3"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 
-	"github.com/citadel-agent/backend/internal/engine"
+	"github.com/citadel-agent/backend/internal/interfaces"
 
 	// Import database drivers
 	_ "github.com/lib/pq"
@@ -39,7 +39,7 @@ type MigrateNode struct {
 }
 
 // NewMigrateNode creates a new Migrate node
-func NewMigrateNode(config map[string]interface{}) (engine.NodeInstance, error) {
+func NewMigrateNode(config map[string]interface{}) (interfaces.NodeInstance, error) {
 	// Convert interface{} map to JSON and back to struct
 	jsonData, err := json.Marshal(config)
 	if err != nil {
@@ -98,7 +98,7 @@ func NewMigrateNode(config map[string]interface{}) (engine.NodeInstance, error) 
 }
 
 // Execute implements the NodeInstance interface
-func (m *MigrateNode) Execute(ctx context.Context, input map[string]interface{}) (*engine.ExecutionResult, error) {
+func (m *MigrateNode) Execute(ctx context.Context, input map[string]interface{}) (map[string]interface{}, error) {
 	// Override configuration with input values if provided
 	operation := m.config.Operation
 	if inputOperation, ok := input["operation"].(string); ok && inputOperation != "" {
@@ -134,31 +134,31 @@ func (m *MigrateNode) Execute(ctx context.Context, input map[string]interface{})
 	case "force":
 		result, err = m.executeForce(ctxWithTimeout, forceVersion)
 	default:
-		return &engine.ExecutionResult{
-			Status:    "error",
-			Error:     fmt.Sprintf("unsupported operation: %s", operation),
-			Timestamp: time.Now(),
+		return map[string]interface{}{
+			"status":    "error",
+			"error":     fmt.Sprintf("unsupported operation: %s", operation),
+			"timestamp": time.Now().Unix(),
 		}, nil
 	}
 
 	if err != nil {
-		return &engine.ExecutionResult{
-			Status:    "error",
-			Error:     err.Error(),
-			Timestamp: time.Now(),
+		return map[string]interface{}{
+			"status":    "error",
+			"error":     err.Error(),
+			"timestamp": time.Now().Unix(),
 		}, nil
 	}
 
-	return &engine.ExecutionResult{
-		Status: "success",
-		Data: map[string]interface{}{
+	return map[string]interface{}{
+		"status": "success",
+		"data": map[string]interface{}{
 			"result":         result,
 			"operation":      operation,
 			"target_version": targetVersion,
 			"database_type":  m.config.Type,
 			"timestamp":      time.Now().Unix(),
 		},
-		Timestamp: time.Now(),
+		"timestamp": time.Now().Unix(),
 	}, nil
 }
 

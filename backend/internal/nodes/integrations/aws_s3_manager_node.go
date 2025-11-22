@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"citadel-agent/backend/internal/workflow/core/engine"
+	"github.com/citadel-agent/backend/internal/workflow/core/engine"
 )
 
 // AWSS3ManagerConfig mewakili konfigurasi untuk node AWS S3 Manager

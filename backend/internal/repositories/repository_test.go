@@ -8,7 +8,7 @@ import (
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
-	"citadel-agent/backend/internal/models"
+	"github.com/citadel-agent/backend/internal/models"
 )
 
 func setupTestDB() *gorm.DB {
@@ -79,8 +79,16 @@ func TestUserRepository(t *testing.T) {
 	// Test Create
 	user := &models.User{
 		ID:       "test-user-id",
-		Email:    "test@example.com",
-		Username: "testuser",
+		Email:    os.Getenv("TEST_USER_EMAIL"),
+		Username: os.Getenv("TEST_USER_USERNAME"),
+	}
+
+	// Set defaults for test if environment variables are not set
+	if user.Email == "" {
+		user.Email = "test@example.com"
+	}
+	if user.Username == "" {
+		user.Username = "testuser"
 	}
 	
 	err := userRepo.Create(user)

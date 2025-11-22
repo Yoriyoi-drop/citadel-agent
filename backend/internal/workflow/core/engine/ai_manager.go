@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/citadel-agent/backend/internal/ai"
+	"github.com/citadel-agent/backend/internal/interfaces"
 )
 
 // AIManager handles AI agent operations within the workflow engine

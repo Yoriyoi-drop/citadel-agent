@@ -7,7 +7,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"citadel-agent/backend/internal/workflow/core/engine"
+	"github.com/citadel-agent/backend/internal/workflow/core/engine"
 )
 
 // UUIDGeneratorNodeConfig represents the configuration for a UUIDGenerator node

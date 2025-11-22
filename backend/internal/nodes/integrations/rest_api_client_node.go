@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"citadel-agent/backend/internal/workflow/core/engine"
+	"github.com/citadel-agent/backend/internal/workflow/core/engine"
 )
 
 // RESTAPIClientConfig mewakili konfigurasi untuk node REST API Client

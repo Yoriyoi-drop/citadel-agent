@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/citadel-agent/backend/internal/engine"
+	"github.com/citadel-agent/backend/internal/interfaces"
 )
 
 // HTTPNodeConfig represents the configuration for an HTTP node
@@ -39,7 +39,7 @@ type HTTPNode struct {
 }
 
 // NewHTTPNode creates a new HTTP node with the given configuration
-func NewHTTPNode(config map[string]interface{}) (engine.NodeInstance, error) {
+func NewHTTPNode(config map[string]interface{}) (interfaces.NodeInstance, error) {
 	// Convert interface{} map to JSON and back to struct
 	jsonData, err := json.Marshal(config)
 	if err != nil {
@@ -63,7 +63,7 @@ func NewHTTPNode(config map[string]interface{}) (engine.NodeInstance, error) {
 }
 
 // Execute implements the NodeInstance interface
-func (h *HTTPNode) Execute(ctx context.Context, input map[string]interface{}) (*engine.ExecutionResult, error) {
+func (h *HTTPNode) Execute(ctx context.Context, input map[string]interface{}) (map[string]interface{}, error) {
 	// Override configuration with input values if provided
 	method := h.config.Method
 	if inputMethod, ok := input["method"].(string); ok && inputMethod != "" {
@@ -93,20 +93,20 @@ func (h *HTTPNode) Execute(ctx context.Context, input map[string]interface{}) (*
 	if h.config.Body != nil {
 		bodyBytes, err := json.Marshal(h.config.Body)
 		if err != nil {
-			return &engine.ExecutionResult{
-				Status:    "error",
-				Error:     fmt.Sprintf("failed to marshal request body: %v", err),
-				Timestamp: time.Now(),
+			return map[string]interface{}{
+				"status":    "error",
+				"error":     fmt.Sprintf("failed to marshal request body: %v", err),
+				"timestamp": time.Now().Unix(),
 			}, nil
 		}
 		bodyReader = bytes.NewReader(bodyBytes)
 	} else if inputBody, exists := input["body"]; exists {
 		bodyBytes, err := json.Marshal(inputBody)
 		if err != nil {
-			return &engine.ExecutionResult{
-				Status:    "error",
-				Error:     fmt.Sprintf("failed to marshal input body: %v", err),
-				Timestamp: time.Now(),
+			return map[string]interface{}{
+				"status":    "error",
+				"error":     fmt.Sprintf("failed to marshal input body: %v", err),
+				"timestamp": time.Now().Unix(),
 			}, nil
 		}
 		bodyReader = bytes.NewReader(bodyBytes)
@@ -115,10 +115,10 @@ func (h *HTTPNode) Execute(ctx context.Context, input map[string]interface{}) (*
 	// Create the HTTP request
 	req, err := http.NewRequestWithContext(ctx, method, url, bodyReader)
 	if err != nil {
-		return &engine.ExecutionResult{
-			Status:    "error",
-			Error:     fmt.Sprintf("failed to create HTTP request: %v", err),
-			Timestamp: time.Now(),
+		return map[string]interface{}{
+			"status":    "error",
+			"error":     fmt.Sprintf("failed to create HTTP request: %v", err),
+			"timestamp": time.Now().Unix(),
 		}, nil
 	}
 
@@ -158,10 +158,10 @@ func (h *HTTPNode) Execute(ctx context.Context, input map[string]interface{}) (*
 	// Execute the request
 	resp, err := client.Do(req)
 	if err != nil {
-		return &engine.ExecutionResult{
-			Status:    "error",
-			Error:     fmt.Sprintf("HTTP request failed: %v", err),
-			Timestamp: time.Now(),
+		return map[string]interface{}{
+			"status":    "error",
+			"error":     fmt.Sprintf("HTTP request failed: %v", err),
+			"timestamp": time.Now().Unix(),
 		}, nil
 	}
 	defer resp.Body.Close()
@@ -169,10 +169,10 @@ func (h *HTTPNode) Execute(ctx context.Context, input map[string]interface{}) (*
 	// Read response body
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return &engine.ExecutionResult{
-			Status:    "error",
-			Error:     fmt.Sprintf("failed to read response body: %v", err),
-			Timestamp: time.Now(),
+		return map[string]interface{}{
+			"status":    "error",
+			"error":     fmt.Sprintf("failed to read response body: %v", err),
+			"timestamp": time.Now().Unix(),
 		}, nil
 	}
 
@@ -203,19 +203,10 @@ func (h *HTTPNode) Execute(ctx context.Context, input map[string]interface{}) (*
 		"response_time": time.Since(time.Now().Add(-timeout)).String(),
 	}
 
-	return &engine.ExecutionResult{
-		Status:    "success",
-		Data:      resultData,
-		Timestamp: time.Now(),
+	return map[string]interface{}{
+		"status":    "success",
+		"data":      resultData,
+		"timestamp": time.Now().Unix(),
 	}, nil
 }
 
-// GetType returns the type of the node
-func (h *HTTPNode) GetType() string {
-	return "http_request"
-}
-
-// GetID returns a unique ID for the node instance
-func (h *HTTPNode) GetID() string {
-	return "http_" + fmt.Sprintf("%d", time.Now().Unix())
-}

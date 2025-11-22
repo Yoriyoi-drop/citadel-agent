@@ -5,11 +5,41 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math"
+	"math/rand"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/citadel-agent/backend/internal/interfaces"
 )
+
+// NodeRegistry manages node definitions
+type NodeRegistry struct {
+	nodes map[string]func(config map[string]interface{}) (interfaces.NodeInstance, error)
+}
+
+// NewNodeRegistry creates a new node registry
+func NewNodeRegistry() *NodeRegistry {
+	return &NodeRegistry{
+		nodes: make(map[string]func(config map[string]interface{}) (interfaces.NodeInstance, error)),
+	}
+}
+
+// RegisterNodeType registers a new node type with its constructor
+func (r *NodeRegistry) RegisterNodeType(nodeType string, constructor func(map[string]interface{}) (interfaces.NodeInstance, error)) {
+	r.nodes[nodeType] = constructor
+}
+
+// CreateInstance creates a new instance of the specified node type
+func (r *NodeRegistry) CreateInstance(nodeType string, config map[string]interface{}) (interfaces.NodeInstance, error) {
+	constructor, exists := r.nodes[nodeType]
+	if !exists {
+		return nil, fmt.Errorf("node type %s not registered", nodeType)
+	}
+	return constructor(config)
+}
 
 // Workflow represents a complete workflow definition
 type Workflow struct {
@@ -218,7 +248,7 @@ func NewEngine(config *Config) *Engine {
 // ExecuteWorkflow starts the execution of a workflow
 func (e *Engine) ExecuteWorkflow(ctx context.Context, workflow *Workflow, triggerParams map[string]interface{}) (string, error) {
 	executionID := uuid.New().String()
-	
+
 	e.logger.Info("Starting execution %s for workflow %s", executionID, workflow.ID)
 
 	// Create execution instance
@@ -308,7 +338,7 @@ func (e *Engine) executeNodes(ctx context.Context, execution *Execution, workflo
 			if e.allNodesCompleted(execution, workflow.Nodes) {
 				break
 			}
-			
+
 			// No ready nodes but not all completed - check for cycles or errors
 			time.Sleep(100 * time.Millisecond)
 			continue
@@ -333,10 +363,10 @@ func (e *Engine) executeNodes(ctx context.Context, execution *Execution, workflo
 		// Update ready nodes when a node completes
 		go func() {
 			nodeID := <-doneChan
-			
+
 			// Mark node as executed
 			e.markNodeAsExecuted(execution, nodeID)
-			
+
 			// Update ready nodes based on dependencies
 			for _, node := range workflow.Nodes {
 				if !e.isNodeExecuted(execution, node.ID) && !readyNodes[node.ID] {
@@ -367,50 +397,50 @@ func (e *Engine) executeNodes(ctx context.Context, execution *Execution, workflo
 // buildDependencyGraph builds dependency graph for the workflow
 func (e *Engine) buildDependencyGraph(workflow *Workflow) (map[string][]string, error) {
 	graph := make(map[string][]string)
-	
+
 	// Create adjacency list from connections
 	for _, conn := range workflow.Connections {
 		graph[conn.SourceNodeID] = append(graph[conn.SourceNodeID], conn.TargetNodeID)
 	}
-	
+
 	return graph, nil
 }
 
 // executeSingleNode executes a single node
 func (e *Engine) executeSingleNode(ctx context.Context, execution *Execution, node *Node, workflow *Workflow) error {
 	startTime := time.Now()
-	
+
 	e.logger.Info("Executing node %s for execution %s", node.ID, execution.ID)
-	
+
 	// Create node result
 	nodeResult := &NodeResult{
 		NodeID:    node.ID,
 		Status:    NodeRunning,
 		StartedAt: startTime,
 	}
-	
+
 	// Create node instance
 	nodeInstance, err := e.nodeRegistry.CreateInstance(node.Type, node.Config)
 	if err != nil {
 		return fmt.Errorf("failed to create node instance: %w", err)
 	}
-	
+
 	// Prepare inputs by evaluating expressions and dependencies
 	inputs, err := e.prepareNodeInputs(execution, node, workflow)
 	if err != nil {
 		return fmt.Errorf("failed to prepare inputs: %w", err)
 	}
-	
+
 	// Execute the node
 	output, err := nodeInstance.Execute(ctx, inputs)
-	
+
 	// Calculate execution time
 	executionTime := time.Since(startTime)
-	
+
 	// Update node result
 	nodeResult.CompletedAt = time.Now()
 	nodeResult.ExecutionTime = executionTime
-	
+
 	if err != nil {
 		nodeResult.Status = NodeFailed
 		errStr := err.Error()
@@ -419,26 +449,26 @@ func (e *Engine) executeSingleNode(ctx context.Context, execution *Execution, no
 		nodeResult.Status = NodeSuccess
 		nodeResult.Output = output
 	}
-	
+
 	// Save node result to storage
 	if err := e.storage.CreateNodeResult(nodeResult); err != nil {
 		return fmt.Errorf("failed to save node result: %w", err)
 	}
-	
+
 	// Update execution with node result
 	e.mutex.Lock()
 	execution.NodeResults[node.ID] = nodeResult
 	e.mutex.Unlock()
-	
+
 	// Update execution in storage
 	if err := e.storage.UpdateExecution(execution); err != nil {
 		return fmt.Errorf("failed to update execution: %w", err)
 	}
-	
+
 	if err != nil {
 		return err
 	}
-	
+
 	e.logger.Info("Node %s completed with status %s for execution %s", node.ID, nodeResult.Status, execution.ID)
 	return nil
 }
@@ -446,30 +476,30 @@ func (e *Engine) executeSingleNode(ctx context.Context, execution *Execution, no
 // prepareNodeInputs prepares inputs for a node based on dependencies
 func (e *Engine) prepareNodeInputs(execution *Execution, node *Node, workflow *Workflow) (map[string]interface{}, error) {
 	inputs := make(map[string]interface{})
-	
+
 	// Copy the original inputs
 	for k, v := range node.Inputs {
 		inputs[k] = v
 	}
-	
+
 	// Add outputs from dependent nodes
 	for _, depNodeID := range node.Dependencies {
 		result, exists := execution.NodeResults[depNodeID]
 		if !exists {
 			return nil, fmt.Errorf("dependency node %s not executed", depNodeID)
 		}
-		
+
 		if result.Status != NodeSuccess {
 			return nil, fmt.Errorf("dependency node %s did not succeed", depNodeID)
 		}
-		
+
 		// Add dependency outputs to inputs
 		for k, v := range result.Output {
 			// Use namespace to avoid conflicts
 			inputs[fmt.Sprintf("%s_%s", depNodeID, k)] = v
 		}
 	}
-	
+
 	return inputs, nil
 }
 
@@ -510,11 +540,12 @@ func (e *Engine) allNodesCompleted(execution *Execution, nodes []*Node) bool {
 func (e *Engine) failExecution(execution *Execution, errorMsg string) {
 	e.mutex.Lock()
 	defer e.mutex.Unlock()
-	
+
 	execution.Status = ExecutionFailed
 	execution.Error = &errorMsg
-	execution.CompletedAt = &time.Now()
-	
+	completedAt := time.Now()
+	execution.CompletedAt = &completedAt
+
 	// Update in storage
 	if err := e.storage.UpdateExecution(execution); err != nil {
 		e.logger.Error("Failed to update failed execution: %v", err)
@@ -525,15 +556,16 @@ func (e *Engine) failExecution(execution *Execution, errorMsg string) {
 func (e *Engine) completeExecution(execution *Execution) {
 	e.mutex.Lock()
 	defer e.mutex.Unlock()
-	
+
 	execution.Status = ExecutionSuccess
-	execution.CompletedAt = &time.Now()
-	
+	completedAt := time.Now()
+	execution.CompletedAt = &completedAt
+
 	// Update in storage
 	if err := e.storage.UpdateExecution(execution); err != nil {
 		e.logger.Error("Failed to update completed execution: %v", err)
 	}
-	
+
 	e.logger.Info("Execution %s completed successfully", execution.ID)
 }
 
@@ -552,35 +584,30 @@ func (e *Engine) GetExecution(id string) (*Execution, error) {
 }
 
 // NewHTTPRequestNode creates a new HTTP request node instance
-func NewHTTPRequestNode(config map[string]interface{}) (NodeInstance, error) {
+func NewHTTPRequestNode(config map[string]interface{}) (interfaces.NodeInstance, error) {
 	// This would return an HTTP request node implementation
 	// For now, returning a simple struct that satisfies the interface
 	return &HTTPNode{Config: config}, nil
 }
 
 // NewConditionNode creates a new condition node instance
-func NewConditionNode(config map[string]interface{}) (NodeInstance, error) {
+func NewConditionNode(config map[string]interface{}) (interfaces.NodeInstance, error) {
 	return &ConditionNode{Config: config}, nil
 }
 
 // NewDelayNode creates a new delay node instance
-func NewDelayNode(config map[string]interface{}) (NodeInstance, error) {
+func NewDelayNode(config map[string]interface{}) (interfaces.NodeInstance, error) {
 	return &DelayNode{Config: config}, nil
 }
 
 // NewDatabaseQueryNode creates a new database query node instance
-func NewDatabaseQueryNode(config map[string]interface{}) (NodeInstance, error) {
+func NewDatabaseQueryNode(config map[string]interface{}) (interfaces.NodeInstance, error) {
 	return &DatabaseNode{Config: config}, nil
 }
 
 // NewScriptExecutionNode creates a new script execution node instance
-func NewScriptExecutionNode(config map[string]interface{}) (NodeInstance, error) {
+func NewScriptExecutionNode(config map[string]interface{}) (interfaces.NodeInstance, error) {
 	return &ScriptNode{Config: config}, nil
-}
-
-// NodeInstance interface for all node types
-type NodeInstance interface {
-	Execute(ctx context.Context, inputs map[string]interface{}) (map[string]interface{}, error)
 }
 
 // HTTPNode represents an HTTP request node

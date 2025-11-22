@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	"citadel-agent/backend/internal/workflow/core/engine"
+	"github.com/citadel-agent/backend/internal/workflow/core/engine"
 )
 
 // LogicOperationType represents the type of logic operation

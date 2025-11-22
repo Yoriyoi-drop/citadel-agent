@@ -33,7 +33,6 @@ func New(ctx context.Context, config *Config) (*DB, error) {
 	poolConfig.MaxConnLifetime = config.MaxConnLifetime
 	poolConfig.MaxConnIdleTime = config.MaxConnIdleTime
 	poolConfig.HealthCheckPeriod = config.HealthCheck
-	poolConfig.LazyConnect = false // Connect immediately to verify connection
 
 	// Create the connection pool
 	pool, err := pgxpool.NewWithConfig(ctx, poolConfig)

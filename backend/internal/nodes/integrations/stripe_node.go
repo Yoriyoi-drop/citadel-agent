@@ -10,7 +10,7 @@ import (
 	"net/http"
 	"time"
 
-	"citadel-agent/backend/internal/workflow/core/engine"
+	"github.com/citadel-agent/backend/internal/workflow/core/engine"
 )
 
 // StripeNodeConfig represents the configuration for a Stripe node

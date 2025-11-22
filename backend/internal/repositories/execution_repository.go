@@ -2,7 +2,7 @@
 package repositories
 
 import (
-	"citadel-agent/backend/internal/models"
+	"github.com/citadel-agent/backend/internal/models"
 	"gorm.io/gorm"
 )
 

@@ -8,7 +8,8 @@ import (
 
 	"github.com/rs/zerolog"
 
-	"citadel-agent/backend/internal/workflow/core/engine"
+	"github.com/citadel-agent/backend/internal/workflow/core/engine"
+	"github.com/citadel-agent/backend/internal/interfaces"
 )
 
 // LoggerNodeConfig represents the configuration for a Logger node
@@ -29,7 +30,7 @@ type LoggerNode struct {
 }
 
 // NewLoggerNode creates a new Logger node with the given configuration
-func NewLoggerNode(config map[string]interface{}) (engine.NodeInstance, error) {
+func NewLoggerNode(config map[string]interface{}) (interfaces.NodeInstance, error) {
 	// Extract config values
 	level := getStringValue(config["level"], "info")
 	message := getStringValue(config["message"], "")

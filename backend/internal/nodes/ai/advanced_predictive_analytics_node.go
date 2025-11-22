@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"citadel-agent/backend/internal/workflow/core/engine"
+	"github.com/citadel-agent/backend/internal/interfaces"
 )
 
 // AdvancedPredictiveAnalyticsConfig mewakili konfigurasi untuk node Advanced Predictive Analytics
@@ -83,7 +83,7 @@ type AdvancedPredictiveAnalyticsNode struct {
 }
 
 // NewAdvancedPredictiveAnalyticsNode membuat node Advanced Predictive Analytics baru
-func NewAdvancedPredictiveAnalyticsNode(config map[string]interface{}) (engine.NodeInstance, error) {
+func NewAdvancedPredictiveAnalyticsNode(config map[string]interface{}) (interfaces.NodeInstance, error) {
 	// Konversi map interface{} ke JSON lalu ke struct
 	jsonData, err := json.Marshal(config)
 	if err != nil {
@@ -457,7 +457,7 @@ func (p *AdvancedPredictiveAnalyticsNode) GetID() string {
 
 // RegisterAdvancedPredictiveAnalyticsNode mendaftarkan node Advanced Predictive Analytics dengan engine
 func RegisterAdvancedPredictiveAnalyticsNode(registry *engine.NodeRegistry) {
-	registry.RegisterNodeType("advanced_predictive_analytics", func(config map[string]interface{}) (engine.NodeInstance, error) {
+	registry.RegisterNodeType("advanced_predictive_analytics", func(config map[string]interface{}) (interfaces.NodeInstance, error) {
 		return NewAdvancedPredictiveAnalyticsNode(config)
 	})
 }

@@ -1,7 +1,7 @@
 package repositories
 
 import (
-	"citadel-agent/backend/internal/models"
+	"github.com/citadel-agent/backend/internal/models"
 )
 
 // Repository interface that all repositories should implement

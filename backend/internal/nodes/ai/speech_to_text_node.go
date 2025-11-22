@@ -2,11 +2,11 @@ package ai
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"time"
 
-	"github.com/citadel-agent/backend/internal/engine"
+	"github.com/citadel-agent/backend/internal/interfaces"
+	"github.com/citadel-agent/backend/internal/nodes/utils"
 )
 
 // SpeechToTextNodeConfig represents the configuration for a Speech-to-Text node
@@ -35,150 +35,196 @@ type SpeechToTextNode struct {
 }
 
 // NewSpeechToTextNode creates a new Speech-to-Text node
-func NewSpeechToTextNode(config map[string]interface{}) (engine.NodeInstance, error) {
-	// Convert interface{} map to JSON and back to struct
-	jsonData, err := json.Marshal(config)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal config: %v", err)
+func NewSpeechToTextNode(config map[string]interface{}) (interfaces.NodeInstance, error) {
+	// Extract config values
+	provider := utils.GetStringVal(config["provider"], "openai")
+	apiKey := utils.GetStringVal(config["api_key"], "")
+	model := utils.GetStringVal(config["model"], "whisper-1")
+	audioURL := utils.GetStringVal(config["audio_url"], "")
+	audioData := utils.GetStringVal(config["audio_data"], "")
+	language := utils.GetStringVal(config["language"], "en")
+	format := utils.GetStringVal(config["format"], "")
+	profanity := utils.GetStringVal(config["profanity"], "")
+
+	sampleRate := utils.GetIntVal(config["sample_rate"], 0)
+	channels := utils.GetIntVal(config["channels"], 0)
+	timeout := utils.GetIntVal(config["timeout"], 60)
+
+	punctuate := utils.GetBoolVal(config["punctuate"], false)
+	timestamps := utils.GetBoolVal(config["timestamps"], false)
+	diarization := utils.GetBoolVal(config["diarization"], false)
+	enabled := utils.GetBoolVal(config["enabled"], true)
+
+	customParams := make(map[string]interface{})
+	if paramsVal, exists := config["custom_params"]; exists {
+		if paramsMap, ok := paramsVal.(map[string]interface{}); ok {
+			customParams = paramsMap
+		}
 	}
 
-	var sttConfig SpeechToTextNodeConfig
-	err = json.Unmarshal(jsonData, &sttConfig)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal config: %v", err)
-	}
-
-	// Validate required fields
-	if sttConfig.Provider == "" {
-		sttConfig.Provider = "openai" // default provider
-	}
-
-	if sttConfig.Model == "" {
-		sttConfig.Model = "whisper-1" // default model
-	}
-
-	if sttConfig.Language == "" {
-		sttConfig.Language = "en" // default language
-	}
-
-	if sttConfig.Timeout == 0 {
-		sttConfig.Timeout = 60 // default timeout of 60 seconds, as audio processing may take longer
+	nodeConfig := &SpeechToTextNodeConfig{
+		Provider:       provider,
+		ApiKey:         apiKey,
+		Model:          model,
+		AudioURL:       audioURL,
+		AudioData:      audioData,
+		Language:       language,
+		SampleRate:     sampleRate,
+		Channels:       channels,
+		Format:         format,
+		Punctuate:      punctuate,
+		Profanity:      profanity,
+		Timestamps:     timestamps,
+		Diarization:    diarization,
+		CustomParams:   customParams,
+		Timeout:        timeout,
+		Enabled:        enabled,
 	}
 
 	return &SpeechToTextNode{
-		config: &sttConfig,
+		config: nodeConfig,
 	}, nil
 }
 
 // Execute implements the NodeInstance interface
-func (s *SpeechToTextNode) Execute(ctx context.Context, input map[string]interface{}) (*engine.ExecutionResult, error) {
+func (s *SpeechToTextNode) Execute(ctx context.Context, input map[string]interface{}) (map[string]interface{}, error) {
 	// Override configuration with input values if provided
 	provider := s.config.Provider
-	if inputProvider, ok := input["provider"].(string); ok && inputProvider != "" {
-		provider = inputProvider
+	if inputProvider, exists := input["provider"]; exists {
+		if inputProviderStr, ok := inputProvider.(string); ok && inputProviderStr != "" {
+			provider = inputProviderStr
+		}
 	}
 
 	apiKey := s.config.ApiKey
-	if inputApiKey, ok := input["api_key"].(string); ok && inputApiKey != "" {
-		apiKey = inputApiKey
+	if inputApiKey, exists := input["api_key"]; exists {
+		if inputApiKeyStr, ok := inputApiKey.(string); ok && inputApiKeyStr != "" {
+			apiKey = inputApiKeyStr
+		}
 	}
 
 	model := s.config.Model
-	if inputModel, ok := input["model"].(string); ok && inputModel != "" {
-		model = inputModel
+	if inputModel, exists := input["model"]; exists {
+		if inputModelStr, ok := inputModel.(string); ok && inputModelStr != "" {
+			model = inputModelStr
+		}
 	}
 
 	audioURL := s.config.AudioURL
-	if inputAudioURL, ok := input["audio_url"].(string); ok && inputAudioURL != "" {
-		audioURL = inputAudioURL
+	if inputAudioURL, exists := input["audio_url"]; exists {
+		if inputAudioURLStr, ok := inputAudioURL.(string); ok && inputAudioURLStr != "" {
+			audioURL = inputAudioURLStr
+		}
 	}
 
 	audioData := s.config.AudioData
-	if inputAudioData, ok := input["audio_data"].(string); ok && inputAudioData != "" {
-		audioData = inputAudioData
+	if inputAudioData, exists := input["audio_data"]; exists {
+		if inputAudioDataStr, ok := inputAudioData.(string); ok && inputAudioDataStr != "" {
+			audioData = inputAudioDataStr
+		}
 	}
 
 	language := s.config.Language
-	if inputLanguage, ok := input["language"].(string); ok && inputLanguage != "" {
-		language = inputLanguage
+	if inputLanguage, exists := input["language"]; exists {
+		if inputLanguageStr, ok := inputLanguage.(string); ok && inputLanguageStr != "" {
+			language = inputLanguageStr
+		}
 	}
 
 	sampleRate := s.config.SampleRate
-	if inputSampleRate, ok := input["sample_rate"].(float64); ok {
-		sampleRate = int(inputSampleRate)
+	if inputSampleRate, exists := input["sample_rate"]; exists {
+		if inputSampleRateFloat, ok := inputSampleRate.(float64); ok {
+			sampleRate = int(inputSampleRateFloat)
+		}
 	}
 
 	channels := s.config.Channels
-	if inputChannels, ok := input["channels"].(float64); ok {
-		channels = int(inputChannels)
+	if inputChannels, exists := input["channels"]; exists {
+		if inputChannelsFloat, ok := inputChannels.(float64); ok {
+			channels = int(inputChannelsFloat)
+		}
 	}
 
 	format := s.config.Format
-	if inputFormat, ok := input["format"].(string); ok && inputFormat != "" {
-		format = inputFormat
+	if inputFormat, exists := input["format"]; exists {
+		if inputFormatStr, ok := inputFormat.(string); ok && inputFormatStr != "" {
+			format = inputFormatStr
+		}
 	}
 
 	punctuate := s.config.Punctuate
-	if inputPunctuate, ok := input["punctuate"].(bool); ok {
-		punctuate = inputPunctuate
+	if inputPunctuate, exists := input["punctuate"]; exists {
+		if inputPunctuateBool, ok := inputPunctuate.(bool); ok {
+			punctuate = inputPunctuateBool
+		}
 	}
 
 	profanity := s.config.Profanity
-	if inputProfanity, ok := input["profanity"].(string); ok && inputProfanity != "" {
-		profanity = inputProfanity
+	if inputProfanity, exists := input["profanity"]; exists {
+		if inputProfanityStr, ok := inputProfanity.(string); ok && inputProfanityStr != "" {
+			profanity = inputProfanityStr
+		}
 	}
 
 	timestamps := s.config.Timestamps
-	if inputTimestamps, ok := input["timestamps"].(bool); ok {
-		timestamps = inputTimestamps
+	if inputTimestamps, exists := input["timestamps"]; exists {
+		if inputTimestampsBool, ok := inputTimestamps.(bool); ok {
+			timestamps = inputTimestampsBool
+		}
 	}
 
 	diarization := s.config.Diarization
-	if inputDiarization, ok := input["diarization"].(bool); ok {
-		diarization = inputDiarization
+	if inputDiarization, exists := input["diarization"]; exists {
+		if inputDiarizationBool, ok := inputDiarization.(bool); ok {
+			diarization = inputDiarizationBool
+		}
 	}
 
 	customParams := s.config.CustomParams
-	if inputCustomParams, ok := input["custom_params"].(map[string]interface{}); ok {
-		customParams = inputCustomParams
+	if inputCustomParams, exists := input["custom_params"]; exists {
+		if inputCustomParamsMap, ok := inputCustomParams.(map[string]interface{}); ok {
+			customParams = inputCustomParamsMap
+		}
 	}
 
 	timeout := s.config.Timeout
-	if inputTimeout, ok := input["timeout"].(float64); ok {
-		timeout = int(inputTimeout)
+	if inputTimeout, exists := input["timeout"]; exists {
+		if inputTimeoutFloat, ok := inputTimeout.(float64); ok {
+			timeout = int(inputTimeoutFloat)
+		}
 	}
 
 	enabled := s.config.Enabled
-	if inputEnabled, ok := input["enabled"].(bool); ok {
-		enabled = inputEnabled
+	if inputEnabled, exists := input["enabled"]; exists {
+		if inputEnabledBool, ok := inputEnabled.(bool); ok {
+			enabled = inputEnabledBool
+		}
 	}
 
 	// Check if node should be enabled
 	if !enabled {
-		return &engine.ExecutionResult{
-			Status: "success",
-			Data: map[string]interface{}{
-				"message": "speech-to-text processor disabled, not executed",
-				"enabled": false,
-			},
-			Timestamp: time.Now(),
+		return map[string]interface{}{
+			"success": true,
+			"message": "speech-to-text processor disabled, not executed",
+			"enabled": false,
+			"timestamp": time.Now().Unix(),
 		}, nil
 	}
 
 	// Validate required input
 	if audioURL == "" && audioData == "" {
-		return &engine.ExecutionResult{
-			Status:    "error",
-			Error:     "either audio_url or audio_data is required for speech-to-text processing",
-			Timestamp: time.Now(),
+		return map[string]interface{}{
+			"success": false,
+			"error":   "either audio_url or audio_data is required for speech-to-text processing",
+			"timestamp": time.Now().Unix(),
 		}, nil
 	}
 
 	if apiKey == "" {
-		return &engine.ExecutionResult{
-			Status:    "error",
-			Error:     "api_key is required for speech-to-text processing",
-			Timestamp: time.Now(),
+		return map[string]interface{}{
+			"success": false,
+			"error":   "api_key is required for speech-to-text processing",
+			"timestamp": time.Now().Unix(),
 		}, nil
 	}
 
@@ -212,30 +258,18 @@ func (s *SpeechToTextNode) Execute(ctx context.Context, input map[string]interfa
 		}
 	}
 
-	return &engine.ExecutionResult{
-		Status: "success",
-		Data: map[string]interface{}{
-			"message":        "speech-to-text processing completed",
-			"result":         result,
-			"provider":       provider,
-			"model":          model,
-			"language":       language,
-			"format":         format,
-			"punctuated":     punctuate,
-			"timestamped":    timestamps,
-			"diarized":       diarization,
-			"timestamp":      time.Now().Unix(),
-		},
-		Timestamp: time.Now(),
+	return map[string]interface{}{
+		"success": true,
+		"message":        "speech-to-text processing completed",
+		"result":         result,
+		"provider":       provider,
+		"model":          model,
+		"language":       language,
+		"format":         format,
+		"punctuated":     punctuate,
+		"timestamped":    timestamps,
+		"diarized":       diarization,
+		"timestamp":      time.Now().Unix(),
 	}, nil
 }
 
-// GetType returns the type of the node
-func (s *SpeechToTextNode) GetType() string {
-	return "speech_to_text"
-}
-
-// GetID returns a unique ID for the node instance
-func (s *SpeechToTextNode) GetID() string {
-	return "stt_" + fmt.Sprintf("%d", time.Now().Unix())
-}

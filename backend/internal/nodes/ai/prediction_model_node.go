@@ -2,11 +2,11 @@ package ai
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"time"
 
-	"github.com/citadel-agent/backend/internal/engine"
+	"github.com/citadel-agent/backend/internal/interfaces"
+	"github.com/citadel-agent/backend/internal/nodes/utils"
 )
 
 // PredictionModelNodeConfig represents the configuration for a Prediction Model node
@@ -31,137 +31,182 @@ type PredictionModelNode struct {
 }
 
 // NewPredictionModelNode creates a new Prediction Model node
-func NewPredictionModelNode(config map[string]interface{}) (engine.NodeInstance, error) {
-	// Convert interface{} map to JSON and back to struct
-	jsonData, err := json.Marshal(config)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal config: %v", err)
+func NewPredictionModelNode(config map[string]interface{}) (interfaces.NodeInstance, error) {
+	// Extract config values
+	provider := utils.GetStringVal(config["provider"], "huggingface")
+	apiKey := utils.GetStringVal(config["api_key"], "")
+	model := utils.GetStringVal(config["model"], "microsoft/regnet-600mf")
+	predictionType := utils.GetStringVal(config["prediction_type"], "classification")
+	modelEndpoint := utils.GetStringVal(config["model_endpoint"], "")
+
+	features := make([]interface{}, 0)
+	if featuresVal, exists := config["features"]; exists {
+		if featuresSlice, ok := featuresVal.([]interface{}); ok {
+			features = featuresSlice
+		}
 	}
 
-	var predictionConfig PredictionModelNodeConfig
-	err = json.Unmarshal(jsonData, &predictionConfig)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal config: %v", err)
+	featureNames := make([]string, 0)
+	if namesVal, exists := config["feature_names"]; exists {
+		if namesSlice, ok := namesVal.([]interface{}); ok {
+			featureNames = make([]string, len(namesSlice))
+			for i, name := range namesSlice {
+				featureNames[i] = fmt.Sprintf("%v", name)
+			}
+		}
 	}
 
-	// Validate required fields
-	if predictionConfig.Provider == "" {
-		predictionConfig.Provider = "huggingface" // default provider
+	confidence := getFloat64Value(config["confidence"], 0.7)
+	customParams := make(map[string]interface{})
+	if paramsVal, exists := config["custom_params"]; exists {
+		if paramsMap, ok := paramsVal.(map[string]interface{}); ok {
+			customParams = paramsMap
+		}
+	}
+	timeout := getIntValue(config["timeout"], 30)
+	enabled := getBoolValue(config["enabled"], true)
+
+	returnFeatures := false
+	if val, exists := config["return_features"]; exists {
+		if b, ok := val.(bool); ok {
+			returnFeatures = b
+		}
 	}
 
-	if predictionConfig.Model == "" {
-		predictionConfig.Model = "microsoft/regnet-600mf" // default model
-	}
-
-	if predictionConfig.PredictionType == "" {
-		predictionConfig.PredictionType = "classification" // default type
-	}
-
-	if predictionConfig.Confidence == 0 {
-		predictionConfig.Confidence = 0.7 // default confidence of 70%
-	}
-
-	if predictionConfig.Timeout == 0 {
-		predictionConfig.Timeout = 30 // default timeout of 30 seconds
+	nodeConfig := &PredictionModelNodeConfig{
+		Provider:       provider,
+		ApiKey:         apiKey,
+		Model:          model,
+		Features:       features,
+		FeatureNames:   featureNames,
+		PredictionType: predictionType,
+		ModelEndpoint:  modelEndpoint,
+		Confidence:     confidence,
+		ReturnFeatures: returnFeatures,
+		CustomParams:   customParams,
+		Timeout:        timeout,
+		Enabled:        enabled,
 	}
 
 	return &PredictionModelNode{
-		config: &predictionConfig,
+		config: nodeConfig,
 	}, nil
 }
 
 // Execute implements the NodeInstance interface
-func (p *PredictionModelNode) Execute(ctx context.Context, input map[string]interface{}) (*engine.ExecutionResult, error) {
+func (p PredictionModelNode) Execute(ctx context.Context, input map[string]interface{}) (map[string]interface{}, error) {
 	// Override configuration with input values if provided
 	provider := p.config.Provider
-	if inputProvider, ok := input["provider"].(string); ok && inputProvider != "" {
-		provider = inputProvider
+	if inputProvider, exists := input["provider"]; exists {
+		if inputProviderStr, ok := inputProvider.(string); ok && inputProviderStr != "" {
+			provider = inputProviderStr
+		}
 	}
 
 	apiKey := p.config.ApiKey
-	if inputApiKey, ok := input["api_key"].(string); ok && inputApiKey != "" {
-		apiKey = inputApiKey
+	if inputApiKey, exists := input["api_key"]; exists {
+		if inputApiKeyStr, ok := inputApiKey.(string); ok && inputApiKeyStr != "" {
+			apiKey = inputApiKeyStr
+		}
 	}
 
 	model := p.config.Model
-	if inputModel, ok := input["model"].(string); ok && inputModel != "" {
-		model = inputModel
+	if inputModel, exists := input["model"]; exists {
+		if inputModelStr, ok := inputModel.(string); ok && inputModelStr != "" {
+			model = inputModelStr
+		}
 	}
 
 	features := p.config.Features
-	if inputFeatures, ok := input["features"].([]interface{}); ok {
-		features = inputFeatures
+	if inputFeatures, exists := input["features"]; exists {
+		if inputFeaturesSlice, ok := inputFeatures.([]interface{}); ok {
+			features = inputFeaturesSlice
+		}
 	}
 
 	featureNames := p.config.FeatureNames
-	if inputFeatureNames, ok := input["feature_names"].([]interface{}); ok {
-		featureNames = make([]string, len(inputFeatureNames))
-		for i, name := range inputFeatureNames {
-			featureNames[i] = fmt.Sprintf("%v", name)
+	if inputFeatureNames, exists := input["feature_names"]; exists {
+		if inputFeatureNamesSlice, ok := inputFeatureNames.([]interface{}); ok {
+			featureNames = make([]string, len(inputFeatureNamesSlice))
+			for i, name := range inputFeatureNamesSlice {
+				featureNames[i] = fmt.Sprintf("%v", name)
+			}
 		}
 	}
 
 	predictionType := p.config.PredictionType
-	if inputPredictionType, ok := input["prediction_type"].(string); ok && inputPredictionType != "" {
-		predictionType = inputPredictionType
+	if inputPredictionType, exists := input["prediction_type"]; exists {
+		if inputPredictionTypeStr, ok := inputPredictionType.(string); ok && inputPredictionTypeStr != "" {
+			predictionType = inputPredictionTypeStr
+		}
 	}
 
 	modelEndpoint := p.config.ModelEndpoint
-	if inputEndpoint, ok := input["model_endpoint"].(string); ok && inputEndpoint != "" {
-		modelEndpoint = inputEndpoint
+	if inputEndpoint, exists := input["model_endpoint"]; exists {
+		if inputEndpointStr, ok := inputEndpoint.(string); ok && inputEndpointStr != "" {
+			modelEndpoint = inputEndpointStr
+		}
 	}
 
 	confidence := p.config.Confidence
-	if inputConfidence, ok := input["confidence"].(float64); ok {
-		confidence = inputConfidence
+	if inputConfidence, exists := input["confidence"]; exists {
+		if inputConfidenceFloat, ok := inputConfidence.(float64); ok {
+			confidence = inputConfidenceFloat
+		}
 	}
 
 	returnFeatures := p.config.ReturnFeatures
-	if inputReturnFeatures, ok := input["return_features"].(bool); ok {
-		returnFeatures = inputReturnFeatures
+	if inputReturnFeatures, exists := input["return_features"]; exists {
+		if inputReturnFeaturesBool, ok := inputReturnFeatures.(bool); ok {
+			returnFeatures = inputReturnFeaturesBool
+		}
 	}
 
 	customParams := p.config.CustomParams
-	if inputCustomParams, ok := input["custom_params"].(map[string]interface{}); ok {
-		customParams = inputCustomParams
+	if inputCustomParams, exists := input["custom_params"]; exists {
+		if inputCustomParamsMap, ok := inputCustomParams.(map[string]interface{}); ok {
+			customParams = inputCustomParamsMap
+		}
 	}
 
 	timeout := p.config.Timeout
-	if inputTimeout, ok := input["timeout"].(float64); ok {
-		timeout = int(inputTimeout)
+	if inputTimeout, exists := input["timeout"]; exists {
+		if inputTimeoutFloat, ok := inputTimeout.(float64); ok {
+			timeout = int(inputTimeoutFloat)
+		}
 	}
 
 	enabled := p.config.Enabled
-	if inputEnabled, ok := input["enabled"].(bool); ok {
-		enabled = inputEnabled
+	if inputEnabled, exists := input["enabled"]; exists {
+		if inputEnabledBool, ok := inputEnabled.(bool); ok {
+			enabled = inputEnabledBool
+		}
 	}
 
 	// Check if node should be enabled
 	if !enabled {
-		return &engine.ExecutionResult{
-			Status: "success",
-			Data: map[string]interface{}{
-				"message": "prediction model processor disabled, not executed",
-				"enabled": false,
-			},
-			Timestamp: time.Now(),
+		return map[string]interface{}{
+			"success": true,
+			"message": "prediction model processor disabled, not executed",
+			"enabled": false,
+			"timestamp": time.Now().Unix(),
 		}, nil
 	}
 
 	// Validate required input
 	if len(features) == 0 {
-		return &engine.ExecutionResult{
-			Status:    "error",
-			Error:     "features are required for prediction",
-			Timestamp: time.Now(),
+		return map[string]interface{}{
+			"success": false,
+			"error":   "features are required for prediction",
+			"timestamp": time.Now().Unix(),
 		}, nil
 	}
 
 	if apiKey == "" {
-		return &engine.ExecutionResult{
-			Status:    "error",
-			Error:     "api_key is required for prediction",
-			Timestamp: time.Now(),
+		return map[string]interface{}{
+			"success": false,
+			"error":   "api_key is required for prediction",
+			"timestamp": time.Now().Unix(),
 		}, nil
 	}
 
@@ -224,31 +269,19 @@ func (p *PredictionModelNode) Execute(ctx context.Context, input map[string]inte
 
 	// Check if confidence meets threshold
 	if predictionConfidence < confidence {
-		result["warning"] = fmt.Sprintf("Prediction confidence (%.2f) is below threshold (%.2f)", 
+		result["warning"] = fmt.Sprintf("Prediction confidence (%.2f) is below threshold (%.2f)",
 			predictionConfidence, confidence)
 	}
 
-	return &engine.ExecutionResult{
-		Status: "success",
-		Data: map[string]interface{}{
-			"message":        "prediction completed",
-			"result":         result,
-			"provider":       provider,
-			"model":          model,
-			"prediction_type": predictionType,
-			"return_features": returnFeatures,
-			"timestamp":      time.Now().Unix(),
-		},
-		Timestamp: time.Now(),
+	return map[string]interface{}{
+		"success": true,
+		"message":        "prediction completed",
+		"result":         result,
+		"provider":       provider,
+		"model":          model,
+		"prediction_type": predictionType,
+		"return_features": returnFeatures,
+		"timestamp":      time.Now().Unix(),
 	}, nil
 }
 
-// GetType returns the type of the node
-func (p *PredictionModelNode) GetType() string {
-	return "prediction_model"
-}
-
-// GetID returns a unique ID for the node instance
-func (p *PredictionModelNode) GetID() string {
-	return "prediction_model_" + fmt.Sprintf("%d", time.Now().Unix())
-}

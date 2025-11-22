@@ -8,32 +8,6 @@ import (
 	"github.com/robertkrimen/otto"
 )
 
-// PluginType defines the type of plugin
-type PluginType string
-
-const (
-	JavascriptPlugin PluginType = "javascript"
-	PythonPlugin     PluginType = "python"
-)
-
-// Plugin represents a single plugin
-type Plugin struct {
-	ID          string      `json:"id"`
-	Name        string      `json:"name"`
-	Description string      `json:"description"`
-	Type        PluginType  `json:"type"`
-	Code        string      `json:"code"`
-	Schema      interface{} `json:"schema"` // JSON schema for plugin configuration
-	CreatedAt   time.Time   `json:"created_at"`
-	UpdatedAt   time.Time   `json:"updated_at"`
-}
-
-// PluginResult represents the result of plugin execution
-type PluginResult struct {
-	Success bool        `json:"success"`
-	Data    interface{} `json:"data,omitempty"`
-	Error   string      `json:"error,omitempty"`
-}
 
 // PluginExecutor defines the interface for executing plugins
 type PluginExecutor interface {

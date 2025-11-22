@@ -12,7 +12,7 @@ import (
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
-	"github.com/citadel-agent/backend/internal/engine"
+	"github.com/citadel-agent/backend/internal/interfaces"
 )
 
 // GORMDatabaseNodeConfig represents the configuration for a GORM database node
@@ -37,7 +37,7 @@ type GORMDatabaseNode struct {
 }
 
 // NewGORMDatabaseNode creates a new GORM database node
-func NewGORMDatabaseNode(config map[string]interface{}) (engine.NodeInstance, error) {
+func NewGORMDatabaseNode(config map[string]interface{}) (interfaces.NodeInstance, error) {
 	// Convert interface{} map to JSON and back to struct
 	jsonData, err := json.Marshal(config)
 	if err != nil {
@@ -111,7 +111,7 @@ func NewGORMDatabaseNode(config map[string]interface{}) (engine.NodeInstance, er
 }
 
 // Execute implements the NodeInstance interface
-func (g *GORMDatabaseNode) Execute(ctx context.Context, input map[string]interface{}) (*engine.ExecutionResult, error) {
+func (g *GORMDatabaseNode) Execute(ctx context.Context, input map[string]interface{}) (map[string]interface{}, error) {
 	// Override configuration with input values if provided
 	query := g.config.Query
 	if inputQuery, ok := input["query"].(string); ok && inputQuery != "" {
@@ -158,23 +158,23 @@ func (g *GORMDatabaseNode) Execute(ctx context.Context, input map[string]interfa
 	}
 
 	if err != nil {
-		return &engine.ExecutionResult{
-			Status:    "error",
-			Error:     err.Error(),
-			Timestamp: time.Now(),
+		return map[string]interface{}{
+			"status":    "error",
+			"error":     err.Error(),
+			"timestamp": time.Now().Unix(),
 		}, nil
 	}
 
-	return &engine.ExecutionResult{
-		Status: "success",
-		Data: map[string]interface{}{
+	return map[string]interface{}{
+		"status": "success",
+		"data": map[string]interface{}{
 			"result":      result,
 			"query_type":  queryType,
 			"model":       model,
 			"database":    g.config.Type,
 			"timestamp":   time.Now().Unix(),
 		},
-		Timestamp: time.Now(),
+		"timestamp": time.Now().Unix(),
 	}, nil
 }
 

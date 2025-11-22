@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"citadel-agent/backend/internal/workflow/core/engine"
+	"github.com/citadel-agent/backend/internal/interfaces"
 )
 
 // AccessControlType represents the type of access control
@@ -221,7 +221,7 @@ func (acn *AccessControlNode) checkCustomAccess(userID, resource, action string)
 }
 
 // AccessControlNodeFromConfig creates a new access control node from a configuration map
-func AccessControlNodeFromConfig(config map[string]interface{}) (engine.NodeInstance, error) {
+func AccessControlNodeFromConfig(config map[string]interface{}) (interfaces.NodeInstance, error) {
 	var controlType AccessControlType
 	if ct, exists := config["control_type"]; exists {
 		if ctStr, ok := ct.(string); ok {
@@ -327,7 +327,7 @@ func AccessControlNodeFromConfig(config map[string]interface{}) (engine.NodeInst
 
 // RegisterAccessControlNode registers the access control node type with the engine
 func RegisterAccessControlNode(registry *engine.NodeRegistry) {
-	registry.RegisterNodeType("access_control", func(config map[string]interface{}) (engine.NodeInstance, error) {
+	registry.RegisterNodeType("access_control", func(config map[string]interface{}) (interfaces.NodeInstance, error) {
 		return AccessControlNodeFromConfig(config)
 	})
 }

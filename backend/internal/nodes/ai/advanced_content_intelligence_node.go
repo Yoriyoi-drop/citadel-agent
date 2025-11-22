@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"citadel-agent/backend/internal/workflow/core/engine"
+	"github.com/citadel-agent/backend/internal/interfaces"
 )
 
 // AdvancedContentIntelligenceConfig mewakili konfigurasi untuk node Advanced Content Intelligence
@@ -106,7 +106,7 @@ type AdvancedContentIntelligenceNode struct {
 }
 
 // NewAdvancedContentIntelligenceNode membuat node Advanced Content Intelligence baru
-func NewAdvancedContentIntelligenceNode(config map[string]interface{}) (engine.NodeInstance, error) {
+func NewAdvancedContentIntelligenceNode(config map[string]interface{}) (interfaces.NodeInstance, error) {
 	// Konversi map interface{} ke JSON lalu ke struct
 	jsonData, err := json.Marshal(config)
 	if err != nil {
@@ -592,7 +592,7 @@ func (c *AdvancedContentIntelligenceNode) GetID() string {
 
 // RegisterAdvancedContentIntelligenceNode mendaftarkan node Advanced Content Intelligence dengan engine
 func RegisterAdvancedContentIntelligenceNode(registry *engine.NodeRegistry) {
-	registry.RegisterNodeType("advanced_content_intelligence", func(config map[string]interface{}) (engine.NodeInstance, error) {
+	registry.RegisterNodeType("advanced_content_intelligence", func(config map[string]interface{}) (interfaces.NodeInstance, error) {
 		return NewAdvancedContentIntelligenceNode(config)
 	})
 }

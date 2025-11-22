@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/citadel-agent/backend/internal/ai"
 	"github.com/citadel-agent/backend/internal/runtimes"
 	"github.com/citadel-agent/backend/internal/interfaces" // Changed to use interface instead of engine
 )
@@ -509,7 +508,7 @@ func toLowerCase(s string) string {
 
 // AIAgentNode executes an AI agent
 type AIAgentNode struct {
-	AIManager *ai.AIManager
+	AIManager interfaces.AIManagerInterface
 }
 
 func (a *AIAgentNode) Execute(ctx context.Context, input map[string]interface{}) (*interfaces.ExecutionResult, error) {

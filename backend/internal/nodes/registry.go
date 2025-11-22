@@ -5,15 +5,16 @@ import (
 	"fmt"
 	"sync"
 
-	"citadel-agent/backend/internal/workflow/core/engine"
-	"citadel-agent/backend/internal/nodes/core"
-	"citadel-agent/backend/internal/nodes/database"
-	"citadel-agent/backend/internal/nodes/workflow"
-	"citadel-agent/backend/internal/nodes/security"
-	"citadel-agent/backend/internal/nodes/debug"
-	"citadel-agent/backend/internal/nodes/utilities"
-	"citadel-agent/backend/internal/nodes/basic"
-	"citadel-agent/backend/internal/nodes/plugins"
+	"github.com/citadel-agent/backend/internal/workflow/core/engine"
+	"github.com/citadel-agent/backend/internal/interfaces"
+	"github.com/citadel-agent/backend/internal/nodes/core"
+	"github.com/citadel-agent/backend/internal/nodes/database"
+	"github.com/citadel-agent/backend/internal/nodes/workflow"
+	"github.com/citadel-agent/backend/internal/nodes/security"
+	"github.com/citadel-agent/backend/internal/nodes/debug"
+	"github.com/citadel-agent/backend/internal/nodes/utilities"
+	"github.com/citadel-agent/backend/internal/nodes/basic"
+	"github.com/citadel-agent/backend/internal/nodes/plugins"
 )
 
 // NodeType represents different types of nodes
@@ -81,7 +82,7 @@ type NodeFactory struct {
 }
 
 // NodeConstructor is a function that creates a new node instance
-type NodeConstructor func(config map[string]interface{}) (engine.NodeInstance, error)
+type NodeConstructor func(config map[string]interface{}) (interfaces.NodeInstance, error)
 
 // Global node factory
 var globalNodeFactory *NodeFactory
@@ -266,7 +267,7 @@ func (nf *NodeFactory) RegisterNodeType(nodeType NodeType, constructor NodeConst
 }
 
 // CreateNode creates a new node instance based on the node type and configuration
-func (nf *NodeFactory) CreateNode(nodeType NodeType, config map[string]interface{}) (engine.NodeInstance, error) {
+func (nf *NodeFactory) CreateNode(nodeType NodeType, config map[string]interface{}) (interfaces.NodeInstance, error) {
 	nf.mutex.RLock()
 	constructor, exists := nf.registry[nodeType]
 	nf.mutex.RUnlock()

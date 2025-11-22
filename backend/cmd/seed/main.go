@@ -47,21 +47,45 @@ func seedDatabase(pool *pgxpool.Pool) error {
 	ctx := context.Background()
 
 	// Create default admin user
-	adminPassword := "admin123" // This should be changed in production
+	adminPassword := os.Getenv("ADMIN_PASSWORD")
+	if adminPassword == "" {
+		adminPassword = "admin123" // Default for development only
+	}
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(adminPassword), bcrypt.DefaultCost)
 	if err != nil {
 		return fmt.Errorf("failed to hash password: %w", err)
 	}
 
+	// Set defaults for admin user if environment variables are not set
+	adminEmail := os.Getenv("ADMIN_EMAIL")
+	if adminEmail == "" {
+		adminEmail = "admin@citadel-agent.com"
+	}
+
+	adminUsername := os.Getenv("ADMIN_USERNAME")
+	if adminUsername == "" {
+		adminUsername = "admin"
+	}
+
+	adminFirstName := os.Getenv("ADMIN_FIRST_NAME")
+	if adminFirstName == "" {
+		adminFirstName = "Admin"
+	}
+
+	adminLastName := os.Getenv("ADMIN_LAST_NAME")
+	if adminLastName == "" {
+		adminLastName = "User"
+	}
+
 	_, err = pool.Exec(ctx, `
-		INSERT INTO users (email, username, password_hash, first_name, last_name) 
+		INSERT INTO users (email, username, password_hash, first_name, last_name)
 		VALUES ($1, $2, $3, $4, $5)
 		ON CONFLICT (email) DO NOTHING`,
-		"admin@citadel-agent.com",
-		"admin",
+		adminEmail,
+		adminUsername,
 		string(hashedPassword),
-		"Admin",
-		"User",
+		adminFirstName,
+		adminLastName,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to create admin user: %w", err)

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"citadel-agent/backend/internal/workflow/core/engine"
+	"github.com/citadel-agent/backend/internal/interfaces"
 )
 
 // AdvancedRecommendationEngineConfig mewakili konfigurasi untuk node Advanced Recommendation Engine
@@ -61,7 +61,7 @@ type AdvancedRecommendationEngineNode struct {
 }
 
 // NewAdvancedRecommendationEngineNode membuat node Advanced Recommendation Engine baru
-func NewAdvancedRecommendationEngineNode(config map[string]interface{}) (engine.NodeInstance, error) {
+func NewAdvancedRecommendationEngineNode(config map[string]interface{}) (interfaces.NodeInstance, error) {
 	// Konversi map interface{} ke JSON lalu ke struct
 	jsonData, err := json.Marshal(config)
 	if err != nil {
@@ -407,7 +407,7 @@ func (r *AdvancedRecommendationEngineNode) GetID() string {
 
 // RegisterAdvancedRecommendationEngineNode mendaftarkan node Advanced Recommendation Engine dengan engine
 func RegisterAdvancedRecommendationEngineNode(registry *engine.NodeRegistry) {
-	registry.RegisterNodeType("advanced_recommendation_engine", func(config map[string]interface{}) (engine.NodeInstance, error) {
+	registry.RegisterNodeType("advanced_recommendation_engine", func(config map[string]interface{}) (interfaces.NodeInstance, error) {
 		return NewAdvancedRecommendationEngineNode(config)
 	})
 }

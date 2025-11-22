@@ -2,11 +2,11 @@ package ai
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"time"
 
-	"github.com/citadel-agent/backend/internal/engine"
+	"github.com/citadel-agent/backend/internal/interfaces"
+	"github.com/citadel-agent/backend/internal/nodes/utils"
 )
 
 // SentimentAnalysisNodeConfig represents the configuration for a Sentiment Analysis node
@@ -30,125 +30,150 @@ type SentimentAnalysisNode struct {
 }
 
 // NewSentimentAnalysisNode creates a new Sentiment Analysis node
-func NewSentimentAnalysisNode(config map[string]interface{}) (engine.NodeInstance, error) {
-	// Convert interface{} map to JSON and back to struct
-	jsonData, err := json.Marshal(config)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal config: %v", err)
+func NewSentimentAnalysisNode(config map[string]interface{}) (interfaces.NodeInstance, error) {
+	// Extract config values
+	provider := utils.GetStringVal(config["provider"], "openai")
+	apiKey := utils.GetStringVal(config["api_key"], "")
+	model := utils.GetStringVal(config["model"], "gpt-3.5-turbo")
+	text := utils.GetStringVal(config["text"], "")
+	language := utils.GetStringVal(config["language"], "en")
+	maxSentiment := utils.GetStringVal(config["max_sentiment"], "")
+
+	returnScores := utils.GetBoolVal(config["return_scores"], false)
+	returnTokens := utils.GetBoolVal(config["return_tokens"], false)
+	enabled := utils.GetBoolVal(config["enabled"], true)
+	timeout := utils.GetIntVal(config["timeout"], 30)
+
+	customParams := make(map[string]interface{})
+	if paramsVal, exists := config["custom_params"]; exists {
+		if paramsMap, ok := paramsVal.(map[string]interface{}); ok {
+			customParams = paramsMap
+		}
 	}
 
-	var sentimentConfig SentimentAnalysisNodeConfig
-	err = json.Unmarshal(jsonData, &sentimentConfig)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal config: %v", err)
-	}
-
-	// Validate required fields
-	if sentimentConfig.Provider == "" {
-		sentimentConfig.Provider = "openai" // default provider
-	}
-
-	if sentimentConfig.Model == "" {
-		sentimentConfig.Model = "gpt-3.5-turbo" // default model
-	}
-
-	if sentimentConfig.Language == "" {
-		sentimentConfig.Language = "en" // default language
-	}
-
-	if sentimentConfig.Timeout == 0 {
-		sentimentConfig.Timeout = 30 // default timeout of 30 seconds
+	nodeConfig := &SentimentAnalysisNodeConfig{
+		Provider:       provider,
+		ApiKey:         apiKey,
+		Model:          model,
+		Text:           text,
+		Language:       language,
+		ReturnScores:   returnScores,
+		ReturnTokens:   returnTokens,
+		MaxSentiment:   maxSentiment,
+		CustomParams:   customParams,
+		Timeout:        timeout,
+		Enabled:        enabled,
 	}
 
 	return &SentimentAnalysisNode{
-		config: &sentimentConfig,
+		config: nodeConfig,
 	}, nil
 }
 
 // Execute implements the NodeInstance interface
-func (s *SentimentAnalysisNode) Execute(ctx context.Context, input map[string]interface{}) (*engine.ExecutionResult, error) {
+func (s *SentimentAnalysisNode) Execute(ctx context.Context, input map[string]interface{}) (map[string]interface{}, error) {
 	// Override configuration with input values if provided
 	provider := s.config.Provider
-	if inputProvider, ok := input["provider"].(string); ok && inputProvider != "" {
-		provider = inputProvider
+	if inputProvider, exists := input["provider"]; exists {
+		if inputProviderStr, ok := inputProvider.(string); ok && inputProviderStr != "" {
+			provider = inputProviderStr
+		}
 	}
 
 	apiKey := s.config.ApiKey
-	if inputApiKey, ok := input["api_key"].(string); ok && inputApiKey != "" {
-		apiKey = inputApiKey
+	if inputApiKey, exists := input["api_key"]; exists {
+		if inputApiKeyStr, ok := inputApiKey.(string); ok && inputApiKeyStr != "" {
+			apiKey = inputApiKeyStr
+		}
 	}
 
 	model := s.config.Model
-	if inputModel, ok := input["model"].(string); ok && inputModel != "" {
-		model = inputModel
+	if inputModel, exists := input["model"]; exists {
+		if inputModelStr, ok := inputModel.(string); ok && inputModelStr != "" {
+			model = inputModelStr
+		}
 	}
 
 	text := s.config.Text
-	if inputText, ok := input["text"].(string); ok && inputText != "" {
-		text = inputText
+	if inputText, exists := input["text"]; exists {
+		if inputTextStr, ok := inputText.(string); ok && inputTextStr != "" {
+			text = inputTextStr
+		}
 	}
 
 	language := s.config.Language
-	if inputLanguage, ok := input["language"].(string); ok && inputLanguage != "" {
-		language = inputLanguage
+	if inputLanguage, exists := input["language"]; exists {
+		if inputLanguageStr, ok := inputLanguage.(string); ok && inputLanguageStr != "" {
+			language = inputLanguageStr
+		}
 	}
 
 	returnScores := s.config.ReturnScores
-	if inputReturnScores, ok := input["return_scores"].(bool); ok {
-		returnScores = inputReturnScores
+	if inputReturnScores, exists := input["return_scores"]; exists {
+		if inputReturnScoresBool, ok := inputReturnScores.(bool); ok {
+			returnScores = inputReturnScoresBool
+		}
 	}
 
 	returnTokens := s.config.ReturnTokens
-	if inputReturnTokens, ok := input["return_tokens"].(bool); ok {
-		returnTokens = inputReturnTokens
+	if inputReturnTokens, exists := input["return_tokens"]; exists {
+		if inputReturnTokensBool, ok := inputReturnTokens.(bool); ok {
+			returnTokens = inputReturnTokensBool
+		}
 	}
 
 	maxSentiment := s.config.MaxSentiment
-	if inputMaxSentiment, ok := input["max_sentiment"].(string); ok && inputMaxSentiment != "" {
-		maxSentiment = inputMaxSentiment
+	if inputMaxSentiment, exists := input["max_sentiment"]; exists {
+		if inputMaxSentimentStr, ok := inputMaxSentiment.(string); ok && inputMaxSentimentStr != "" {
+			maxSentiment = inputMaxSentimentStr
+		}
 	}
 
 	customParams := s.config.CustomParams
-	if inputCustomParams, ok := input["custom_params"].(map[string]interface{}); ok {
-		customParams = inputCustomParams
+	if inputCustomParams, exists := input["custom_params"]; exists {
+		if inputCustomParamsMap, ok := inputCustomParams.(map[string]interface{}); ok {
+			customParams = inputCustomParamsMap
+		}
 	}
 
 	timeout := s.config.Timeout
-	if inputTimeout, ok := input["timeout"].(float64); ok {
-		timeout = int(inputTimeout)
+	if inputTimeout, exists := input["timeout"]; exists {
+		if inputTimeoutFloat, ok := inputTimeout.(float64); ok {
+			timeout = int(inputTimeoutFloat)
+		}
 	}
 
 	enabled := s.config.Enabled
-	if inputEnabled, ok := input["enabled"].(bool); ok {
-		enabled = inputEnabled
+	if inputEnabled, exists := input["enabled"]; exists {
+		if inputEnabledBool, ok := inputEnabled.(bool); ok {
+			enabled = inputEnabledBool
+		}
 	}
 
 	// Check if node should be enabled
 	if !enabled {
-		return &engine.ExecutionResult{
-			Status: "success",
-			Data: map[string]interface{}{
-				"message": "sentiment analysis processor disabled, not executed",
-				"enabled": false,
-			},
-			Timestamp: time.Now(),
+		return map[string]interface{}{
+			"success": true,
+			"message": "sentiment analysis processor disabled, not executed",
+			"enabled": false,
+			"timestamp": time.Now().Unix(),
 		}, nil
 	}
 
 	// Validate required input
 	if text == "" {
-		return &engine.ExecutionResult{
-			Status:    "error",
-			Error:     "text is required for sentiment analysis",
-			Timestamp: time.Now(),
+		return map[string]interface{}{
+			"success": false,
+			"error":   "text is required for sentiment analysis",
+			"timestamp": time.Now().Unix(),
 		}, nil
 	}
 
 	if apiKey == "" {
-		return &engine.ExecutionResult{
-			Status:    "error",
-			Error:     "api_key is required for sentiment analysis",
-			Timestamp: time.Now(),
+		return map[string]interface{}{
+			"success": false,
+			"error":   "api_key is required for sentiment analysis",
+			"timestamp": time.Now().Unix(),
 		}, nil
 	}
 
@@ -231,19 +256,16 @@ func (s *SentimentAnalysisNode) Execute(ctx context.Context, input map[string]in
 		}
 	}
 
-	return &engine.ExecutionResult{
-		Status: "success",
-		Data: map[string]interface{}{
-			"message":        "sentiment analysis completed",
-			"result":         result,
-			"provider":       provider,
-			"model":          model,
-			"language":       language,
-			"return_scores":  returnScores,
-			"return_tokens":  returnTokens,
-			"timestamp":      time.Now().Unix(),
-		},
-		Timestamp: time.Now(),
+	return map[string]interface{}{
+		"success": true,
+		"message":        "sentiment analysis completed",
+		"result":         result,
+		"provider":       provider,
+		"model":          model,
+		"language":       language,
+		"return_scores":  returnScores,
+		"return_tokens":  returnTokens,
+		"timestamp":      time.Now().Unix(),
 	}, nil
 }
 
@@ -271,12 +293,3 @@ func contains(s, substr string) bool {
 	return false
 }
 
-// GetType returns the type of the node
-func (s *SentimentAnalysisNode) GetType() string {
-	return "sentiment_analysis"
-}
-
-// GetID returns a unique ID for the node instance
-func (s *SentimentAnalysisNode) GetID() string {
-	return "sentiment_analysis_" + fmt.Sprintf("%d", time.Now().Unix())
-}

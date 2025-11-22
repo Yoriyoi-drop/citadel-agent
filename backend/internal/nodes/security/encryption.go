@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"time"
 
-	"citadel-agent/backend/internal/workflow/core/engine"
+	"github.com/citadel-agent/backend/internal/interfaces"
 )
 
 // EncryptionMode represents the encryption mode
@@ -227,7 +227,7 @@ func (en *EncryptionNode) decryptData(encryptedDataBase64, key string, algorithm
 }
 
 // EncryptionNodeFromConfig creates a new encryption node from a configuration map
-func EncryptionNodeFromConfig(config map[string]interface{}) (engine.NodeInstance, error) {
+func EncryptionNodeFromConfig(config map[string]interface{}) (interfaces.NodeInstance, error) {
 	var mode EncryptionMode
 	if m, exists := config["mode"]; exists {
 		if mStr, ok := m.(string); ok {
@@ -260,7 +260,7 @@ func EncryptionNodeFromConfig(config map[string]interface{}) (engine.NodeInstanc
 
 // RegisterEncryptionNode registers the encryption node type with the engine
 func RegisterEncryptionNode(registry *engine.NodeRegistry) {
-	registry.RegisterNodeType("encryption", func(config map[string]interface{}) (engine.NodeInstance, error) {
+	registry.RegisterNodeType("encryption", func(config map[string]interface{}) (interfaces.NodeInstance, error) {
 		return EncryptionNodeFromConfig(config)
 	})
 }

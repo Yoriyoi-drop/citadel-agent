@@ -7,11 +7,11 @@ import (
 	"log"
 	"time"
 
-	"citadel-agent/backend/config"
-	"citadel-agent/backend/internal/ai"
-	"citadel-agent/backend/internal/api"
-	"citadel-agent/backend/internal/repositories"
-	"citadel-agent/backend/internal/services"
+	"github.com/citadel-agent/backend/config"
+	"github.com/citadel-agent/backend/internal/ai"
+	"github.com/citadel-agent/backend/internal/api"
+	"github.com/citadel-agent/backend/internal/repositories"
+	"github.com/citadel-agent/backend/internal/services"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"

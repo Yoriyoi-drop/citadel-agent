@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"citadel-agent/backend/internal/workflow/core/engine"
+	"github.com/citadel-agent/backend/internal/interfaces"
 )
 
 // MLModelTrainingConfig represents the configuration for an ML Model Training node
@@ -47,7 +47,7 @@ type MLModelTrainingNode struct {
 }
 
 // NewMLModelTrainingNode creates a new ML Model Training node
-func NewMLModelTrainingNode(config map[string]interface{}) (engine.NodeInstance, error) {
+func NewMLModelTrainingNode(config map[string]interface{}) (interfaces.NodeInstance, error) {
 	// Convert interface{} map to JSON and back to struct
 	jsonData, err := json.Marshal(config)
 	if err != nil {
@@ -296,7 +296,7 @@ func (m *MLModelTrainingNode) GetID() string {
 
 // RegisterMLModelTrainingNode registers the ML Model Training node type with the engine
 func RegisterMLModelTrainingNode(registry *engine.NodeRegistry) {
-	registry.RegisterNodeType("ml_model_training", func(config map[string]interface{}) (engine.NodeInstance, error) {
+	registry.RegisterNodeType("ml_model_training", func(config map[string]interface{}) (interfaces.NodeInstance, error) {
 		return NewMLModelTrainingNode(config)
 	})
 }

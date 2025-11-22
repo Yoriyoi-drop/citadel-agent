@@ -7,7 +7,7 @@ import (
 	"runtime"
 	"time"
 
-	"citadel-agent/backend/internal/workflow/core/engine"
+	"github.com/citadel-agent/backend/internal/workflow/core/engine"
 )
 
 // DebugOperationType represents the type of debug operation

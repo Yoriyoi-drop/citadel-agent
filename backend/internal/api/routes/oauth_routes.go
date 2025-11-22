@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"citadel-agent/backend/internal/api/controllers"
+	"github.com/citadel-agent/backend/internal/api/controllers"
 	"github.com/gofiber/fiber/v2"
 )
 

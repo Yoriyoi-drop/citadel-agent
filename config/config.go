@@ -2,7 +2,6 @@
 package config
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -12,6 +11,7 @@ import (
 	"time"
 
 	"github.com/spf13/viper"
+	"github.com/redis/go-redis/v9"
 )
 
 // Config holds the application configuration
@@ -380,12 +380,12 @@ func DefaultConfig() *Config {
 			},
 		},
 		Database: DatabaseConfig{
-			Host:            "localhost",
-			Port:            5432,
-			Name:            "citadel_agent",
-			User:            "postgres",
-			Password:        "postgres",
-			SSLMode:         "disable",
+			Host:            getEnvOrDefault("DB_HOST", "localhost"),
+			Port:            getEnvOrDefaultInt("DB_PORT", 5432),
+			Name:            getEnvOrDefault("DB_NAME", "citadel_agent"),
+			User:            getEnvOrDefault("DB_USER", "postgres"),
+			Password:        getEnvOrDefault("DB_PASSWORD", "postgres"),
+			SSLMode:         getEnvOrDefault("DB_SSL_MODE", "disable"),
 			MaxOpenConns:    25,
 			MaxIdleConns:    5,
 			ConnMaxLifetime: 5 * time.Minute,
@@ -503,8 +503,6 @@ func DefaultConfig() *Config {
 			ResourceLimits: ResourceLimits{
 				MaxMemoryPerTask: "256MB",
 				MaxCPUPerTask:    "50%",
-				MaxNetworkPerTask: "100Mbps",
-				MaxDiskPerTask:   "1GB",
 				TaskMemoryLimit:  "512MB",
 				TaskCPULimit:     "100%",
 			},
@@ -540,11 +538,10 @@ func DefaultConfig() *Config {
 			MaxContainers:        100,
 			MaxProcessesPerTask:  20,
 			NetworkIsolation:     true,
-			FSEscape:             true,
+			FSEscapePrevention:   true,
 			ReadOnlyRoot:         true,
 			SeccompEnabled:       true,
 			AppArmorEnabled:      false,
-			SyscallFilter:        []string{},
 			WhitelistedSyscalls:  []string{"read", "write", "open", "close", "brk"},
 			BlacklistedSyscalls:  []string{"execve", "fork", "clone"},
 			RuntimePermissions: RuntimePermissions{
@@ -797,4 +794,30 @@ func (c *Config) IsDevelopment() bool {
 // IsTesting returns if the environment is testing
 func (c *Config) IsTesting() bool {
 	return strings.ToLower(c.Environment) == "testing"
+}
+
+// Helper functions to get environment variables with defaults
+func getEnvOrDefault(key, defaultValue string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+	return defaultValue
+}
+
+func getEnvOrDefaultInt(key string, defaultValue int) int {
+	if value := os.Getenv(key); value != "" {
+		if intVal, err := strconv.Atoi(value); err == nil {
+			return intVal
+		}
+	}
+	return defaultValue
+}
+
+func getEnvOrDefaultBool(key string, defaultValue bool) bool {
+	if value := os.Getenv(key); value != "" {
+		if boolVal, err := strconv.ParseBool(value); err == nil {
+			return boolVal
+		}
+	}
+	return defaultValue
 }

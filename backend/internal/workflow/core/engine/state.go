@@ -4,6 +4,7 @@ package engine
 import (
 	"context"
 	"fmt"
+	"sync"
 	"time"
 )
 
@@ -33,18 +34,6 @@ type ExecutionProgress struct {
 	CompletionPercent int `json:"completion_percent"`
 }
 
-// NodeResult represents the result of a node execution
-type NodeResult struct {
-	NodeID       string                 `json:"node_id"`
-	Status       NodeStatus             `json:"status"`
-	Output       map[string]interface{} `json:"output"`
-	Error        *string                `json:"error,omitempty"`
-	StartedAt    time.Time              `json:"started_at"`
-	CompletedAt  time.Time              `json:"completed_at"`
-	ExecutionTime time.Duration         `json:"execution_time"`
-	RetryCount   int                   `json:"retry_count"`
-	PreviousAttempts []NodeAttempt      `json:"previous_attempts,omitempty"`
-}
 
 // NodeAttempt represents a single attempt of a node execution
 type NodeAttempt struct {

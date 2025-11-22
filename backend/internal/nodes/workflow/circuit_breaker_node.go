@@ -8,7 +8,7 @@ import (
 
 	"github.com/sony/gobreaker"
 
-	"github.com/citadel-agent/backend/internal/engine"
+	"github.com/citadel-agent/backend/internal/interfaces"
 )
 
 // CircuitBreakerNodeConfig represents the configuration for a Circuit Breaker node
@@ -36,7 +36,7 @@ type CircuitBreakerNode struct {
 }
 
 // NewCircuitBreakerNode creates a new Circuit Breaker node
-func NewCircuitBreakerNode(config map[string]interface{}) (engine.NodeInstance, error) {
+func NewCircuitBreakerNode(config map[string]interface{}) (interfaces.NodeInstance, error) {
 	// Convert interface{} map to JSON and back to struct
 	jsonData, err := json.Marshal(config)
 	if err != nil {
@@ -100,7 +100,7 @@ func NewCircuitBreakerNode(config map[string]interface{}) (engine.NodeInstance, 
 }
 
 // Execute implements the NodeInstance interface
-func (c *CircuitBreakerNode) Execute(ctx context.Context, input map[string]interface{}) (*engine.ExecutionResult, error) {
+func (c *CircuitBreakerNode) Execute(ctx context.Context, input map[string]interface{}) (map[string]interface{}, error) {
 	// Override configuration with input values if provided
 	taskPayload := c.config.TaskPayload
 	if inputPayload, ok := input["task_payload"].(map[string]interface{}); ok {
@@ -114,15 +114,15 @@ func (c *CircuitBreakerNode) Execute(ctx context.Context, input map[string]inter
 
 	// Check if circuit breaker should be enabled
 	if !enabled {
-		return &engine.ExecutionResult{
-			Status: "success",
-			Data: map[string]interface{}{
+		return map[string]interface{}{
+			"status": "success",
+			"data": map[string]interface{}{
 				"message":   "circuit breaker disabled, executing directly",
 				"enabled":   false,
 				"task_executed": true,
 				"result":    taskPayload, // Return the payload as result when disabled
 			},
-			Timestamp: time.Now(),
+			"timestamp": time.Now().Unix(),
 		}, nil
 	}
 
@@ -136,22 +136,22 @@ func (c *CircuitBreakerNode) Execute(ctx context.Context, input map[string]inter
 
 	if err != nil {
 		// Circuit breaker is open or the function failed
-		return &engine.ExecutionResult{
-			Status: "error",
-			Error:  fmt.Sprintf("circuit breaker error: %v", err),
-			Data: map[string]interface{}{
+		return map[string]interface{}{
+			"status": "error",
+			"error":  fmt.Sprintf("circuit breaker error: %v", err),
+			"data": map[string]interface{}{
 				"circuit_state": string(c.cb.State()),
 				"failures":      c.cb.Counts().TotalFailures,
 				"successes":     c.cb.Counts().TotalSuccesses,
 				"requests":      c.cb.Counts().Requests,
 			},
-			Timestamp: time.Now(),
+			"timestamp": time.Now().Unix(),
 		}, nil
 	}
 
-	return &engine.ExecutionResult{
-		Status: "success",
-		Data: map[string]interface{}{
+	return map[string]interface{}{
+		"status": "success",
+		"data": map[string]interface{}{
 			"message":       "task executed successfully",
 			"circuit_state": string(c.cb.State()),
 			"result":        result,
@@ -160,7 +160,7 @@ func (c *CircuitBreakerNode) Execute(ctx context.Context, input map[string]inter
 			"requests":      c.cb.Counts().Requests,
 			"timestamp":     time.Now().Unix(),
 		},
-		Timestamp: time.Now(),
+		"timestamp": time.Now().Unix(),
 	}, nil
 }
 

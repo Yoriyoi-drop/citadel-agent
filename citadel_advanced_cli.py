@@ -111,8 +111,11 @@ class CitadelCLI:
         with console.status("[cyan]Authenticating...", spinner="clock"):
             time.sleep(1.5)  # Simulate network delay
         
-        # Simple validation (in real system, this would connect to auth service)
-        if username.lower() == "admin" and password == "citadel":
+        # Use environment variables or default values (in real system, this would connect to auth service)
+        admin_username = os.getenv("ADMIN_USERNAME", "admin")
+        admin_password = os.getenv("ADMIN_PASSWORD", "citadel")
+
+        if username.lower() == admin_username.lower() and password == admin_password:
             console.print("\n[bold green]✓ Authentication successful![/bold green]")
             self.current_user = username
             self.session_active = True

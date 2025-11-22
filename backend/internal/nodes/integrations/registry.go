@@ -2,7 +2,7 @@
 package integrations
 
 import (
-	"citadel-agent/backend/internal/workflow/core/engine"
+	"github.com/citadel-agent/backend/internal/workflow/core/engine"
 )
 
 // RegisterAllIntegrations registers all integration nodes with the engine

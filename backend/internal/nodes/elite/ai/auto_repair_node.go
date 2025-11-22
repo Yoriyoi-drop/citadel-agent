@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"citadel-agent/backend/internal/engine"
+	"github.com/citadel-agent/backend/internal/engine"
 )
 
 // AIAutoRepairNode represents an AI-powered node that can automatically repair other nodes

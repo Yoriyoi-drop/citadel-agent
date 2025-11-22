@@ -7,8 +7,8 @@ import (
 	"os/signal"
 	"syscall"
 
-	"citadel-agent/backend/config"
-	"citadel-agent/backend/internal/app"
+	"github.com/citadel-agent/backend/config"
+	"github.com/citadel-agent/backend/internal/app"
 )
 
 func main() {

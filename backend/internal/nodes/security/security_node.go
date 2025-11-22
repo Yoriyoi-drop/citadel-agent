@@ -18,7 +18,7 @@ import (
 	"time"
 	"unicode"
 
-	"citadel-agent/backend/internal/workflow/core/engine"
+	"github.com/citadel-agent/backend/internal/interfaces"
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/crypto/scrypt"
 )
@@ -909,7 +909,7 @@ func getBoolValue(v interface{}) bool {
 }
 
 // NewSecurityNodeFromConfig creates a new security node from a configuration map
-func NewSecurityNodeFromConfig(config map[string]interface{}) (engine.NodeInstance, error) {
+func NewSecurityNodeFromConfig(config map[string]interface{}) (interfaces.NodeInstance, error) {
 	var operation SecurityOperationType
 	if op, exists := config["operation"]; exists {
 		if opStr, ok := op.(string); ok {
@@ -1042,7 +1042,7 @@ func NewSecurityNodeFromConfig(config map[string]interface{}) (engine.NodeInstan
 
 // RegisterSecurityNode registers the security node type with the engine
 func RegisterSecurityNode(registry *engine.NodeRegistry) {
-	registry.RegisterNodeType("security_operation", func(config map[string]interface{}) (engine.NodeInstance, error) {
+	registry.RegisterNodeType("security_operation", func(config map[string]interface{}) (interfaces.NodeInstance, error) {
 		return NewSecurityNodeFromConfig(config)
 	})
 }

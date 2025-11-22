@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"citadel-agent/backend/internal/engine"
+	"github.com/citadel-agent/backend/internal/engine"
 )
 
 // Worker handles workflow execution jobs

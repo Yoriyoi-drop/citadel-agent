@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"citadel-agent/backend/internal/workflow/core/engine"
+	"github.com/citadel-agent/backend/internal/interfaces"
 )
 
 // AdvancedAIAgentManagerConfig mewakili konfigurasi untuk node Advanced AI Agent Manager
@@ -88,7 +88,7 @@ type AdvancedAIAgentManagerNode struct {
 }
 
 // NewAdvancedAIAgentManagerNode membuat node Advanced AI Agent Manager baru
-func NewAdvancedAIAgentManagerNode(config map[string]interface{}) (engine.NodeInstance, error) {
+func NewAdvancedAIAgentManagerNode(config map[string]interface{}) (interfaces.NodeInstance, error) {
 	// Konversi map interface{} ke JSON lalu ke struct
 	jsonData, err := json.Marshal(config)
 	if err != nil {
@@ -523,7 +523,7 @@ func (a *AdvancedAIAgentManagerNode) GetID() string {
 
 // RegisterAdvancedAIAgentManagerNode mendaftarkan node Advanced AI Agent Manager dengan engine
 func RegisterAdvancedAIAgentManagerNode(registry *engine.NodeRegistry) {
-	registry.RegisterNodeType("advanced_ai_agent_manager", func(config map[string]interface{}) (engine.NodeInstance, error) {
+	registry.RegisterNodeType("advanced_ai_agent_manager", func(config map[string]interface{}) (interfaces.NodeInstance, error) {
 		return NewAdvancedAIAgentManagerNode(config)
 	})
 }

@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"citadel-agent/backend/internal/workflow/core/engine"
+	"github.com/citadel-agent/backend/internal/interfaces"
 )
 
 // APIKeyType represents the type of API key
@@ -474,7 +474,7 @@ func getUnixTimeOrNil(t *time.Time) interface{} {
 }
 
 // APIKeyManagerNodeFromConfig creates a new API key manager node from a configuration map
-func APIKeyManagerNodeFromConfig(config map[string]interface{}) (engine.NodeInstance, error) {
+func APIKeyManagerNodeFromConfig(config map[string]interface{}) (interfaces.NodeInstance, error) {
 	var defaultExpiryDuration float64
 	if expiry, exists := config["default_expiry_duration_seconds"]; exists {
 		if expiryFloat, ok := expiry.(float64); ok {
@@ -540,7 +540,7 @@ func APIKeyManagerNodeFromConfig(config map[string]interface{}) (engine.NodeInst
 
 // RegisterAPIKeyManagerNode registers the API key manager node type with the engine
 func RegisterAPIKeyManagerNode(registry *engine.NodeRegistry) {
-	registry.RegisterNodeType("api_key_manager", func(config map[string]interface{}) (engine.NodeInstance, error) {
+	registry.RegisterNodeType("api_key_manager", func(config map[string]interface{}) (interfaces.NodeInstance, error) {
 		return APIKeyManagerNodeFromConfig(config)
 	})
 }

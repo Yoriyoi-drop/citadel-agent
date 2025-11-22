@@ -1,7 +1,7 @@
 package workflow
 
 import (
-	"citadel-agent/backend/internal/workflow/core/engine"
+	"github.com/citadel-agent/backend/internal/workflow/core/engine"
 )
 
 // RegisterWorkflowControlNode registers all available workflow control nodes with the engine

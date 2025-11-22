@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/tailscale/libtailscale"
 	"golang.org/x/sync/semaphore"
 )
 

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"citadel-agent/backend/internal/workflow/core/engine"
+	"github.com/citadel-agent/backend/internal/interfaces"
 )
 
 // AIAgentOrchestratorConfig represents the configuration for an AI Agent Orchestrator node
@@ -62,7 +62,7 @@ type AIAgentOrchestratorNode struct {
 }
 
 // NewAIAgentOrchestratorNode creates a new AI Agent Orchestrator node
-func NewAIAgentOrchestratorNode(config map[string]interface{}) (engine.NodeInstance, error) {
+func NewAIAgentOrchestratorNode(config map[string]interface{}) (interfaces.NodeInstance, error) {
 	// Convert interface{} map to JSON and back to struct
 	jsonData, err := json.Marshal(config)
 	if err != nil {
@@ -512,7 +512,7 @@ func (o *AIAgentOrchestratorNode) GetID() string {
 
 // RegisterAIAgentOrchestratorNode registers the AI Agent Orchestrator node type with the engine
 func RegisterAIAgentOrchestratorNode(registry *engine.NodeRegistry) {
-	registry.RegisterNodeType("ai_agent_orchestrator", func(config map[string]interface{}) (engine.NodeInstance, error) {
+	registry.RegisterNodeType("ai_agent_orchestrator", func(config map[string]interface{}) (interfaces.NodeInstance, error) {
 		return NewAIAgentOrchestratorNode(config)
 	})
 }

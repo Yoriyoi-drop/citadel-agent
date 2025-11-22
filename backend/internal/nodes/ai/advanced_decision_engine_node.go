@@ -4,9 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
-	"citadel-agent/backend/internal/workflow/core/engine"
+	"github.com/citadel-agent/backend/internal/interfaces"
+	"github.com/citadel-agent/backend/internal/nodes/utils"
 )
 
 // AdvancedDecisionEngineConfig mewakili konfigurasi untuk node Advanced Decision Engine
@@ -70,7 +72,7 @@ type AdvancedDecisionEngineNode struct {
 }
 
 // NewAdvancedDecisionEngineNode membuat node Advanced Decision Engine baru
-func NewAdvancedDecisionEngineNode(config map[string]interface{}) (engine.NodeInstance, error) {
+func NewAdvancedDecisionEngineNode(config map[string]interface{}) (interfaces.NodeInstance, error) {
 	// Konversi map interface{} ke JSON lalu ke struct
 	jsonData, err := json.Marshal(config)
 	if err != nil {
@@ -444,7 +446,7 @@ func (d *AdvancedDecisionEngineNode) evaluateCondition(inputValue interface{}, c
 			}
 		}
 	case "contains":
-		return contains(inputStr, conditionStr)
+		return strings.Contains(inputStr, conditionStr)
 	case "starts_with":
 		return len(inputStr) >= len(conditionStr) && inputStr[:len(conditionStr)] == conditionStr
 	case "ends_with":
@@ -490,32 +492,8 @@ func (d *AdvancedDecisionEngineNode) GetID() string {
 
 // RegisterAdvancedDecisionEngineNode mendaftarkan node Advanced Decision Engine dengan engine
 func RegisterAdvancedDecisionEngineNode(registry *engine.NodeRegistry) {
-	registry.RegisterNodeType("advanced_decision_engine", func(config map[string]interface{}) (engine.NodeInstance, error) {
+	registry.RegisterNodeType("advanced_decision_engine", func(config map[string]interface{}) (interfaces.NodeInstance, error) {
 		return NewAdvancedDecisionEngineNode(config)
 	})
 }
 
-// contains adalah fungsi helper untuk memeriksa apakah string mengandung substring
-func contains(text, substr string) bool {
-	textLen := len(text)
-	substrLen := len(substr)
-	
-	if substrLen > textLen {
-		return false
-	}
-	
-	for i := 0; i <= textLen-substrLen; i++ {
-		match := true
-		for j := 0; j < substrLen; j++ {
-			if text[i+j] != substr[j] {
-				match = false
-				break
-			}
-		}
-		if match {
-			return true
-		}
-	}
-	
-	return false
-}

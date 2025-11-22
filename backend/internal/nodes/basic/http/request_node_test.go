@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"citadel-agent/backend/internal/engine"
+	"github.com/citadel-agent/backend/internal/engine"
 )
 
 func TestEnhancedHTTPNode_Execute(t *testing.T) {

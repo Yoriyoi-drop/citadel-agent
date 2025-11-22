@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"citadel-agent/backend/internal/workflow/core/engine"
+	"github.com/citadel-agent/backend/internal/interfaces"
 )
 
 // MultiModalAIProcessorConfig represents the configuration for a Multi-Modal AI Processor node
@@ -45,7 +45,7 @@ type MultiModalAIProcessorNode struct {
 }
 
 // NewMultiModalAIProcessorNode creates a new Multi-Modal AI Processor node
-func NewMultiModalAIProcessorNode(config map[string]interface{}) (engine.NodeInstance, error) {
+func NewMultiModalAIProcessorNode(config map[string]interface{}) (interfaces.NodeInstance, error) {
 	// Convert interface{} map to JSON and back to struct
 	jsonData, err := json.Marshal(config)
 	if err != nil {
@@ -697,7 +697,7 @@ func (m *MultiModalAIProcessorNode) GetID() string {
 
 // RegisterMultiModalAIProcessorNode registers the Multi-Modal AI Processor node type with the engine
 func RegisterMultiModalAIProcessorNode(registry *engine.NodeRegistry) {
-	registry.RegisterNodeType("multi_modal_ai_processor", func(config map[string]interface{}) (engine.NodeInstance, error) {
+	registry.RegisterNodeType("multi_modal_ai_processor", func(config map[string]interface{}) (interfaces.NodeInstance, error) {
 		return NewMultiModalAIProcessorNode(config)
 	})
 }

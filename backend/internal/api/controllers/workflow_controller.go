@@ -6,8 +6,8 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
-	"citadel-agent/backend/internal/models"
-	"citadel-agent/backend/internal/services"
+	"github.com/citadel-agent/backend/internal/models"
+	"github.com/citadel-agent/backend/internal/services"
 )
 
 // WorkflowController handles workflow-related HTTP requests

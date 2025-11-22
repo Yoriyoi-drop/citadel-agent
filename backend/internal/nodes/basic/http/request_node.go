@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"citadel-agent/backend/internal/engine"
+	"github.com/citadel-agent/backend/internal/engine"
 )
 
 // EnhancedHTTPNode - placeholder to implement additional HTTP functionality if needed separately

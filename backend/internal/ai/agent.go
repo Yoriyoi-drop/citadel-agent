@@ -9,7 +9,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/citadel-agent/backend/internal/engine"
+	"github.com/citadel-agent/backend/internal/interfaces"
 	"github.com/google/uuid"
 )
 
@@ -111,10 +111,10 @@ type AIAgentNode struct {
 }
 
 // Execute executes the AI agent node
-func (ai *AIAgentNode) Execute(ctx context.Context, input map[string]interface{}) (*engine.ExecutionResult, error) {
+func (ai *AIAgentNode) Execute(ctx context.Context, input map[string]interface{}) (*interfaces.ExecutionResult, error) {
 	agentID, exists := input["agent_id"].(string)
 	if !exists {
-		return &engine.ExecutionResult{
+		return &interfaces.ExecutionResult{
 			Status: "error",
 			Error:  "agent_id is required for AI agent node",
 			Timestamp: time.Now(),
@@ -136,7 +136,7 @@ func (ai *AIAgentNode) Execute(ctx context.Context, input map[string]interface{}
 		"timestamp": time.Now().Unix(),
 	}
 
-	return &engine.ExecutionResult{
+	return &interfaces.ExecutionResult{
 		Status: "success",
 		Data:   result,
 		Timestamp: time.Now(),

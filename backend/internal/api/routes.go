@@ -2,8 +2,8 @@
 package api
 
 import (
-	"citadel-agent/backend/internal/api/handlers"
-	"citadel-agent/backend/internal/services"
+	"github.com/citadel-agent/backend/internal/api/handlers"
+	"github.com/citadel-agent/backend/internal/services"
 
 	"github.com/gofiber/fiber/v2"
 )

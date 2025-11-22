@@ -1,7 +1,7 @@
 package data
 
 import (
-	"citadel-agent/backend/internal/workflow/core/engine"
+	"github.com/citadel-agent/backend/internal/workflow/core/engine"
 )
 
 // RegisterDataTransformNode registers all available data transformation nodes with the engine

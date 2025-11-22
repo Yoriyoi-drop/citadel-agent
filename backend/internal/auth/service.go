@@ -153,13 +153,13 @@ func (s *AuthService) getGithubUser(accessToken string) (*User, error) {
 	// This would make an HTTP request to GitHub API
 	// For example: GET https://api.github.com/user with Authorization: Bearer {token}
 
-	// Mock implementation
+	// Mock implementation - In production, get actual user data from GitHub API
 	user := &User{
 		ID:        s.generateRandomString(16),
-		Email:     "githubuser@example.com",
-		Username:  "GithubUser",
+		Email:     s.generateRandomString(8) + "@github.com",
+		Username:  s.generateRandomString(8),
 		Provider:  "github",
-		ProviderID: "github_user_id",
+		ProviderID: s.generateRandomString(12),
 		AvatarURL: "https://avatars.githubusercontent.com/u/123456789",
 	}
 
@@ -171,13 +171,13 @@ func (s *AuthService) getGoogleUser(accessToken string) (*User, error) {
 	// This would make an HTTP request to Google API
 	// For example: GET https://www.googleapis.com/oauth2/v2/userinfo with Authorization: Bearer {token}
 
-	// Mock implementation
+	// Mock implementation - In production, get actual user data from Google API
 	user := &User{
 		ID:        s.generateRandomString(16),
-		Email:     "googleuser@example.com",
-		Username:  "GoogleUser",
+		Email:     s.generateRandomString(8) + "@gmail.com",
+		Username:  s.generateRandomString(8),
 		Provider:  "google",
-		ProviderID: "google_user_id",
+		ProviderID: s.generateRandomString(12),
 		AvatarURL: "https://lh3.googleusercontent.com/a-/123456789",
 	}
 

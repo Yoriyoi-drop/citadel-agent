@@ -22,7 +22,7 @@ type AIAgentNode struct {
 }
 
 // NewAIAgentNode creates a new AI agent node instance
-func NewAIAgentNode(config map[string]interface{}) (NodeInstance, error) {
+func NewAIAgentNode(config map[string]interface{}) (interfaces.NodeInstance, error) {
 	node := &AIAgentNode{
 		MaxRetries:  3,
 		Temperature: 0.7,
@@ -113,7 +113,7 @@ type DataTransformerNode struct {
 }
 
 // NewDataTransformerNode creates a new data transformer node instance
-func NewDataTransformerNode(config map[string]interface{}) (NodeInstance, error) {
+func NewDataTransformerNode(config map[string]interface{}) (interfaces.NodeInstance, error) {
 	node := &DataTransformerNode{
 		Mapping: make(map[string]interface{}),
 	}
@@ -214,7 +214,7 @@ type NotificationNode struct {
 }
 
 // NewNotificationNode creates a new notification node instance
-func NewNotificationNode(config map[string]interface{}) (NodeInstance, error) {
+func NewNotificationNode(config map[string]interface{}) (interfaces.NodeInstance, error) {
 	node := &NotificationNode{
 		ChannelConfig: make(map[string]interface{}),
 		Attachments:   make([]string, 0),
@@ -292,7 +292,7 @@ type LoopNode struct {
 }
 
 // NewLoopNode creates a new loop node instance
-func NewLoopNode(config map[string]interface{}) (NodeInstance, error) {
+func NewLoopNode(config map[string]interface{}) (interfaces.NodeInstance, error) {
 	node := &LoopNode{
 		MaxIterations: 100,
 		Parallel:      false,
@@ -494,7 +494,7 @@ type ErrorHandlerNode struct {
 }
 
 // NewErrorHandlerNode creates a new error handler node instance
-func NewErrorHandlerNode(config map[string]interface{}) (NodeInstance, error) {
+func NewErrorHandlerNode(config map[string]interface{}) (interfaces.NodeInstance, error) {
 	node := &ErrorHandlerNode{
 		ErrorType:     "all",
 		HandlerAction: "retry",
@@ -621,9 +621,4 @@ func (n *ErrorHandlerNode) Execute(ctx context.Context, inputs map[string]interf
 	}
 
 	return result, nil
-}
-
-// NodeInstance interface for all node types
-type NodeInstance interface {
-	Execute(ctx context.Context, inputs map[string]interface{}) (map[string]interface{}, error)
 }

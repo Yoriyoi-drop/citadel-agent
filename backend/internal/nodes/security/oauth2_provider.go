@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"citadel-agent/backend/internal/workflow/core/engine"
+	"github.com/citadel-agent/backend/internal/interfaces"
 )
 
 // OAuth2OperationType represents the type of OAuth2 operation
@@ -637,7 +637,7 @@ func (opn *OAuth2ProviderNode) findClient(clientID string) *OAuth2Client {
 }
 
 // OAuth2ProviderNodeFromConfig creates a new OAuth2 provider node from a configuration map
-func OAuth2ProviderNodeFromConfig(config map[string]interface{}) (engine.NodeInstance, error) {
+func OAuth2ProviderNodeFromConfig(config map[string]interface{}) (interfaces.NodeInstance, error) {
 	var operation OAuth2OperationType
 	if op, exists := config["operation"]; exists {
 		if opStr, ok := op.(string); ok {
@@ -794,7 +794,7 @@ func OAuth2ProviderNodeFromConfig(config map[string]interface{}) (engine.NodeIns
 
 // RegisterOAuth2ProviderNode registers the OAuth2 provider node type with the engine
 func RegisterOAuth2ProviderNode(registry *engine.NodeRegistry) {
-	registry.RegisterNodeType("oauth2_provider", func(config map[string]interface{}) (engine.NodeInstance, error) {
+	registry.RegisterNodeType("oauth2_provider", func(config map[string]interface{}) (interfaces.NodeInstance, error) {
 		return OAuth2ProviderNodeFromConfig(config)
 	})
 }

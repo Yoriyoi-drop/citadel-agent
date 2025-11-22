@@ -1,8 +1,8 @@
 package http
 
 import (
-	"citadel-agent/backend/internal/engine"
-	"citadel-agent/backend/internal/nodes"
+	"github.com/citadel-agent/backend/internal/engine"
+	"github.com/citadel-agent/backend/internal/nodes"
 )
 
 // RegisterHTTPNodes registers all HTTP-related nodes

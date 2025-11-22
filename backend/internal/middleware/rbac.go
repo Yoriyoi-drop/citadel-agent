@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"citadel-agent/backend/internal/auth"
-	"citadel-agent/backend/internal/models"
+	"github.com/citadel-agent/backend/internal/auth"
+	"github.com/citadel-agent/backend/internal/models"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"

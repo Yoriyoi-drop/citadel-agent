@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"citadel-agent/backend/internal/workflow/core/engine"
+	"github.com/citadel-agent/backend/internal/interfaces"
 )
 
 // AdvancedDataIntelligenceConfig mewakili konfigurasi untuk node Advanced Data Intelligence
@@ -151,7 +151,7 @@ type AdvancedDataIntelligenceNode struct {
 }
 
 // NewAdvancedDataIntelligenceNode membuat node Advanced Data Intelligence baru
-func NewAdvancedDataIntelligenceNode(config map[string]interface{}) (engine.NodeInstance, error) {
+func NewAdvancedDataIntelligenceNode(config map[string]interface{}) (interfaces.NodeInstance, error) {
 	// Konversi map interface{} ke JSON lalu ke struct
 	jsonData, err := json.Marshal(config)
 	if err != nil {
@@ -649,7 +649,7 @@ func (d *AdvancedDataIntelligenceNode) GetID() string {
 
 // RegisterAdvancedDataIntelligenceNode mendaftarkan node Advanced Data Intelligence dengan engine
 func RegisterAdvancedDataIntelligenceNode(registry *engine.NodeRegistry) {
-	registry.RegisterNodeType("advanced_data_intelligence", func(config map[string]interface{}) (engine.NodeInstance, error) {
+	registry.RegisterNodeType("advanced_data_intelligence", func(config map[string]interface{}) (interfaces.NodeInstance, error) {
 		return NewAdvancedDataIntelligenceNode(config)
 	})
 }

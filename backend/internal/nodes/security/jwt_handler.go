@@ -16,7 +16,7 @@ import (
 	"strings"
 	"time"
 
-	"citadel-agent/backend/internal/workflow/core/engine"
+	"github.com/citadel-agent/backend/internal/interfaces"
 )
 
 // JWTOperationType represents the type of JWT operation
@@ -567,7 +567,7 @@ func hmacSHA256(message, key []byte) []byte {
 }
 
 // JWTHandlerNodeFromConfig creates a new JWT handler node from a configuration map
-func JWTHandlerNodeFromConfig(config map[string]interface{}) (engine.NodeInstance, error) {
+func JWTHandlerNodeFromConfig(config map[string]interface{}) (interfaces.NodeInstance, error) {
 	var operation JWTOperationType
 	if op, exists := config["operation"]; exists {
 		if opStr, ok := op.(string); ok {
@@ -672,7 +672,7 @@ func JWTHandlerNodeFromConfig(config map[string]interface{}) (engine.NodeInstanc
 
 // RegisterJWTHandlerNode registers the JWT handler node type with the engine
 func RegisterJWTHandlerNode(registry *engine.NodeRegistry) {
-	registry.RegisterNodeType("jwt_handler", func(config map[string]interface{}) (engine.NodeInstance, error) {
+	registry.RegisterNodeType("jwt_handler", func(config map[string]interface{}) (interfaces.NodeInstance, error) {
 		return JWTHandlerNodeFromConfig(config)
 	})
 }

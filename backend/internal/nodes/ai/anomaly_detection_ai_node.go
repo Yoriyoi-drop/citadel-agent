@@ -2,11 +2,11 @@ package ai
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"time"
 
-	"github.com/citadel-agent/backend/internal/engine"
+	"github.com/citadel-agent/backend/internal/interfaces"
+	"github.com/citadel-agent/backend/internal/nodes/utils"
 )
 
 // AnomalyDetectionAINodeConfig represents the configuration for an Anomaly Detection AI node
@@ -32,139 +32,181 @@ type AnomalyDetectionAINode struct {
 }
 
 // NewAnomalyDetectionAINode creates a new Anomaly Detection AI node
-func NewAnomalyDetectionAINode(config map[string]interface{}) (engine.NodeInstance, error) {
-	// Convert interface{} map to JSON and back to struct
-	jsonData, err := json.Marshal(config)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal config: %v", err)
+func NewAnomalyDetectionAINode(config map[string]interface{}) (interfaces.NodeInstance, error) {
+	// Extract config values
+	provider := utils.GetStringVal(config["provider"], "huggingface")
+	apiKey := utils.GetStringVal(config["api_key"], "")
+	model := utils.GetStringVal(config["model"], "isolation-forest")
+	dataType := utils.GetStringVal(config["data_type"], "")
+	algorithm := utils.GetStringVal(config["algorithm"], "")
+
+	data := make([]interface{}, 0)
+	if dataVal, exists := config["data"]; exists {
+		if dataSlice, ok := dataVal.([]interface{}); ok {
+			data = dataSlice
+		}
 	}
 
-	var anomalyConfig AnomalyDetectionAINodeConfig
-	err = json.Unmarshal(jsonData, &anomalyConfig)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal config: %v", err)
+	threshold := getFloat64Value(config["threshold"], 0.7)
+	windowSize := getIntValue(config["window_size"], 0)
+	sensitivity := getFloat64Value(config["sensitivity"], 0.5)
+
+	returnAnomaliesOnly := false
+	if val, exists := config["return_anomalies_only"]; exists {
+		if b, ok := val.(bool); ok {
+			returnAnomaliesOnly = b
+		}
 	}
 
-	// Validate required fields
-	if anomalyConfig.Provider == "" {
-		anomalyConfig.Provider = "huggingface" // default provider
+	customParams := make(map[string]interface{})
+	if paramsVal, exists := config["custom_params"]; exists {
+		if paramsMap, ok := paramsVal.(map[string]interface{}); ok {
+			customParams = paramsMap
+		}
 	}
 
-	if anomalyConfig.Model == "" {
-		anomalyConfig.Model = "isolation-forest" // default model
-	}
+	timeout := getIntValue(config["timeout"], 45)
+	enabled := getBoolValue(config["enabled"], true)
 
-	if anomalyConfig.Threshold == 0 {
-		anomalyConfig.Threshold = 0.7 // default threshold of 70%
-	}
-
-	if anomalyConfig.Sensitivity == 0 {
-		anomalyConfig.Sensitivity = 0.5 // default sensitivity of 50%
-	}
-
-	if anomalyConfig.Timeout == 0 {
-		anomalyConfig.Timeout = 45 // default timeout of 45 seconds for anomaly detection
+	nodeConfig := &AnomalyDetectionAINodeConfig{
+		Provider:            provider,
+		ApiKey:              apiKey,
+		Model:               model,
+		Data:                data,
+		DataType:            dataType,
+		Algorithm:           algorithm,
+		Threshold:           threshold,
+		WindowSize:          windowSize,
+		Sensitivity:         sensitivity,
+		ReturnAnomaliesOnly: returnAnomaliesOnly,
+		CustomParams:        customParams,
+		Timeout:             timeout,
+		Enabled:             enabled,
 	}
 
 	return &AnomalyDetectionAINode{
-		config: &anomalyConfig,
+		config: nodeConfig,
 	}, nil
 }
 
 // Execute implements the NodeInstance interface
-func (a *AnomalyDetectionAINode) Execute(ctx context.Context, input map[string]interface{}) (*engine.ExecutionResult, error) {
+func (a AnomalyDetectionAINode) Execute(ctx context.Context, input map[string]interface{}) (map[string]interface{}, error) {
 	// Override configuration with input values if provided
 	provider := a.config.Provider
-	if inputProvider, ok := input["provider"].(string); ok && inputProvider != "" {
-		provider = inputProvider
+	if inputProvider, exists := input["provider"]; exists {
+		if inputProviderStr, ok := inputProvider.(string); ok && inputProviderStr != "" {
+			provider = inputProviderStr
+		}
 	}
 
 	apiKey := a.config.ApiKey
-	if inputApiKey, ok := input["api_key"].(string); ok && inputApiKey != "" {
-		apiKey = inputApiKey
+	if inputApiKey, exists := input["api_key"]; exists {
+		if inputApiKeyStr, ok := inputApiKey.(string); ok && inputApiKeyStr != "" {
+			apiKey = inputApiKeyStr
+		}
 	}
 
 	model := a.config.Model
-	if inputModel, ok := input["model"].(string); ok && inputModel != "" {
-		model = inputModel
+	if inputModel, exists := input["model"]; exists {
+		if inputModelStr, ok := inputModel.(string); ok && inputModelStr != "" {
+			model = inputModelStr
+		}
 	}
 
 	data := a.config.Data
-	if inputData, ok := input["data"].([]interface{}); ok {
-		data = inputData
+	if inputData, exists := input["data"]; exists {
+		if inputDataSlice, ok := inputData.([]interface{}); ok {
+			data = inputDataSlice
+		}
 	}
 
 	dataType := a.config.DataType
-	if inputDataType, ok := input["data_type"].(string); ok && inputDataType != "" {
-		dataType = inputDataType
+	if inputDataType, exists := input["data_type"]; exists {
+		if inputDataTypeStr, ok := inputDataType.(string); ok && inputDataTypeStr != "" {
+			dataType = inputDataTypeStr
+		}
 	}
 
 	algorithm := a.config.Algorithm
-	if inputAlgorithm, ok := input["algorithm"].(string); ok && inputAlgorithm != "" {
-		algorithm = inputAlgorithm
+	if inputAlgorithm, exists := input["algorithm"]; exists {
+		if inputAlgorithmStr, ok := inputAlgorithm.(string); ok && inputAlgorithmStr != "" {
+			algorithm = inputAlgorithmStr
+		}
 	}
 
 	threshold := a.config.Threshold
-	if inputThreshold, ok := input["threshold"].(float64); ok {
-		threshold = inputThreshold
+	if inputThreshold, exists := input["threshold"]; exists {
+		if inputThresholdFloat, ok := inputThreshold.(float64); ok {
+			threshold = inputThresholdFloat
+		}
 	}
 
 	windowSize := a.config.WindowSize
-	if inputWindowSize, ok := input["window_size"].(float64); ok {
-		windowSize = int(inputWindowSize)
+	if inputWindowSize, exists := input["window_size"]; exists {
+		if inputWindowSizeFloat, ok := inputWindowSize.(float64); ok {
+			windowSize = int(inputWindowSizeFloat)
+		}
 	}
 
 	sensitivity := a.config.Sensitivity
-	if inputSensitivity, ok := input["sensitivity"].(float64); ok {
-		sensitivity = inputSensitivity
+	if inputSensitivity, exists := input["sensitivity"]; exists {
+		if inputSensitivityFloat, ok := inputSensitivity.(float64); ok {
+			sensitivity = inputSensitivityFloat
+		}
 	}
 
 	returnAnomaliesOnly := a.config.ReturnAnomaliesOnly
-	if inputReturnAnomalies, ok := input["return_anomalies_only"].(bool); ok {
-		returnAnomaliesOnly = inputReturnAnomalies
+	if inputReturnAnomalies, exists := input["return_anomalies_only"]; exists {
+		if inputReturnAnomaliesBool, ok := inputReturnAnomalies.(bool); ok {
+			returnAnomaliesOnly = inputReturnAnomaliesBool
+		}
 	}
 
 	customParams := a.config.CustomParams
-	if inputCustomParams, ok := input["custom_params"].(map[string]interface{}); ok {
-		customParams = inputCustomParams
+	if inputCustomParams, exists := input["custom_params"]; exists {
+		if inputCustomParamsMap, ok := inputCustomParams.(map[string]interface{}); ok {
+			customParams = inputCustomParamsMap
+		}
 	}
 
 	timeout := a.config.Timeout
-	if inputTimeout, ok := input["timeout"].(float64); ok {
-		timeout = int(inputTimeout)
+	if inputTimeout, exists := input["timeout"]; exists {
+		if inputTimeoutFloat, ok := inputTimeout.(float64); ok {
+			timeout = int(inputTimeoutFloat)
+		}
 	}
 
 	enabled := a.config.Enabled
-	if inputEnabled, ok := input["enabled"].(bool); ok {
-		enabled = inputEnabled
+	if inputEnabled, exists := input["enabled"]; exists {
+		if inputEnabledBool, ok := inputEnabled.(bool); ok {
+			enabled = inputEnabledBool
+		}
 	}
 
 	// Check if node should be enabled
 	if !enabled {
-		return &engine.ExecutionResult{
-			Status: "success",
-			Data: map[string]interface{}{
-				"message": "anomaly detection processor disabled, not executed",
-				"enabled": false,
-			},
-			Timestamp: time.Now(),
+		return map[string]interface{}{
+			"success": true,
+			"message": "anomaly detection processor disabled, not executed",
+			"enabled": false,
+			"timestamp": time.Now().Unix(),
 		}, nil
 	}
 
 	// Validate required input
 	if len(data) == 0 {
-		return &engine.ExecutionResult{
-			Status:    "error",
-			Error:     "data is required for anomaly detection",
-			Timestamp: time.Now(),
+		return map[string]interface{}{
+			"success": false,
+			"error":   "data is required for anomaly detection",
+			"timestamp": time.Now().Unix(),
 		}, nil
 	}
 
 	if apiKey == "" {
-		return &engine.ExecutionResult{
-			Status:    "error",
-			Error:     "api_key is required for anomaly detection",
-			Timestamp: time.Now(),
+		return map[string]interface{}{
+			"success": false,
+			"error":   "api_key is required for anomaly detection",
+			"timestamp": time.Now().Unix(),
 		}, nil
 	}
 
@@ -190,8 +232,10 @@ func (a *AnomalyDetectionAINode) Execute(ctx context.Context, input map[string]i
 	// Filter anomalies based on threshold if only anomalies are requested
 	filteredAnomalies := []map[string]interface{}{}
 	for _, anomaly := range anomalies {
-		if anomaly["anomaly_score"].(float64) >= threshold {
-			filteredAnomalies = append(filteredAnomalies, anomaly)
+		if anomalyScore, ok := anomaly["anomaly_score"].(float64); ok {
+			if anomalyScore >= threshold {
+				filteredAnomalies = append(filteredAnomalies, anomaly)
+			}
 		}
 	}
 
@@ -211,27 +255,15 @@ func (a *AnomalyDetectionAINode) Execute(ctx context.Context, input map[string]i
 		"detection_time": time.Since(time.Now().Add(-time.Duration(timeout) * time.Second)).Seconds(),
 	}
 
-	return &engine.ExecutionResult{
-		Status: "success",
-		Data: map[string]interface{}{
-			"message":        "anomaly detection completed",
-			"result":         result,
-			"provider":       provider,
-			"model":          model,
-			"algorithm":      algorithm,
-			"return_anomalies_only": returnAnomaliesOnly,
-			"timestamp":      time.Now().Unix(),
-		},
-		Timestamp: time.Now(),
+	return map[string]interface{}{
+		"success": true,
+		"message":        "anomaly detection completed",
+		"result":         result,
+		"provider":       provider,
+		"model":          model,
+		"algorithm":      algorithm,
+		"return_anomalies_only": returnAnomaliesOnly,
+		"timestamp":      time.Now().Unix(),
 	}, nil
 }
 
-// GetType returns the type of the node
-func (a *AnomalyDetectionAINode) GetType() string {
-	return "anomaly_detection_ai"
-}
-
-// GetID returns a unique ID for the node instance
-func (a *AnomalyDetectionAINode) GetID() string {
-	return "anomaly_detection_ai_" + fmt.Sprintf("%d", time.Now().Unix())
-}

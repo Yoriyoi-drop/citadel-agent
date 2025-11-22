@@ -4,9 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
-	"citadel-agent/backend/internal/workflow/core/engine"
+	"github.com/citadel-agent/backend/internal/interfaces"
+	"github.com/citadel-agent/backend/internal/nodes/utils"
 )
 
 // AdvancedNLPProcessorConfig represents the configuration for an Advanced NLP Processor node
@@ -54,7 +56,7 @@ type AdvancedNLPProcessorNode struct {
 }
 
 // NewAdvancedNLPProcessorNode creates a new Advanced NLP Processor node
-func NewAdvancedNLPProcessorNode(config map[string]interface{}) (engine.NodeInstance, error) {
+func NewAdvancedNLPProcessorNode(config map[string]interface{}) (interfaces.NodeInstance, error) {
 	// Convert interface{} map to JSON and back to struct
 	jsonData, err := json.Marshal(config)
 	if err != nil {
@@ -377,13 +379,13 @@ func (n *AdvancedNLPProcessorNode) performSentimentAnalysis(ctx context.Context,
 	negativeCount := 0
 	
 	for _, word := range positiveWords {
-		if contains(textLower, word) {
+		if strings.Contains(textLower, word) {
 			positiveCount++
 		}
 	}
-	
+
 	for _, word := range negativeWords {
-		if contains(textLower, word) {
+		if strings.Contains(textLower, word) {
 			negativeCount++
 		}
 	}
@@ -613,11 +615,11 @@ func (n *AdvancedNLPProcessorNode) performLanguageDetection(ctx context.Context,
 	confidence := 0.95
 	
 	// This would be more sophisticated in a real implementation
-	if contains(text, "hola") || contains(text, "mundo") {
+	if strings.Contains(text, "hola") || strings.Contains(text, "mundo") {
 		language = "es"
-	} else if contains(text, "bonjour") || contains(text, "monde") {
+	} else if strings.Contains(text, "bonjour") || strings.Contains(text, "monde") {
 		language = "fr"
-	} else if contains(text, "hallo") {
+	} else if strings.Contains(text, "hallo") {
 		language = "de"
 	}
 	
@@ -696,30 +698,6 @@ func (n *AdvancedNLPProcessorNode) aggregateResults(results map[string]interface
 	return aggregate
 }
 
-// contains is a helper function to check if a string contains a substring
-func contains(text, substr string) bool {
-	textLen := len(text)
-	substrLen := len(substr)
-	
-	if substrLen > textLen {
-		return false
-	}
-	
-	for i := 0; i <= textLen-substrLen; i++ {
-		match := true
-		for j := 0; j < substrLen; j++ {
-			if text[i+j] != substr[j] {
-				match = false
-				break
-			}
-		}
-		if match {
-			return true
-		}
-	}
-	
-	return false
-}
 
 // GetType returns the type of the node
 func (n *AdvancedNLPProcessorNode) GetType() string {
@@ -733,7 +711,7 @@ func (n *AdvancedNLPProcessorNode) GetID() string {
 
 // RegisterAdvancedNLPProcessorNode registers the Advanced NLP Processor node type with the engine
 func RegisterAdvancedNLPProcessorNode(registry *engine.NodeRegistry) {
-	registry.RegisterNodeType("advanced_nlp_processor", func(config map[string]interface{}) (engine.NodeInstance, error) {
+	registry.RegisterNodeType("advanced_nlp_processor", func(config map[string]interface{}) (interfaces.NodeInstance, error) {
 		return NewAdvancedNLPProcessorNode(config)
 	})
 }

@@ -9,10 +9,10 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 
-	"citadel-agent/backend/internal/api"
-	"citadel-agent/backend/internal/config"
-	"citadel-agent/backend/internal/database"
-	"citadel-agent/backend/internal/services"
+	"github.com/citadel-agent/backend/internal/api"
+	"github.com/citadel-agent/backend/internal/config"
+	"github.com/citadel-agent/backend/internal/database"
+	"github.com/citadel-agent/backend/internal/services"
 )
 
 // TestBasicAPIStructure tests the basic API structure without connecting to database
