@@ -59,13 +59,13 @@ type AIAgentConfig struct {
 	EnableReflection bool              `json:"enable_reflection"`
 	HumanInLoop     bool               `json:"human_in_loop"`
 	AgentType       AIAgentType        `json:"agent_type"`
-	MemoryConfig    *MemoryConfig      `json:"memory_config"`
+	MemoryConfig    *AgentMemoryConfig      `json:"memory_config"`
 	ToolConfig      *ToolConfig        `json:"tool_config"`
 	ThreadingConfig *ThreadingConfig   `json:"threading_config"`
 }
 
-// MemoryConfig represents memory system configuration
-type MemoryConfig struct {
+// AgentMemoryConfig represents memory system configuration for agent runtime
+type AgentMemoryConfig struct {
 	EnableShortTerm  bool          `json:"enable_short_term"`
 	EnableLongTerm   bool          `json:"enable_long_term"`
 	ShortTermLimit   int           `json:"short_term_limit"`  // Max conversations to keep in ST memory
@@ -134,7 +134,7 @@ type AIAgentMemory struct {
 	shortTerm *ShortTermMemory
 	longTerm  *LongTermMemory
 	storage   MemoryStorage
-	config    *MemoryConfig
+	config    *AgentMemoryConfig
 }
 
 // ShortTermMemory stores recent conversation history
@@ -152,8 +152,8 @@ type LongTermMemory struct {
 	embeddingFn func(string) ([]float32, error)
 }
 
-// MemoryEntry represents a single memory entry
-type MemoryEntry struct {
+// AgentMemoryEntry represents a single memory entry for agent runtime
+type AgentMemoryEntry struct {
 	ID          string     `json:"id"`
 	Content     string     `json:"content"`
 	Source      string     `json:"source"`
@@ -165,13 +165,13 @@ type MemoryEntry struct {
 	AccessCount int       `json:"access_count"`
 }
 
-// MemoryStorage interface for persistent memory storage
-type MemoryStorage interface {
-	Save(ctx context.Context, memory *MemoryEntry) error
-	Retrieve(ctx context.Context, id string) (*MemoryEntry, error)
-	Search(ctx context.Context, query string, limit int) ([]*MemoryEntry, error)
+// AgentMemoryStorage interface for persistent memory storage for agent runtime
+type AgentMemoryStorage interface {
+	Save(ctx context.Context, memory *AgentMemoryEntry) error
+	Retrieve(ctx context.Context, id string) (*AgentMemoryEntry, error)
+	Search(ctx context.Context, query string, limit int) ([]*AgentMemoryEntry, error)
 	Delete(ctx context.Context, id string) error
-	List(ctx context.Context, limit, offset int) ([]*MemoryEntry, error)
+	List(ctx context.Context, limit, offset int) ([]*AgentMemoryEntry, error)
 	Close() error
 }
 
@@ -1433,7 +1433,7 @@ func RegisterAIAgentNode(registry *engine.NodeRegistry) {
 			}
 		}
 
-		var memoryConfig *MemoryConfig
+		var memoryConfig *AgentMemoryConfig
 		if memConf, exists := config["memory_config"]; exists {
 			if memConfMap, ok := memConf.(map[string]interface{}); ok {
 				var shortTermLimit float64
@@ -1508,7 +1508,7 @@ func RegisterAIAgentNode(registry *engine.NodeRegistry) {
 					}
 				}
 
-				memoryConfig = &MemoryConfig{
+				memoryConfig = &AgentMemoryConfig{
 					EnableShortTerm:  enableST,
 					EnableLongTerm:   enableLT,
 					ShortTermLimit:   int(shortTermLimit),

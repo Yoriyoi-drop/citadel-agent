@@ -409,14 +409,14 @@ func (mac *MultiAgentCoordinator) AddAgent(agentState *AgentState) {
 
 // HumanInLoopManager manages human-in-the-loop interactions
 
-// TaskStatus represents the status of a human task
-type TaskStatus string
+// HumanTaskStatus represents the status of a human task
+type HumanTaskStatus string
 
 const (
-	TaskStatusPending  TaskStatus = "pending"
-	TaskStatusAssigned TaskStatus = "assigned"
-	TaskStatusCompleted TaskStatus = "completed"
-	TaskStatusRejected  TaskStatus = "rejected"
+	HumanTaskStatusPending  HumanTaskStatus = "pending"
+	HumanTaskStatusAssigned HumanTaskStatus = "assigned"
+	HumanTaskStatusCompleted HumanTaskStatus = "completed"
+	HumanTaskStatusRejected  HumanTaskStatus = "rejected"
 )
 
 // NewHumanInLoopManager creates a new human-in-the-loop manager
@@ -429,7 +429,7 @@ func (hil *HumanInLoopManager) CreateTask(ctx context.Context, agentID, taskType
 		TaskType:    taskType,
 		Description: description,
 		Context:     contextData,
-		Status:      TaskStatusPending,
+		Status:      HumanTaskStatusPending,
 		CreatedAt:   time.Now(),
 	}
 
@@ -457,7 +457,7 @@ func (hil *HumanInLoopManager) GetPendingTasks(ctx context.Context, agentID stri
 
 	var tasks []*HumanTask
 	for _, task := range hil.pendingTasks {
-		if task.AgentID == agentID && task.Status == TaskStatusPending {
+		if task.AgentID == agentID && task.Status == HumanTaskStatusPending {
 			// Check if task has expired
 			if task.ExpiresAt != nil && time.Now().After(*task.ExpiresAt) {
 				// Skip expired tasks
@@ -480,13 +480,13 @@ func (hil *HumanInLoopManager) SubmitResponse(ctx context.Context, taskID, respo
 		return fmt.Errorf("task not found: %s", taskID)
 	}
 
-	if task.Status != TaskStatusPending && task.Status != TaskStatusAssigned {
+	if task.Status != HumanTaskStatusPending && task.Status != HumanTaskStatusAssigned {
 		return fmt.Errorf("task is not in a submittable state: %s", task.Status)
 	}
 
 	responseCopy := response
 	task.Response = &responseCopy
-	task.Status = TaskStatusCompleted
+	task.Status = HumanTaskStatusCompleted
 	now := time.Now()
 	task.RespondedAt = &now
 

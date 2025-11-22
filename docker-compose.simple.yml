@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  # Citadel Agent API Server
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: citadel-agent-api
+    ports:
+      - "5001:5001"
+    environment:
+      - PORT=5001
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=citadel
+      - DB_USER=citadel
+      - DB_PASSWORD=citadel123
+      - JWT_SECRET=supersecretjwtkey
+    depends_on:
+      - db
+    restart: unless-stopped
+    networks:
+      - citadel-network
+
+  # PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    container_name: citadel-db
+    environment:
+      POSTGRES_DB: citadel
+      POSTGRES_USER: citadel
+      POSTGRES_PASSWORD: citadel123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - citadel-network
+
+networks:
+  citadel-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

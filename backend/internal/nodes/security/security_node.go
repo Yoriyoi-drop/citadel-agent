@@ -19,12 +19,17 @@ import (
 	"unicode"
 
 	"github.com/citadel-agent/backend/internal/interfaces"
+	"github.com/citadel-agent/backend/internal/utils"
+	"github.com/citadel-agent/backend/internal/workflow/core/engine"
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/crypto/scrypt"
 )
 
 // SecurityOperationType represents the type of security operation
 type SecurityOperationType string
+
+// SecurityAlgorithm represents the security algorithm to use
+type SecurityAlgorithm string
 
 const (
 	SecurityOpHash          SecurityOperationType = "hash"
@@ -38,19 +43,17 @@ const (
 	SecurityOpValidateToken SecurityOperationType = "validate_token"
 )
 
-// SecurityAlgorithm represents the cryptographic algorithm to use
-type SecurityAlgorithm string
-
 const (
+	// General security algorithms that are unique to SecurityNode
+	AlgorithmBCrypt   SecurityAlgorithm = "bcrypt"  // This should be different from the duplicate
+	AlgorithmScrypt   SecurityAlgorithm = "scrypt"
 	AlgorithmSHA256   SecurityAlgorithm = "sha256"
 	AlgorithmSHA512   SecurityAlgorithm = "sha512"
-	AlgorithmAES256   SecurityAlgorithm = "aes256"
-	AlgorithmHMACSHA256 SecurityAlgorithm = "hmac_sha256"
-	AlgorithmBCrypt   SecurityAlgorithm = "bcrypt"
-	AlgorithmScrypt   SecurityAlgorithm = "scrypt"
-	AlgorithmRSA      SecurityAlgorithm = "rsa"
-	AlgorithmECDSA    SecurityAlgorithm = "ecdsa"
+	AlgorithmHMACSHA256 SecurityAlgorithm = "hmac-sha256"
+	// We'll avoid AES256, RS256 that are defined elsewhere
 )
+
+
 
 // SecurityNodeConfig represents the configuration for a security node
 type SecurityNodeConfig struct {
@@ -439,12 +442,12 @@ func (sn *SecurityNode) validateData(data string, inputs map[string]interface{})
 					}
 
 					rules[i] = ValidationRule{
-						Type:     getStringValue(ruleMap["type"]),
-						Pattern:  getStringValue(ruleMap["pattern"]),
+						Type:     utils.GetString(ruleMap["type"], ""),
+						Pattern:  utils.GetString(ruleMap["pattern"], ""),
 						Min:      minVal,
 						Max:      maxVal,
-						Required: getBoolValue(ruleMap["required"]),
-						Message:  getStringValue(ruleMap["message"]),
+						Required: utils.GetBool(ruleMap["required"], false),
+						Message:  utils.GetString(ruleMap["message"], ""),
 					}
 				}
 			}
@@ -879,34 +882,6 @@ func createKey(key string, length int) []byte {
 	return result
 }
 
-// getStringValue safely gets a string value from interface{}
-func getStringValue(v interface{}) string {
-	if v == nil {
-		return ""
-	}
-	if s, ok := v.(string); ok {
-		return s
-	}
-	return fmt.Sprintf("%v", v)
-}
-
-// getBoolValue safely gets a boolean value from interface{}
-func getBoolValue(v interface{}) bool {
-	if v == nil {
-		return false
-	}
-	if b, ok := v.(bool); ok {
-		return b
-	}
-	if s, ok := v.(string); ok {
-		b, _ := strconv.ParseBool(s)
-		return b
-	}
-	if f, ok := v.(float64); ok {
-		return f != 0
-	}
-	return false
-}
 
 // NewSecurityNodeFromConfig creates a new security node from a configuration map
 func NewSecurityNodeFromConfig(config map[string]interface{}) (interfaces.NodeInstance, error) {
@@ -995,12 +970,12 @@ func NewSecurityNodeFromConfig(config map[string]interface{}) (interfaces.NodeIn
 					}
 
 					validateRules[i] = ValidationRule{
-						Type:     getStringValue(ruleMap["type"]),
-						Pattern:  getStringValue(ruleMap["pattern"]),
+						Type:     utils.GetString(ruleMap["type"], ""),
+						Pattern:  utils.GetString(ruleMap["pattern"], ""),
 						Min:      minVal,
 						Max:      maxVal,
-						Required: getBoolValue(ruleMap["required"]),
-						Message:  getStringValue(ruleMap["message"]),
+						Required: utils.GetBool(ruleMap["required"], false),
+						Message:  utils.GetString(ruleMap["message"], ""),
 					}
 				}
 			}

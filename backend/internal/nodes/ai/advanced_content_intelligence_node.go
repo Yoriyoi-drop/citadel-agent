@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/citadel-agent/backend/internal/interfaces"
+	"github.com/citadel-agent/backend/internal/workflow/core/engine"
 )
 
 // AdvancedContentIntelligenceConfig mewakili konfigurasi untuk node Advanced Content Intelligence

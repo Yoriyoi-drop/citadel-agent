@@ -1,0 +1,31 @@
+#!/bin/bash
+# Citadel Agent CLI Wrapper
+
+# Cek apakah ada subcommand
+if [ $# -eq 0 ]; then
+    echo "Usage: citadel [command]"
+    echo ""
+    echo "Available commands:"
+    echo "  test          - Run tests for the Citadel Agent"
+    echo "  start         - Start the Citadel Agent server"
+    echo "  stop          - Stop the Citadel Agent server"
+    echo "  restart       - Restart the Citadel Agent server"
+    echo "  status        - Check the status of Citadel Agent"
+    echo "  update        - Update Citadel Agent to latest version"
+    echo "  deploy        - Deploy workflow to Citadel Agent"
+    echo "  logs          - Show server logs"
+    echo "  version       - Show Citadel Agent version"
+    echo "  help          - Show this help message"
+    echo ""
+    echo "Examples:"
+    echo "  citadel test"
+    echo "  citadel start"
+    echo "  citadel status"
+    echo "  citadel deploy workflow.json"
+    echo ""
+    exit 1
+fi
+
+# Jalankan CLI Go di backend
+cd /home/whale-d/fajar/citadel-agent/backend
+go run cmd/citadel/main.go "$@"

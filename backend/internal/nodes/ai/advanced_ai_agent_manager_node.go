@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/citadel-agent/backend/internal/interfaces"
+	"github.com/citadel-agent/backend/internal/workflow/core/engine"
 )
 
 // AdvancedAIAgentManagerConfig mewakili konfigurasi untuk node Advanced AI Agent Manager

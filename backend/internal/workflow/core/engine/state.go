@@ -15,6 +15,7 @@ type ExecutionState struct {
 	Status        ExecutionStatus        `json:"status"`
 	StartedAt     time.Time              `json:"started_at"`
 	CompletedAt   *time.Time             `json:"completed_at,omitempty"`
+	UpdatedAt     time.Time              `json:"updated_at,omitempty"`  // Add this field
 	Variables     map[string]interface{} `json:"variables"`
 	NodeResults   map[string]*NodeResult `json:"node_results"`
 	Error         *string                `json:"error,omitempty"`
@@ -488,7 +489,7 @@ func (s *DefaultStateStorage) CleanupNodeResults(ctx context.Context, executionI
 	}
 
 	for nodeID, result := range nodeResults {
-		if result.CompletedAt != nil && result.CompletedAt.Before(*before) {
+		if result.CompletedAt != nil && (*result.CompletedAt).Before(before) {
 			delete(nodeResults, nodeID)
 		}
 	}

@@ -2,12 +2,9 @@ package engine
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"sync"
 	"time"
-
-	"github.com/citadel-agent/backend/internal/interfaces"
 )
 
 // AIManager handles AI agent operations within the workflow engine

@@ -3,11 +3,7 @@ package engine
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"math"
-	"math/rand"
-	"strings"
 	"sync"
 	"time"
 
@@ -109,7 +105,7 @@ type NodeResult struct {
 	Output      map[string]interface{} `json:"output"`
 	Error       *string                `json:"error,omitempty"`
 	StartedAt   time.Time              `json:"started_at"`
-	CompletedAt time.Time              `json:"completed_at"`
+	CompletedAt *time.Time             `json:"completed_at,omitempty"`
 	ExecutionTime time.Duration        `json:"execution_time"`
 }
 
@@ -137,6 +133,8 @@ type Engine struct {
 	securityMgr  *SecurityManager  // Added security manager
 	monitoring   *MonitoringSystem // Added monitoring system
 	aiAgentMgr   *AIManager        // Added AI agent manager
+	retryManager *RetryManager     // Added retry manager
+	circuitBreakerManager *CircuitBreakerManager // Added circuit breaker manager
 }
 
 // SecurityManager handles security aspects of workflow execution
@@ -215,17 +213,22 @@ func NewEngine(config *Config) *Engine {
 	}
 
 	aiAgentMgr := NewAIManager() // Assuming this exists or will be created
+	// Initialize managers - using nil initially, they may be initialized later
+	retryManager := &RetryManager{}
+	circuitBreakerManager := &CircuitBreakerManager{}
 
 	engine := &Engine{
-		executions:   make(map[string]*Execution),
-		storage:      config.Storage,
-		scheduler:    NewScheduler(),
-		nodeRegistry: NewNodeRegistry(),
-		parallelism:  config.Parallelism,
-		logger:       config.Logger,
-		securityMgr:  securityMgr,
-		monitoring:   monitoring,
-		aiAgentMgr:   aiAgentMgr,
+		executions:      make(map[string]*Execution),
+		storage:         config.Storage,
+		scheduler:       NewScheduler(),
+		nodeRegistry:    NewNodeRegistry(),
+		parallelism:     config.Parallelism,
+		logger:          config.Logger,
+		securityMgr:     securityMgr,
+		monitoring:      monitoring,
+		aiAgentMgr:      aiAgentMgr,
+		retryManager:    retryManager,
+		circuitBreakerManager: circuitBreakerManager,
 	}
 
 	// Initialize basic node types
@@ -307,7 +310,7 @@ func (e *Engine) runExecution(ctx context.Context, execution *Execution, workflo
 // executeNodes executes workflow nodes with dependency resolution
 func (e *Engine) executeNodes(ctx context.Context, execution *Execution, workflow *Workflow) error {
 	// Build dependency graph
-	graph, err := e.buildDependencyGraph(workflow)
+	_, err := e.buildDependencyGraph(workflow)
 	if err != nil {
 		return fmt.Errorf("failed to build dependency graph: %w", err)
 	}
@@ -438,7 +441,8 @@ func (e *Engine) executeSingleNode(ctx context.Context, execution *Execution, no
 	executionTime := time.Since(startTime)
 
 	// Update node result
-	nodeResult.CompletedAt = time.Now()
+	completedAt := time.Now()
+	nodeResult.CompletedAt = &completedAt
 	nodeResult.ExecutionTime = executionTime
 
 	if err != nil {
@@ -581,6 +585,75 @@ func (e *Engine) GetExecution(id string) (*Execution, error) {
 
 	// Try to get from storage
 	return e.storage.GetExecution(id)
+}
+
+// GetNodeRegistry returns the node registry
+func (e *Engine) GetNodeRegistry() *NodeRegistry {
+	return e.nodeRegistry
+}
+
+// GetStorage returns the storage implementation
+func (e *Engine) GetStorage() Storage {
+	return e.storage
+}
+
+// GetLogger returns the logger implementation
+func (e *Engine) GetLogger() Logger {
+	return e.logger
+}
+
+// GetParallelism returns the parallelism setting
+func (e *Engine) GetParallelism() int {
+	return e.parallelism
+}
+
+// SetExecution sets an execution in memory
+func (e *Engine) SetExecution(id string, execution *Execution) {
+	e.mutex.Lock()
+	e.executions[id] = execution
+	e.mutex.Unlock()
+}
+
+// BuildDependencyGraph builds dependency graph for the workflow
+func (e *Engine) BuildDependencyGraph(workflow *Workflow) (map[string][]string, error) {
+	graph := make(map[string][]string)
+
+	// Create adjacency list from connections
+	for _, conn := range workflow.Connections {
+		graph[conn.SourceNodeID] = append(graph[conn.SourceNodeID], conn.TargetNodeID)
+	}
+
+	return graph, nil
+}
+
+// PrepareNodeInputs prepares inputs for a node based on dependencies
+func (e *Engine) PrepareNodeInputs(execution *Execution, node *Node, workflow *Workflow) (map[string]interface{}, error) {
+	inputs := make(map[string]interface{})
+
+	// Copy the original inputs
+	for k, v := range node.Inputs {
+		inputs[k] = v
+	}
+
+	// Add outputs from dependent nodes
+	for _, depNodeID := range node.Dependencies {
+		result, exists := execution.NodeResults[depNodeID]
+		if !exists {
+			return nil, fmt.Errorf("dependency node %s not executed", depNodeID)
+		}
+
+		if result.Status != NodeSuccess {
+			return nil, fmt.Errorf("dependency node %s did not succeed", depNodeID)
+		}
+
+		// Add dependency outputs to inputs
+		for k, v := range result.Output {
+			// Use namespace to avoid conflicts
+			inputs[fmt.Sprintf("%s_%s", depNodeID, k)] = v
+		}
+	}
+
+	return inputs, nil
 }
 
 // NewHTTPRequestNode creates a new HTTP request node instance

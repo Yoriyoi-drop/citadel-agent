@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/citadel-agent/backend/internal/interfaces"
+	"github.com/citadel-agent/backend/internal/workflow/core/engine"
 )
 
 // JWTOperationType represents the type of JWT operation

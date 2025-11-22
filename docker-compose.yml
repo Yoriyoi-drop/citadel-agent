@@ -1,366 +1,116 @@
 version: '3.8'
 
 services:
-  # PostgreSQL Database
-  postgres:
-    image: postgres:15-alpine
-    container_name: citadel-postgres
+  # Citadel Agent API Server
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: citadel-agent-api
+    ports:
+      - "5001:5001"
     environment:
-      POSTGRES_DB: ${DB_NAME:-citadel_agent}
-      POSTGRES_USER: ${DB_USER:-postgres}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
-      PGDATA: /var/lib/postgresql/data/pgdata
+      - PORT=5001
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=citadel
+      - DB_USER=citadel
+      - DB_PASSWORD=citadel123
+      - JWT_SECRET=supersecretjwtkey
+      - REDIS_URL=redis:6379
+    depends_on:
+      - db
+      - redis
+    volumes:
+      - ./logs:/app/logs
+    restart: unless-stopped
+    networks:
+      - citadel-network
+
+  # PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    container_name: citadel-db
+    environment:
+      POSTGRES_DB: citadel
+      POSTGRES_USER: citadel
+      POSTGRES_PASSWORD: citadel123
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./storage/migrations:/docker-entrypoint-initdb.d
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - citadel-net
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     restart: unless-stopped
-    command: >
-      postgres
-      -c max_connections=200
-      -c shared_buffers=256MB
-      -c effective_cache_size=1GB
-      -c maintenance_work_mem=64MB
-      -c checkpoint_completion_target=0.9
-      -c wal_buffers=16MB
-      -c default_statistics_target=100
-      -c random_page_cost=1.1
-      -c effective_io_concurrency=200
-      -c work_mem=4MB
-      -c min_wal_size=1GB
-      -c max_wal_size=4GB
-      -c max_worker_processes=2
-      -c max_parallel_workers_per_gather=1
-      -c max_parallel_workers=2
-      -c max_parallel_maintenance_workers=1
-    deploy:
-      resources:
-        limits:
-          cpus: '1.0'
-          memory: 1G
-        reservations:
-          cpus: '0.5'
-          memory: 512M
+    networks:
+      - citadel-network
 
-  # Redis Cache
+  # Redis for caching and job queues
   redis:
     image: redis:7-alpine
     container_name: citadel-redis
-    command: >
-      redis-server
-      --appendonly yes
-      --maxmemory 512mb
-      --maxmemory-policy allkeys-lru
-      --save 900 1
-      --save 300 10
-      --save 60 10000
-      --tcp-keepalive 60
-      --timeout 300
-      --databases 16
     ports:
       - "6379:6379"
     volumes:
       - redis_data:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - citadel-net
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: '0.5'
-          memory: 768M
-        reservations:
-          cpus: '0.25'
-          memory: 256M
+    networks:
+      - citadel-network
 
-  # API Service
-  api:
-    build:
-      context: .
-      dockerfile: docker/api-dev.Dockerfile
-    container_name: citadel-api
-    ports:
-      - "5001:5001"
+  # Workflow UI (similar to n8n UI)
+  ui:
+    image: node:18-alpine
+    container_name: citadel-ui
+    working_dir: /app
     environment:
-      - DB_HOST=postgres
-      - DB_PORT=5432
-      - DB_USER=${DB_USER:-postgres}
-      - DB_PASSWORD=${DB_PASSWORD:-postgres}
-      - DB_NAME=${DB_NAME:-citadel_agent}
-      - REDIS_ADDR=redis:6379
-      - SERVER_PORT=5001
-      - ENVIRONMENT=development
-      - JWT_SECRET=${JWT_SECRET:-your-super-secret-jwt-key-change-in-production}
-      - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID:-github_client_id_not_set}
-      - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET:-github_client_secret_not_set}
-      - GITHUB_REDIRECT_URI=${GITHUB_REDIRECT_URI:-http://localhost:5001/auth/oauth/github/callback}
-      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-google_client_id_not_set}
-      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-google_client_secret_not_set}
-      - GOOGLE_REDIRECT_URI=${GOOGLE_REDIRECT_URI:-http://localhost:5001/auth/oauth/google/callback}
-      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:3000}
-      - LOG_LEVEL=info
-      - WORKER_COUNT=10
-      - MAX_CONCURRENT_EXECUTIONS=100
-      - EXECUTION_TIMEOUT=30m
-      - SECURITY_ENABLED=true
-      - MONITORING_ENABLED=true
-      - AI_INTEGRATION_ENABLED=true
-      - DEFAULT_MODEL=gpt-4
-      - MAX_MEMORY_PER_EXECUTION=200MB
-      - RESOURCE_LIMITING_ENABLED=true
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+      - NODE_ENV=production
+      - VITE_API_BASE_URL=http://api:5001
+    ports:
+      - "5002:5002"
     volumes:
-      - .:/app
-    networks:
-      - citadel-net
+      - ./frontend:/app
+    depends_on:
+      - api
+    command: |
+      sh -c "
+        npm install &&
+        npm run build &&
+        npm start
+      "
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: '2.0'
-          memory: 2G
-        reservations:
-          cpus: '0.5'
-          memory: 512M
+    networks:
+      - citadel-network
 
-  # Worker Service
+  # Task queue processor for workflow execution
   worker:
     build:
       context: .
-      dockerfile: docker/worker-dev.Dockerfile
+      dockerfile: Dockerfile
     container_name: citadel-worker
     environment:
-      - DB_HOST=postgres
+      - WORKER_MODE=true
+      - DB_HOST=db
       - DB_PORT=5432
-      - DB_USER=${DB_USER:-postgres}
-      - DB_PASSWORD=${DB_PASSWORD:-postgres}
-      - DB_NAME=${DB_NAME:-citadel_agent}
-      - REDIS_ADDR=redis:6379
-      - ENVIRONMENT=development
-      - JWT_SECRET=${JWT_SECRET:-your-super-secret-jwt-key-change-in-production}
-      - WORKER_TYPE=execution
-      - MAX_PARALLELISM=20
-      - EXECUTION_TIMEOUT=15m
-      - SECURITY_ENABLED=true
-      - NODE_SANDBOX_ENABLED=true
-      - RESOURCE_LIMITING_ENABLED=true
+      - DB_NAME=citadel
+      - DB_USER=citadel
+      - DB_PASSWORD=citadel123
+      - REDIS_URL=redis:6379
     depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    volumes:
-      - .:/app
-    networks:
-      - citadel-net
-    restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: '1.5'
-          memory: 1G
-        reservations:
-          cpus: '0.5'
-          memory: 256M
-
-  # Scheduler Service
-  scheduler:
-    build:
-      context: .
-      dockerfile: docker/scheduler-dev.Dockerfile
-    container_name: citadel-scheduler
-    environment:
-      - DB_HOST=postgres
-      - DB_PORT=5432
-      - DB_USER=${DB_USER:-postgres}
-      - DB_PASSWORD=${DB_PASSWORD:-postgres}
-      - DB_NAME=${DB_NAME:-citadel_agent}
-      - REDIS_ADDR=redis:6379
-      - ENVIRONMENT=development
-      - JWT_SECRET=${JWT_SECRET:-your-super-secret-jwt-key-change-in-production}
-      - SCHEDULER_INTERVAL=10s
-      - MAX_SCHEDULED_WORKFLOWS=1000
-      - ENABLE_WORKFLOW_CHAINING=true
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    volumes:
-      - .:/app
-    networks:
-      - citadel-net
-    restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: '1.0'
-          memory: 512M
-        reservations:
-          cpus: '0.25'
-          memory: 128M
-
-  # Added monitoring stack
-  prometheus:
-    image: prom/prometheus:latest
-    container_name: citadel-prometheus
-    ports:
-      - "9090:9090"
-    volumes:
-      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
-      - prometheus_data:/prometheus
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--web.console.libraries=/etc/prometheus/console_libraries'
-      - '--web.console.templates=/etc/prometheus/consoles'
-      - '--storage.tsdb.retention.time=200h'
-      - '--web.enable-lifecycle'
-    networks:
-      - citadel-net
-    restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: '1.0'
-          memory: 1G
-        reservations:
-          cpus: '0.25'
-          memory: 256M
-
-  grafana:
-    image: grafana/grafana:latest
-    container_name: citadel-grafana
-    ports:
-      - "3000:3000"
-    volumes:
-      - grafana_data:/var/lib/grafana
-      - ./monitoring/dashboards:/etc/grafana/provisioning/dashboards
-      - ./monitoring/datasources:/etc/grafana/provisioning/datasources
-    environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-      - GF_USERS_ALLOW_SIGN_UP=false
-    networks:
-      - citadel-net
-    depends_on:
-      - prometheus
-    restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: '0.5'
-          memory: 512M
-        reservations:
-          cpus: '0.25'
-          memory: 128M
-
-  # Added AI service for enhanced AI agent functionality
-  ai-service:
-    image: ghcr.io/microsoft/promptflow/promptflow-runtime:latest
-    container_name: citadel-ai-service
-    ports:
-      - "8000:8000"
-    environment:
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - AZURE_OPENAI_API_KEY=${AZURE_OPENAI_API_KEY}
-      - AZURE_OPENAI_ENDPOINT=${AZURE_OPENAI_ENDPOINT}
-      - LOG_LEVEL=info
-    volumes:
-      - ./ai-flows:/app/flows
-    networks:
-      - citadel-net
-    restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: '1.5'
-          memory: 2G
-        reservations:
-          cpus: '0.5'
-          memory: 512M
-
-  # Added nginx as reverse proxy with enhanced security
-  nginx:
-    image: nginx:alpine
-    container_name: citadel-nginx
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
-      - ./nginx/ssl:/etc/nginx/ssl
-      - ./nginx/conf.d:/etc/nginx/conf.d
-    networks:
-      - citadel-net
-    depends_on:
+      - db
+      - redis
       - api
+    command: |
+      sh -c "
+        echo 'Starting workflow worker...' &&
+        ./citadel-agent worker
+      "
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: '0.5'
-          memory: 256M
-        reservations:
-          cpus: '0.25'
-          memory: 128M
-
-  # Added file storage for workflow artifacts
-  minio:
-    image: minio/minio:latest
-    container_name: citadel-minio
-    ports:
-      - "9000:9000"
-      - "9001:9001"
-    environment:
-      - MINIO_ROOT_USER=admin
-      - MINIO_ROOT_PASSWORD=password123
-    command: server /data --console-address ":9001"
-    volumes:
-      - minio_data:/data
     networks:
-      - citadel-net
-    restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: '1.0'
-          memory: 1G
-        reservations:
-          cpus: '0.25'
-          memory: 256M
+      - citadel-network
+
+networks:
+  citadel-network:
+    driver: bridge
 
 volumes:
   postgres_data:
-    driver: local
   redis_data:
-    driver: local
-  prometheus_data:
-    driver: local
-  grafana_data:
-    driver: local
-  minio_data:
-    driver: local
-
-networks:
-  citadel-net:
-    driver: bridge
-    ipam:
-      config:
-        - subnet: 172.20.0.0/16

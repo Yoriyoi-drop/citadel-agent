@@ -4,8 +4,9 @@ package basic
 import (
 	"context"
 	"fmt"
-	"time"
+	"strings"
 
+	"github.com/citadel-agent/backend/internal/nodes/utils"
 	"github.com/citadel-agent/backend/internal/workflow/core/engine"
 )
 
@@ -181,12 +182,12 @@ func (bn *BasicNode) conditionOperation(inputs map[string]interface{}) (map[stri
 	
 	leftValue := inputs["left"]
 	rightValue := inputs["right"]
-	operator := getStringValue(inputs["operator"], "==")
-	
+	operator := utils.GetStringValue(inputs["operator"], "==")
+
 	if leftValue == nil || rightValue == nil {
 		leftValue = bn.config.Value
 		rightValue = inputs["value"]
-		operator = getStringValue(inputs["condition"], getStringValue(bn.config.Condition, "=="))
+		operator = utils.GetStringValue(inputs["condition"], utils.GetStringValue(bn.config.Condition, "=="))
 	}
 
 	var resultValue bool
@@ -402,22 +403,7 @@ func (bn *BasicNode) mathOperation(inputs map[string]interface{}) (map[string]in
 
 // contains checks if a string contains another string
 func contains(s, substr string) bool {
-	return len(s) >= len(substr) && 
-		   (s == substr || 
-		    len(s) > len(substr) && 
-			(len(s) >= len(substr) && 
-			 (s[:len(substr)] == substr || s[len(s)-len(substr):] == substr || 
-			  indexOf(s, substr) != -1)))
-}
-
-// Simplified indexOf function
-func indexOf(s, substr string) int {
-	for i := 0; i <= len(s)-len(substr); i++ {
-		if s[i:i+len(substr)] == substr {
-			return i
-		}
-	}
-	return -1
+	return strings.Contains(s, substr)
 }
 
 // toFloat64 converts an interface value to float64
@@ -450,16 +436,6 @@ func toFloat64(value interface{}) (float64, error) {
 	}
 }
 
-// getStringValue safely extracts a string value
-func getStringValue(v interface{}, defaultValue string) string {
-	if v == nil {
-		return defaultValue
-	}
-	if s, ok := v.(string); ok {
-		return s
-	}
-	return defaultValue
-}
 
 // BasicNodeFromConfig creates a new basic node from a configuration map
 func BasicNodeFromConfig(config map[string]interface{}) (engine.NodeInstance, error) {

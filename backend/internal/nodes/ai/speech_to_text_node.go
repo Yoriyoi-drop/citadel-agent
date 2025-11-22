@@ -2,7 +2,6 @@ package ai
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/citadel-agent/backend/internal/interfaces"
@@ -266,9 +265,13 @@ func (s *SpeechToTextNode) Execute(ctx context.Context, input map[string]interfa
 		"model":          model,
 		"language":       language,
 		"format":         format,
+		"sample_rate":    sampleRate,
+		"channels":       channels,
+		"profanity":      profanity,
 		"punctuated":     punctuate,
 		"timestamped":    timestamps,
 		"diarized":       diarization,
+		"custom_params":  customParams,
 		"timestamp":      time.Now().Unix(),
 	}, nil
 }

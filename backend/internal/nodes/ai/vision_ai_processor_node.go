@@ -4,8 +4,9 @@ import (
 	"context"
 	"fmt"
 	"time"
-	
+
 	"github.com/citadel-agent/backend/internal/interfaces"
+	"github.com/citadel-agent/backend/internal/utils"
 )
 
 // VisionAIProcessorNodeConfig represents the configuration for a Vision AI Processor node
@@ -31,16 +32,16 @@ type VisionAIProcessorNode struct {
 // NewVisionAIProcessorNode creates a new Vision AI Processor node
 func NewVisionAIProcessorNode(config map[string]interface{}) (interfaces.NodeInstance, error) {
 	// Extract config values
-	provider := getStringValue(config["provider"], "openai")
-	apiKey := getStringValue(config["api_key"], "")
-	model := getStringValue(config["model"], "gpt-4-vision-preview")
-	imageURL := getStringValue(config["image_url"], "")
-	imageData := getStringValue(config["image_data"], "")
-	
-	maxResults := getIntValue(config["max_results"], 10)
-	confidence := getFloat64Value(config["confidence"], 0.7)
-	timeout := getIntValue(config["timeout"], 60)
-	enabled := getBoolValue(config["enabled"], true)
+	provider := utils.GetString(config["provider"], "openai")
+	apiKey := utils.GetString(config["api_key"], "")
+	model := utils.GetString(config["model"], "gpt-4-vision-preview")
+	imageURL := utils.GetString(config["image_url"], "")
+	imageData := utils.GetString(config["image_data"], "")
+
+	maxResults := utils.GetInt(config["max_results"], 10)
+	confidence := utils.GetFloat64(config["confidence"], 0.7)
+	timeout := utils.GetInt(config["timeout"], 60)
+	enabled := utils.GetBool(config["enabled"], true)
 	
 	analysisTypes := []string{}
 	if analysisVal, exists := config["analysis_type"]; exists {
@@ -217,59 +218,4 @@ func (v *VisionAIProcessorNode) Execute(ctx context.Context, input map[string]in
 		"analysis_types": analysisTypes,
 		"timestamp":      time.Now().Unix(),
 	}, nil
-}
-
-// getStringValue safely extracts a string value with default fallback
-func getStringValue(v interface{}, defaultValue string) string {
-	if v == nil {
-		return defaultValue
-	}
-	if s, ok := v.(string); ok {
-		return s
-	}
-	return defaultValue
-}
-
-// getFloat64Value safely extracts a float64 value with default fallback
-func getFloat64Value(v interface{}, defaultValue float64) float64 {
-	if v == nil {
-		return defaultValue
-	}
-	if f, ok := v.(float64); ok {
-		return f
-	}
-	if s, ok := v.(string); ok {
-		// Simple conversion from string
-		return 0.0 // In a real implementation, would parse string to float
-	}
-	return defaultValue
-}
-
-// getIntValue safely extracts an int value with default fallback
-func getIntValue(v interface{}, defaultValue int) int {
-	if v == nil {
-		return defaultValue
-	}
-	if f, ok := v.(float64); ok {
-		return int(f)
-	}
-	if s, ok := v.(string); ok {
-		// Simple conversion from string
-		return 0 // In a real implementation, would parse string to int
-	}
-	return defaultValue
-}
-
-// getBoolValue safely extracts a bool value with default fallback
-func getBoolValue(v interface{}, defaultValue bool) bool {
-	if v == nil {
-		return defaultValue
-	}
-	if b, ok := v.(bool); ok {
-		return b
-	}
-	if s, ok := v.(string); ok {
-		return s == "true" || s == "1"
-	}
-	return defaultValue
 }

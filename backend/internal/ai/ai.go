@@ -1,11 +1,11 @@
 package ai
 
-// AIService handles AI-related operations
-type AIService struct {
+// SimpleAIService provides basic AI service functionality
+type SimpleAIService struct {
 	// Add any necessary fields for AI service
 }
 
-// NewAIService creates a new AI service
-func NewAIService() *AIService {
-	return &AIService{}
+// NewSimpleAIService creates a new simple AI service
+func NewSimpleAIService() *SimpleAIService {
+	return &SimpleAIService{}
 }

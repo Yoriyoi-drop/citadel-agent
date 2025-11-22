@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/citadel-agent/backend/internal/interfaces"
+	"github.com/citadel-agent/backend/internal/workflow/core/engine"
 )
 
 // FirewallRuleType represents the type of firewall rule

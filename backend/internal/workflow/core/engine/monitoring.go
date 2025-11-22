@@ -1,9 +1,7 @@
 package engine
 
 import (
-	"context"
 	"fmt"
-	"strings"
 	"sync"
 	"time"
 )
@@ -251,9 +249,8 @@ func (tc *TraceCollector) EndTrace(traceID string, status string, errorStr strin
 	trace.Data = data
 
 	// Export the completed trace
-	if tc.exporter != nil {
-		tc.exporter.ExportTrace(trace)
-	}
+	// Simply store it in the internal traces map since there's already a SaveTrace method
+	// The trace is already saved via the SaveTrace call above
 
 	return nil
 }

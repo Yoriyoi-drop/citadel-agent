@@ -9,6 +9,7 @@ import (
 
 	"github.com/citadel-agent/backend/internal/interfaces"
 	"github.com/citadel-agent/backend/internal/nodes/utils"
+	"github.com/citadel-agent/backend/internal/workflow/core/engine"
 )
 
 // AdvancedDecisionEngineConfig mewakili konfigurasi untuk node Advanced Decision Engine

@@ -3,7 +3,6 @@ package engine
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"math"
 	"math/rand"
@@ -329,7 +328,7 @@ func (cm *CircuitBreakerManager) ResetCircuit(name string) error {
 		return fmt.Errorf("circuit breaker config %s not found", name)
 	}
 
-	newCB := gobreaker.NewCircuitBreaker(gobreaker.Settings{
+	cb = gobreaker.NewCircuitBreaker(gobreaker.Settings{
 		Name:        name,
 		MaxRequests: config.MaxRequests,
 		Interval:    config.Interval,
@@ -338,7 +337,7 @@ func (cm *CircuitBreakerManager) ResetCircuit(name string) error {
 		OnStateChange: config.OnStateChange,
 	})
 
-	cm.breakers[name] = newCB
+	cm.breakers[name] = cb
 	
 	if cm.logger != nil {
 		cm.logger.Info("Reset circuit breaker: %s", name)
@@ -354,7 +353,7 @@ func (cm *CircuitBreakerManager) GetCircuitState(name string) (gobreaker.State, 
 
 	cb, exists := cm.breakers[name]
 	if !exists {
-		return "", fmt.Errorf("circuit breaker %s not found", name)
+		return gobreaker.State(0), fmt.Errorf("circuit breaker %s not found", name)
 	}
 
 	return cb.State(), nil
@@ -435,7 +434,7 @@ func (e *Engine) ExecuteNodeWithRetryAndCircuitBreaker(ctx context.Context, exec
 	// Wrap node execution with retry and circuit breaker
 	_, err := e.circuitBreakerManager.ExecuteWithCircuitBreaker(ctx, cbName, func() (interface{}, error) {
 		return nil, e.retryManager.ExecuteWithRetry(ctx, "default", node.Type, func() error {
-			return e.executeNode(ctx, execution, node, workflow)
+			return e.executeSingleNode(ctx, execution, node, workflow)
 		})
 	})
 

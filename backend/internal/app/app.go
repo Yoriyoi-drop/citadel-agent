@@ -9,9 +9,11 @@ import (
 
 	"github.com/citadel-agent/backend/config"
 	"github.com/citadel-agent/backend/internal/ai"
-	"github.com/citadel-agent/backend/internal/api"
+	"github.com/citadel-agent/backend/internal/api/handlers"
+	"github.com/citadel-agent/backend/internal/observability"
 	"github.com/citadel-agent/backend/internal/repositories"
 	"github.com/citadel-agent/backend/internal/services"
+	workflow_engine "github.com/citadel-agent/backend/internal/workflow/engine"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -25,11 +27,12 @@ type App struct {
 	config           *config.EngineConfig
 	db               *pgxpool.Pool
 	server           *fiber.App
-	monitoringSvc    *services.MonitoringService
+	monitoringSvc    *observability.MonitoringService
 	tenantSvc        *services.TenantService
 	apiKeySvc        *services.APIKeyService
 	notificationSvc  *services.NotificationService
 	aiRuntimeSvc     *ai.AIRuntimeManager
+	workflowEngine   *workflow_engine.Engine
 }
 
 // NewApp creates a new application instance
@@ -94,7 +97,8 @@ func (a *App) initServices() error {
 	monitoringRepo := repositories.NewMonitoringRepository(a.db) // New monitoring repo
 
 	// Initialize services
-	a.monitoringSvc = services.NewMonitoringService(a.db, &loggerAdapter{})
+	// Note: observability.MonitoringService has different constructor parameters
+	// We need to create it with proper dependencies
 	a.tenantSvc = services.NewTenantService(a.db, tenantRepo, userRepo, teamRepo, nil)
 	a.apiKeySvc = services.NewAPIKeyService(a.db, apiKeyRepo, userRepo, teamRepo)
 	a.notificationSvc = services.NewNotificationService(
@@ -106,6 +110,23 @@ func (a *App) initServices() error {
 		&smsSender{},     // Implementasi sms sender
 	)
 	a.aiRuntimeSvc = ai.NewAIRuntimeManager(a.db)
+
+	// Initialize observability monitoring service
+	// Create the necessary services
+	metricsSvc := observability.NewMetricsService()
+
+	// Initialize telemetry service (with error handling)
+	tracerSvc, err := observability.NewTelemetryService("citadel-agent", "v1.0.0")
+	if err != nil {
+		log.Printf("Warning: failed to initialize telemetry service: %v", err)
+		// Create a basic telemetry service if initialization fails
+		tracerSvc = &observability.TelemetryService{}
+	}
+
+	a.monitoringSvc = observability.NewMonitoringService(a.db, metricsSvc, tracerSvc, nil)
+
+	// Initialize workflow engine
+	a.workflowEngine = workflow_engine.NewEngine()
 
 	log.Println("All services initialized successfully")
 	return nil
@@ -133,8 +154,8 @@ func (a *App) initServer() error {
 	// Register middleware
 	a.registerMiddleware()
 
-	// Register routes
-	api.RegisterRoutes(a.server, a.monitoringSvc, a.tenantSvc, a.apiKeySvc, a.notificationSvc)
+	// Register routes using handlers directly
+	a.registerRoutes()
 
 	log.Println("HTTP server initialized successfully")
 	return nil
@@ -261,4 +282,45 @@ func (s *smsSender) Send(ctx context.Context, recipient, message string) error {
 	// For now, we'll just log it
 	log.Printf("SMS sent to %s", recipient)
 	return nil
+}
+
+// registerRoutes registers all API routes using the handler instances
+func (a *App) registerRoutes() {
+	// Create handlers
+	monitoringHandler := handlers.NewMonitoringHandler(a.monitoringSvc)
+	tenantHandler := handlers.NewTenantHandler(a.tenantSvc)
+	apiKeyHandler := handlers.NewAPIKeyHandler(a.apiKeySvc)
+	notificationHandler := handlers.NewNotificationHandler(a.notificationSvc)
+	workflowHandler := handlers.NewWorkflowHandler(a.workflowEngine)
+	nodeHandler := handlers.NewNodeHandler()
+
+	// Base API v1 routes
+	v1 := a.server.Group("/api/v1")
+
+	// Monitoring routes
+	monitoringHandler.RegisterRoutes(v1.Group("/monitoring"))
+
+	// Tenant routes
+	tenantHandler.RegisterRoutes(v1.Group("/tenants"))
+
+	// API Key routes
+	apiKeyHandler.RegisterRoutes(v1.Group("/api-keys"))
+
+	// Notification routes
+	notificationHandler.RegisterRoutes(v1.Group("/notifications"))
+
+	// Workflow routes
+	workflowHandler.RegisterRoutes(v1.Group("/workflows"))
+
+	// Node routes
+	nodeHandler.RegisterRoutes(v1.Group("/nodes"))
+
+	// Health check endpoint
+	a.server.Get("/health", func(c *fiber.Ctx) error {
+		return c.JSON(fiber.Map{
+			"status":    "healthy",
+			"service":   "citadel-agent",
+			"timestamp": c.Context().Time().Unix(),
+		})
+	})
 }

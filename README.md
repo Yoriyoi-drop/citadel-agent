@@ -256,6 +256,73 @@ Distributed under the Apache License 2.0. See `LICENSE` for more information.
 
 Jika Anda menyukai proyek ini, jangan lupa untuk memberikan ⭐ star! Setiap dukungan sangat berarti.
 
+## 🚀 Complete System Architecture
+
+Citadel Agent kini memiliki arsitektur lengkap yang siap produksi dengan:
+
+✅ **Temporal.io Integration** - Orkestrasi workflow yang robust dengan fault tolerance
+✅ **go-plugin System** - Eksekusi plugin yang aman dan terisolasi
+✅ **Fiber API Server** - API berperforma tinggi dengan RESTful endpoints
+✅ **Modular Design** - Arsitektur yang scalable dan maintainable
+
+### Dokumentasi Lengkap
+- [Complete Architecture Documentation](COMPLETE_ARCHITECTURE.md)
+- [System Integration Example](EXAMPLE_INTEGRATION.md)
+- [System Overview](SYSTEM_OVERVIEW.md)
+- [Temporal Integration Guide](TEMPORAL_INTEGRATION.md)
+- [Plugin Architecture Guide](PLUGIN_ARCHITECTURE.md)
+- [Fiber API Server Guide](FIBER_API_SERVER.md)
+- [Deployment Guide](DEPLOYMENT_GUIDE.md)
+- [Monitoring Guide](MONITORING_GUIDE.md)
+- [Security Guide](SECURITY_GUIDE.md)
+
+### Menjalankan Sistem Lengkap
+
+**Prerequisites:**
+- Go 1.19+
+- Temporal Server (untuk workflow orchestration)
+
+**1. Jalankan Temporal Server**
+```bash
+# Menggunakan Docker
+docker run --rm -p 7233:7233 -p 7243:7243 temporalio/auto-setup:1.19.0
+```
+
+**2. Build dan Jalankan API Server**
+```bash
+cd cmd/api
+go build
+./api  # atau go run main.go
+```
+
+**3. Gunakan API**
+```bash
+# Health check
+curl http://localhost:3000/health
+
+# Buat workflow
+curl -X POST http://localhost:3000/api/v1/workflows \
+  -H "Content-Type: application/json" \
+  -d '{
+    "id": "hello-world",
+    "name": "Hello World Workflow",
+    "nodes": [
+      {
+        "id": "hello-node",
+        "type": "http_request",
+        "config": {
+          "url": "https://httpbin.org/get"
+        }
+      }
+    ]
+  }'
+
+# Eksekusi workflow
+curl -X POST http://localhost:3000/api/v1/workflows/hello-world/execute
+```
+
+Sistem lengkap kini siap digunakan dengan semua komponen yang direkomendasikan telah terintegrasi!
+
 ---
 
 <p align="center">

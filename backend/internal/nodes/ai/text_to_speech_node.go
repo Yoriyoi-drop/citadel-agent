@@ -2,7 +2,6 @@ package ai
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/citadel-agent/backend/internal/interfaces"
@@ -240,6 +239,11 @@ func (t *TextToSpeechNode) Execute(ctx context.Context, input map[string]interfa
 		"speed": speed,
 		"pitch": pitch,
 		"format": format,
+		"sample_rate": sampleRate,
+		"bitrate": bitrate,
+		"emotion": emotion,
+		"word_break": wordBreak,
+		"custom_params": customParams,
 		"duration": 5.2, // in seconds
 		"file_size": 45000, // in bytes
 		"processing_time": time.Since(time.Now().Add(-time.Duration(timeout) * time.Second)).Seconds(),
@@ -256,9 +260,11 @@ func (t *TextToSpeechNode) Execute(ctx context.Context, input map[string]interfa
 		"speed":          speed,
 		"pitch":          pitch,
 		"format":         format,
+		"sample_rate":    sampleRate,
+		"bitrate":        bitrate,
+		"emotion":        emotion,
+		"word_break":     wordBreak,
+		"custom_params":  customParams,
 		"timestamp":      time.Now().Unix(),
 	}, nil
-}
-
-
 }

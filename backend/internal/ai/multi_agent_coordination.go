@@ -137,8 +137,8 @@ const (
 	MessageTypeCoordination MessageType = "coordination"
 )
 
-// MultiAgentCoordinator manages coordination between multiple AI agents
-type MultiAgentCoordinator struct {
+// TaskBasedCoordinator manages coordination between multiple AI agents using task-based approach
+type TaskBasedCoordinator struct {
 	config      *MultiAgentConfig
 	agents      map[string]*CoordinatedAgent
 	tasks       map[string]*Task
@@ -160,8 +160,8 @@ type TaskAssigner interface {
 	AssignTask(agents []*CoordinatedAgent, task *Task) (*CoordinatedAgent, error)
 }
 
-// NewMultiAgentCoordinator creates a new multi-agent coordinator
-func NewMultiAgentCoordinator(config *MultiAgentConfig) *MultiAgentCoordinator {
+// NewTaskBasedCoordinator creates a new task-based coordinator
+func NewTaskBasedCoordinator(config *MultiAgentConfig) *TaskBasedCoordinator {
 	if config.CommunicationTimeout == 0 {
 		config.CommunicationTimeout = 30 * time.Second
 	}

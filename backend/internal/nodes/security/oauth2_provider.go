@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/citadel-agent/backend/internal/interfaces"
+	"github.com/citadel-agent/backend/internal/workflow/core/engine"
 )
 
 // OAuth2OperationType represents the type of OAuth2 operation
