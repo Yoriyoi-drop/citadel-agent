@@ -23,8 +23,8 @@ export interface Edge {
   animated?: boolean;
 }
 
+// Custom data type for workflow nodes
 export interface NodeData {
-  id?: string;
   label: string;
   description: string;
   type: string;

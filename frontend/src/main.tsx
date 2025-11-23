@@ -1,11 +1,12 @@
+/// <reference types="vite/client" />
 // frontend/src/main.tsx
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 
-// Import required reactflow styles
-import 'reactflow/dist/style.css';
+// Import required @xyflow/react styles
+import '@xyflow/react/dist/style.css';
 
 // Create root and render app
 const root = ReactDOM.createRoot(

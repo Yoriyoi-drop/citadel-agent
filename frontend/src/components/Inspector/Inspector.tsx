@@ -1,18 +1,14 @@
 // frontend/src/components/Inspector/Inspector.tsx
-import React, { useState } from 'react';
-import { 
-  CogIcon, 
-  CodeIcon, 
-  DocumentTextIcon, 
-  HashtagIcon, 
-  TerminalIcon,
+import { useState } from 'react';
+import {
+  CogIcon,
   PencilIcon,
   TrashIcon,
-  DotsVerticalIcon,
-  ChipIcon,
-  DocumentSearchIcon,
-  AnnotationIcon
-} from '@heroicons/react/solid';
+  EllipsisVerticalIcon,
+  CpuChipIcon,
+  MagnifyingGlassIcon,
+  ChatBubbleLeftIcon
+} from '@heroicons/react/24/solid';
 import { NodeData } from '../../types';
 
 interface InspectorProps {
@@ -26,15 +22,6 @@ const Inspector: React.FC<InspectorProps> = ({ node }) => {
     description: node.description,
     ...node.parameters
   });
-
-  // Mock available nodes for the selected node type
-  const availableNodes = [
-    { id: 'http-request', name: 'HTTP Request', type: 'action', category: 'Integrations' },
-    { id: 'data-transform', name: 'Data Transform', type: 'utility', category: 'Data Processing' },
-    { id: 'condition', name: 'Condition', type: 'logic', category: 'Logic' },
-    { id: 'loop', name: 'Loop', type: 'logic', category: 'Logic' },
-    { id: 'ai-agent', name: 'AI Agent', type: 'ai', category: 'AI/ML' },
-  ];
 
   const handlePropertyChange = (key: string, value: any) => {
     setNodeProperties({
@@ -84,7 +71,7 @@ const Inspector: React.FC<InspectorProps> = ({ node }) => {
         <div className="flex justify-between items-center">
           <h3 className="text-lg font-semibold text-gray-900">Inspector</h3>
           <button className="text-gray-500 hover:text-gray-700">
-            <DotsVerticalIcon className="h-5 w-5" />
+            <EllipsisVerticalIcon className="h-5 w-5" />
           </button>
         </div>
         <p className="text-sm text-gray-500 mt-1">{node.type} node</p>
@@ -95,31 +82,28 @@ const Inspector: React.FC<InspectorProps> = ({ node }) => {
         <nav className="flex -mb-px">
           <button
             onClick={() => setActiveTab('properties')}
-            className={`${
-              activeTab === 'properties'
+            className={`${activeTab === 'properties'
                 ? 'border-blue-500 text-blue-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            } whitespace-nowrap py-2 px-4 text-sm font-medium border-b-2`}
+              } whitespace - nowrap py - 2 px - 4 text - sm font - medium border - b - 2`}
           >
             Properties
           </button>
           <button
             onClick={() => setActiveTab('data')}
-            className={`${
-              activeTab === 'data'
+            className={`${activeTab === 'data'
                 ? 'border-blue-500 text-blue-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            } whitespace-nowrap py-2 px-4 text-sm font-medium border-b-2`}
+              } whitespace - nowrap py - 2 px - 4 text - sm font - medium border - b - 2`}
           >
             Data
           </button>
           <button
             onClick={() => setActiveTab('config')}
-            className={`${
-              activeTab === 'config'
+            className={`${activeTab === 'config'
                 ? 'border-blue-500 text-blue-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            } whitespace-nowrap py-2 px-4 text-sm font-medium border-b-2`}
+              } whitespace - nowrap py - 2 px - 4 text - sm font - medium border - b - 2`}
           >
             Configuration
           </button>
@@ -172,14 +156,14 @@ const Inspector: React.FC<InspectorProps> = ({ node }) => {
                 <CogIcon className="h-4 w-4 mr-1" />
                 Parameters
               </h4>
-              
+
               {Object.keys(nodeProperties).filter(key => !['label', 'description', 'type'].includes(key)).map(key => (
                 <div key={key}>
                   <label className="block text-sm font-medium text-gray-700 mb-1 capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</label>
                   {renderPropertyField(key, nodeProperties[key as keyof typeof nodeProperties])}
                 </div>
               ))}
-              
+
               <button className="w-full mt-2 px-3 py-1.5 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                 + Add Parameter
               </button>
@@ -191,7 +175,7 @@ const Inspector: React.FC<InspectorProps> = ({ node }) => {
           <div className="space-y-6">
             <div>
               <h4 className="text-sm font-medium text-gray-700 flex items-center mb-2">
-                <DocumentSearchIcon className="h-4 w-4 mr-1" />
+                <MagnifyingGlassIcon className="h-4 w-4 mr-1" />
                 Input Data
               </h4>
               <div className="bg-gray-50 p-3 rounded-md">
@@ -203,16 +187,16 @@ const Inspector: React.FC<InspectorProps> = ({ node }) => {
 
             <div>
               <h4 className="text-sm font-medium text-gray-700 flex items-center mb-2">
-                <AnnotationIcon className="h-4 w-4 mr-1" />
+                <ChatBubbleLeftIcon className="h-4 w-4 mr-1" />
                 Sample Output
               </h4>
               <div className="bg-gray-50 p-3 rounded-md">
                 <pre className="text-xs overflow-x-auto">
                   {`{
   "status": "success",
-  "data": {},
+    "data": { },
   "timestamp": "2023-06-15T10:30:00Z"
-}`}
+} `}
                 </pre>
               </div>
             </div>
@@ -241,7 +225,7 @@ const Inspector: React.FC<InspectorProps> = ({ node }) => {
           <div className="space-y-6">
             <div>
               <h4 className="text-sm font-medium text-gray-700 flex items-center mb-2">
-                <ChipIcon className="h-4 w-4 mr-1" />
+                <CpuChipIcon className="h-4 w-4 mr-1" />
                 Execution Settings
               </h4>
               <div className="space-y-3">

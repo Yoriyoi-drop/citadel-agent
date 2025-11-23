@@ -1,22 +1,21 @@
 // frontend/src/components/Sidebar/Sidebar.tsx
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { 
-  HomeIcon, 
-  CogIcon, 
-  TemplateIcon, 
-  UserGroupIcon, 
-  DocumentTextIcon, 
+import { useState } from 'react';
+import {
+  HomeIcon,
+  CogIcon,
+  RectangleStackIcon,
+  UserGroupIcon,
+  DocumentTextIcon,
   CloudIcon,
   PlusIcon,
   TrashIcon,
-  DuplicateIcon,
-  ArrowsExpandIcon
-} from '@heroicons/react/solid';
+  Square2StackIcon,
+  ArrowsPointingOutIcon
+} from '@heroicons/react/24/solid';
 
 interface SidebarProps {
   selectedWorkflow: string | null;
-  onWorkflowSelect: (id: string) => void;
+  onWorkflowSelect: (id: string | null) => void;
 }
 
 interface Workflow {
@@ -55,7 +54,7 @@ const Sidebar: React.FC<SidebarProps> = ({ selectedWorkflow, onWorkflowSelect })
       status: 'error'
     }
   ]);
-  
+
   const [showNewWorkflow, setShowNewWorkflow] = useState(false);
   const [newWorkflowName, setNewWorkflowName] = useState('');
   const [activeTab, setActiveTab] = useState('workflows');
@@ -63,14 +62,14 @@ const Sidebar: React.FC<SidebarProps> = ({ selectedWorkflow, onWorkflowSelect })
   const createWorkflow = () => {
     if (newWorkflowName.trim()) {
       const newWorkflow: Workflow = {
-        id: `wf-${Date.now()}`,
+        id: `wf - ${Date.now()} `,
         name: newWorkflowName,
         description: 'New workflow',
         nodes: 1,
         lastRun: new Date().toISOString(),
         status: 'active'
       };
-      
+
       setWorkflows([newWorkflow, ...workflows]);
       setNewWorkflowName('');
       setShowNewWorkflow(false);
@@ -83,7 +82,7 @@ const Sidebar: React.FC<SidebarProps> = ({ selectedWorkflow, onWorkflowSelect })
     if (workflowToDuplicate) {
       const duplicatedWorkflow: Workflow = {
         ...workflowToDuplicate,
-        id: `wf-${Date.now()}`,
+        id: `wf - ${Date.now()} `,
         name: `${workflowToDuplicate.name} (Copy)`
       };
       setWorkflows([duplicatedWorkflow, ...workflows]);
@@ -111,7 +110,7 @@ const Sidebar: React.FC<SidebarProps> = ({ selectedWorkflow, onWorkflowSelect })
       {/* Logo */}
       <div className="p-4 border-b">
         <div className="flex items-center">
-          <ArrowsExpandIcon className="h-8 w-8 text-blue-600 mr-2" />
+          <ArrowsPointingOutIcon className="h-8 w-8 text-blue-600 mr-2" />
           <h1 className="text-xl font-bold text-gray-900">Citadel Agent</h1>
         </div>
       </div>
@@ -125,24 +124,22 @@ const Sidebar: React.FC<SidebarProps> = ({ selectedWorkflow, onWorkflowSelect })
               <li>
                 <button
                   onClick={() => setActiveTab('workflows')}
-                  className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md ${
-                    activeTab === 'workflows' 
-                      ? 'bg-blue-100 text-blue-700' 
+                  className={`w - full flex items - center px - 3 py - 2 text - sm font - medium rounded - md ${activeTab === 'workflows'
+                      ? 'bg-blue-100 text-blue-700'
                       : 'text-gray-700 hover:bg-gray-100'
-                  }`}
+                    } `}
                 >
-                  <TemplateIcon className="mr-3 h-5 w-5" />
+                  <RectangleStackIcon className="mr-3 h-5 w-5" />
                   Workflows
                 </button>
               </li>
               <li>
                 <button
                   onClick={() => setActiveTab('dashboard')}
-                  className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md ${
-                    activeTab === 'dashboard' 
-                      ? 'bg-blue-100 text-blue-700' 
+                  className={`w - full flex items - center px - 3 py - 2 text - sm font - medium rounded - md ${activeTab === 'dashboard'
+                      ? 'bg-blue-100 text-blue-700'
                       : 'text-gray-700 hover:bg-gray-100'
-                  }`}
+                    } `}
                 >
                   <HomeIcon className="mr-3 h-5 w-5" />
                   Dashboard
@@ -151,11 +148,10 @@ const Sidebar: React.FC<SidebarProps> = ({ selectedWorkflow, onWorkflowSelect })
               <li>
                 <button
                   onClick={() => setActiveTab('nodes')}
-                  className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md ${
-                    activeTab === 'nodes' 
-                      ? 'bg-blue-100 text-blue-700' 
+                  className={`w - full flex items - center px - 3 py - 2 text - sm font - medium rounded - md ${activeTab === 'nodes'
+                      ? 'bg-blue-100 text-blue-700'
                       : 'text-gray-700 hover:bg-gray-100'
-                  }`}
+                    } `}
                 >
                   <CogIcon className="mr-3 h-5 w-5" />
                   Nodes
@@ -200,15 +196,14 @@ const Sidebar: React.FC<SidebarProps> = ({ selectedWorkflow, onWorkflowSelect })
               <ul className="space-y-1">
                 {workflows.map((workflow) => (
                   <li key={workflow.id}>
-                    <div className={`flex items-center justify-between px-3 py-2 text-sm rounded-md cursor-pointer ${
-                      selectedWorkflow === workflow.id
+                    <div className={`flex items - center justify - between px - 3 py - 2 text - sm rounded - md cursor - pointer ${selectedWorkflow === workflow.id
                         ? 'bg-blue-100 text-blue-700'
                         : 'text-gray-700 hover:bg-gray-100'
-                    }`}
-                    onClick={() => onWorkflowSelect(workflow.id)}
+                      } `}
+                      onClick={() => onWorkflowSelect(workflow.id)}
                     >
                       <div className="flex items-center truncate">
-                        <div className={`w-2 h-2 rounded-full mr-2 ${getStatusColor(workflow.status)}`}></div>
+                        <div className={`w - 2 h - 2 rounded - full mr - 2 ${getStatusColor(workflow.status)} `}></div>
                         <span className="truncate">{workflow.name}</span>
                       </div>
                       <div className="flex space-x-1">
@@ -219,7 +214,7 @@ const Sidebar: React.FC<SidebarProps> = ({ selectedWorkflow, onWorkflowSelect })
                           }}
                           className="text-gray-500 hover:text-gray-700"
                         >
-                          <DuplicateIcon className="h-4 w-4" />
+                          <Square2StackIcon className="h-4 w-4" />
                         </button>
                         <button
                           onClick={(e) => {

@@ -17,11 +17,19 @@
     "docker:up": "docker-compose -f docker/compose/docker-compose.yml up -d",
     "docker:down": "docker-compose -f docker/compose/docker-compose.yml down"
   },
-  "keywords": ["workflow", "automation", "ai", "agent", "n8n", "prefect", "temporal"],
+  "keywords": [
+    "workflow",
+    "automation",
+    "ai",
+    "agent",
+    "n8n",
+    "prefect",
+    "temporal"
+  ],
   "author": "Citadel Agent Team",
   "license": "Apache-2.0",
   "devDependencies": {
-    "concurrently": "^8.0.0"
+    "concurrently": "^8.2.2"
   },
   "workspaces": [
     "apps/*",

@@ -1,20 +1,20 @@
 // frontend/src/components/Dashboard/Dashboard.tsx
-import React, { useState, useEffect } from 'react';
-import { 
-  ChartBarIcon, 
-  CogIcon, 
-  ClockIcon, 
-  CheckCircleIcon, 
-  ExclamationIcon,
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import {
+  ChartBarIcon,
+  CogIcon,
+  ClockIcon,
+  CheckCircleIcon,
+  ExclamationTriangleIcon,
   XCircleIcon,
-  TemplateIcon,
+  RectangleStackIcon,
   UserGroupIcon,
   CloudIcon,
   DocumentTextIcon,
-  ArrowTrendingUpIcon,
-  ArrowTrendingDownIcon
-} from '@heroicons/react/solid';
-import { 
+  ArrowTrendingUpIcon
+} from '@heroicons/react/24/solid';
+import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
@@ -53,7 +53,8 @@ interface Execution {
 }
 
 const Dashboard: React.FC = () => {
-  const [stats, setStats] = useState<Stats>({
+  const navigate = useNavigate();
+  const [stats] = useState<Stats>({
     totalWorkflows: 12,
     activeWorkflows: 8,
     executionCount: 1248,
@@ -61,7 +62,7 @@ const Dashboard: React.FC = () => {
     avgExecutionTime: 4.2
   });
 
-  const [executions, setExecutions] = useState<Execution[]>([
+  const [executions] = useState<Execution[]>([
     {
       id: 'exec-1',
       workflow: 'Email Notification Workflow',
@@ -126,11 +127,11 @@ const Dashboard: React.FC = () => {
       case 'failed':
         return <XCircleIcon className="h-5 w-5 text-red-500" />;
       case 'running':
-        return <ExclamationIcon className="h-5 w-5 text-yellow-500" />;
+        return <ExclamationTriangleIcon className="h-5 w-5 text-yellow-500" />;
       case 'cancelled':
         return <XCircleIcon className="h-5 w-5 text-gray-500" />;
       default:
-        return <ExclamationIcon className="h-5 w-5 text-gray-500" />;
+        return <ExclamationTriangleIcon className="h-5 w-5 text-gray-500" />;
     }
   };
 
@@ -154,7 +155,7 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="flex-1 overflow-y-auto p-6">
+    <div className="flex-1 overflow-y-auto p-4 md:p-6">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
         <p className="text-gray-600">Monitor your workflows and automation performance</p>
@@ -165,7 +166,7 @@ const Dashboard: React.FC = () => {
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center">
             <div className="p-3 rounded-full bg-blue-100">
-              <TemplateIcon className="h-6 w-6 text-blue-600" />
+              <RectangleStackIcon className="h-6 w-6 text-blue-600" />
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total Workflows</p>
@@ -251,7 +252,7 @@ const Dashboard: React.FC = () => {
                       </div>
                     </div>
                     <div className="flex items-center space-x-4">
-                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(execution.status)}`}>
+                      <span className={`px - 2 inline - flex text - xs leading - 5 font - semibold rounded - full ${getStatusColor(execution.status)} `}>
                         {execution.status}
                       </span>
                       <span className="text-sm text-gray-500">{execution.duration}s</span>
@@ -268,8 +269,11 @@ const Dashboard: React.FC = () => {
       <div className="bg-white rounded-lg shadow p-6 mb-8">
         <h2 className="text-lg font-medium text-gray-900 mb-4">Quick Actions</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <button className="flex flex-col items-center justify-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50">
-            <TemplateIcon className="h-8 w-8 text-blue-600 mb-2" />
+          <button
+            onClick={() => navigate('/workflows/new')}
+            className="flex flex-col items-center justify-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            <RectangleStackIcon className="h-8 w-8 text-blue-600 mb-2" />
             <span className="text-sm font-medium text-gray-900">New Workflow</span>
           </button>
           <button className="flex flex-col items-center justify-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50">

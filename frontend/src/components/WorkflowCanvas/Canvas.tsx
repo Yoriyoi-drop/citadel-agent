@@ -1,5 +1,6 @@
 import React, { useCallback, useRef, useState } from 'react';
-import ReactFlow, {
+import {
+  ReactFlow,
   ReactFlowProvider,
   addEdge,
   useEdgesState,
@@ -8,20 +9,18 @@ import ReactFlow, {
   Edge,
   Node,
   Controls,
-  ControlButton,
   Panel,
   NodeTypes,
-  MiniMap,
   Background,
-  BackgroundVariant,
-  useReactFlow,
-  ReactFlowInstance
-} from 'reactflow';
-import 'reactflow/dist/style.css';
+  BackgroundVariant
+} from '@xyflow/react';
+import '@xyflow/react/dist/style.css';
 
 import NodeItem from './NodeItem';
 import EdgeItem from './EdgeItem';
 import MiniMapComponent from './MiniMap';
+import NodePalette from './NodePalette';
+import { PlusIcon } from '@heroicons/react/24/solid';
 
 // Define custom node types
 const nodeTypes: NodeTypes = {
@@ -32,15 +31,19 @@ const nodeTypes: NodeTypes = {
   loop: NodeItem,
 };
 
+const edgeTypes = {
+  default: EdgeItem,
+};
+
 // Define initial elements for the canvas
 const initialNodes: Node[] = [
   {
     id: '1',
     type: 'trigger',
     position: { x: 0, y: 0 },
-    data: { 
-      label: 'Trigger', 
-      description: 'Starts the workflow', 
+    data: {
+      label: 'Trigger',
+      description: 'Starts the workflow',
       type: 'trigger',
       parameters: {}
     },
@@ -49,9 +52,9 @@ const initialNodes: Node[] = [
     id: '2',
     type: 'action',
     position: { x: 200, y: 0 },
-    data: { 
-      label: 'HTTP Request', 
-      description: 'Make an HTTP request', 
+    data: {
+      label: 'HTTP Request',
+      description: 'Make an HTTP request',
       type: 'action',
       parameters: {
         method: 'GET',
@@ -63,9 +66,9 @@ const initialNodes: Node[] = [
     id: '3',
     type: 'action',
     position: { x: 400, y: 0 },
-    data: { 
-      label: 'Data Process', 
-      description: 'Process the received data', 
+    data: {
+      label: 'Data Process',
+      description: 'Process the received data',
       type: 'action',
       parameters: {
         operation: 'transform',
@@ -88,17 +91,17 @@ interface WorkflowCanvasProps {
 const Canvas: React.FC<WorkflowCanvasProps> = ({ onSave, onRun }) => {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-  const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
+  const [isPaletteOpen, setIsPaletteOpen] = useState(false);
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
-  
+
   const onConnect = useCallback(
     (params: Connection) => setEdges((eds) => addEdge({ ...params, animated: true }, eds)),
     [setEdges]
   );
 
-  const onLoad = useCallback((rf: ReactFlowInstance) => {
-    setReactFlowInstance(rf);
+  const onLoad = useCallback(() => {
+    // ReactFlow instance loaded
   }, []);
 
   const onNodeClick = useCallback((_: React.MouseEvent, node: Node) => {
@@ -109,14 +112,14 @@ const Canvas: React.FC<WorkflowCanvasProps> = ({ onSave, onRun }) => {
     setSelectedNode(null);
   }, []);
 
-  const addNode = (type: string) => {
+  const addNode = (type: string, label?: string) => {
     const newNode: Node = {
       id: `node-${Date.now()}`,
       type: type,
       position: { x: 0, y: 0 },
-      data: { 
-        label: `${type.charAt(0).toUpperCase() + type.slice(1)} Node`, 
-        description: `A ${type} node`, 
+      data: {
+        label: label || `${type.charAt(0).toUpperCase() + type.slice(1)} Node`,
+        description: `A ${type} node`,
         type: type,
         parameters: {}
       },
@@ -151,13 +154,13 @@ const Canvas: React.FC<WorkflowCanvasProps> = ({ onSave, onRun }) => {
     <div className="flex flex-col h-full w-full">
       <Panel position="top-center" className="bg-white p-2 rounded shadow-md">
         <div className="flex space-x-2">
-          <button 
+          <button
             onClick={handleSave}
             className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
           >
             Save Workflow
           </button>
-          <button 
+          <button
             onClick={handleRun}
             className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
           >
@@ -177,41 +180,44 @@ const Canvas: React.FC<WorkflowCanvasProps> = ({ onSave, onRun }) => {
           onNodeClick={onNodeClick}
           onPaneClick={onPaneClick}
           nodeTypes={nodeTypes}
-          connectionMode="loose"
+          edgeTypes={edgeTypes}
+          // connectionMode="strict"
           onConnectStart={() => console.log('Connection started')}
           onConnectEnd={() => console.log('Connection ended')}
           fitView
           fitViewOptions={{ padding: 0.5 }}
         >
-          <Controls>
-            <ControlButton onClick={() => addNode('trigger')} title="Add Trigger">
-              +T
-            </ControlButton>
-            <ControlButton onClick={() => addNode('action')} title="Add Action">
-              +A
-            </ControlButton>
-            <ControlButton onClick={() => addNode('condition')} title="Add Condition">
-              +C
-            </ControlButton>
-            <ControlButton onClick={() => addNode('loop')} title="Add Loop">
-              +L
-            </ControlButton>
-          </Controls>
-          
+          <Controls />
+
           <MiniMapComponent />
-          
+
           <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
         </ReactFlow>
       </div>
 
+      {/* Floating Action Button for adding nodes */}
+      <button
+        onClick={() => setIsPaletteOpen(true)}
+        className="absolute bottom-8 right-8 p-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 z-40 group"
+      >
+        <PlusIcon className="h-8 w-8 group-hover:rotate-90 transition-transform duration-300" />
+      </button>
+
+      {/* Node Palette Modal */}
+      <NodePalette
+        isOpen={isPaletteOpen}
+        onClose={() => setIsPaletteOpen(false)}
+        onAddNode={addNode}
+      />
+
       {selectedNode && (
-        <Panel position="right" className="w-80 bg-white p-4 shadow-lg border rounded">
+        <Panel position="top-right" className="w-80 bg-white p-4 shadow-lg border rounded">
           <h3 className="font-bold text-lg mb-2">Node Properties</h3>
           <div className="mb-4">
             <label className="block text-sm font-medium mb-1">Label</label>
             <input
               type="text"
-              value={selectedNode.data.label}
+              value={(selectedNode.data as any).label || ''}
               onChange={(e) => {
                 const updatedNode = {
                   ...selectedNode,
@@ -222,11 +228,11 @@ const Canvas: React.FC<WorkflowCanvasProps> = ({ onSave, onRun }) => {
               className="w-full p-2 border rounded"
             />
           </div>
-          
+
           <div className="mb-4">
             <label className="block text-sm font-medium mb-1">Description</label>
             <textarea
-              value={selectedNode.data.description}
+              value={(selectedNode.data as any).description || ''}
               onChange={(e) => {
                 const updatedNode = {
                   ...selectedNode,
@@ -237,7 +243,7 @@ const Canvas: React.FC<WorkflowCanvasProps> = ({ onSave, onRun }) => {
               className="w-full p-2 border rounded h-20"
             />
           </div>
-          
+
           <div className="mb-4">
             <label className="block text-sm font-medium mb-1">Parameters</label>
             <textarea
@@ -257,7 +263,7 @@ const Canvas: React.FC<WorkflowCanvasProps> = ({ onSave, onRun }) => {
               className="w-full p-2 border rounded h-32 font-mono text-xs"
             />
           </div>
-          
+
           <button
             onClick={deleteSelectedNode}
             className="w-full py-2 bg-red-500 text-white rounded hover:bg-red-600"

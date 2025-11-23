@@ -1,116 +1,193 @@
 version: '3.8'
 
 services:
-  # Citadel Agent API Server
-  api:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: citadel-agent-api
-    ports:
-      - "5001:5001"
-    environment:
-      - PORT=5001
-      - DB_HOST=db
-      - DB_PORT=5432
-      - DB_NAME=citadel
-      - DB_USER=citadel
-      - DB_PASSWORD=citadel123
-      - JWT_SECRET=supersecretjwtkey
-      - REDIS_URL=redis:6379
-    depends_on:
-      - db
-      - redis
-    volumes:
-      - ./logs:/app/logs
-    restart: unless-stopped
-    networks:
-      - citadel-network
-
   # PostgreSQL Database
-  db:
+  postgres:
     image: postgres:15-alpine
-    container_name: citadel-db
+    container_name: citadel_postgres
     environment:
-      POSTGRES_DB: citadel
+      POSTGRES_DB: citadel_agent
       POSTGRES_USER: citadel
-      POSTGRES_PASSWORD: citadel123
+      POSTGRES_PASSWORD: changeme
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U citadel -d citadel_agent"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     restart: unless-stopped
-    networks:
-      - citadel-network
 
-  # Redis for caching and job queues
+  # Redis Cache
   redis:
     image: redis:7-alpine
-    container_name: citadel-redis
+    container_name: citadel_redis
     ports:
       - "6379:6379"
     volumes:
       - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     restart: unless-stopped
-    networks:
-      - citadel-network
 
-  # Workflow UI (similar to n8n UI)
-  ui:
-    image: node:18-alpine
-    container_name: citadel-ui
-    working_dir: /app
+  # Temporal Server
+  temporal:
+    image: temporalio/auto-setup:1.25.0
+    container_name: citadel_temporal
     environment:
-      - NODE_ENV=production
-      - VITE_API_BASE_URL=http://api:5001
+      - DB=postgresql
+      - DB_PORT=5432
+      - POSTGRES_USER=citadel
+      - POSTGRES_PWD=changeme
+      - POSTGRES_DBNAME=citadel_agent
+      - DYNAMIC_CONFIG_FILE_PATH=config/dynamicconfig/development.yaml
     ports:
-      - "5002:5002"
-    volumes:
-      - ./frontend:/app
+      - "7233:7233"
+      - "8233:8233"
     depends_on:
-      - api
-    command: |
-      sh -c "
-        npm install &&
-        npm run build &&
-        npm start
-      "
+      postgres:
+        condition: service_healthy
     restart: unless-stopped
-    networks:
-      - citadel-network
 
-  # Task queue processor for workflow execution
+  # Temporal UI
+  temporal-ui:
+    image: temporalio/ui:2.20.0
+    container_name: citadel_temporal_ui
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+      - TEMPORAL_CORS_ORIGINS=http://localhost:8080,http://localhost:3000
+    ports:
+      - "8080:8080"
+    depends_on:
+      - temporal
+    restart: unless-stopped
+
+  # Citadel API Server
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: citadel_api
+    ports:
+      - "8081:8080"
+    environment:
+      - APP_ENV=docker
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=citadel
+      - DB_PASSWORD=changeme
+      - DB_NAME=citadel_agent
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - TEMPORAL_ADDRESS=temporal:7233
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      temporal:
+        condition: service_started
+    volumes:
+      - ./ai-models:/app/ai-models:ro
+    restart: unless-stopped
+
+  # Citadel Worker
   worker:
     build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: citadel-worker
+      context: ./backend
+      dockerfile: Dockerfile.worker
+    container_name: citadel_worker
     environment:
-      - WORKER_MODE=true
-      - DB_HOST=db
+      - APP_ENV=docker
+      - DB_HOST=postgres
       - DB_PORT=5432
-      - DB_NAME=citadel
       - DB_USER=citadel
-      - DB_PASSWORD=citadel123
-      - REDIS_URL=redis:6379
+      - DB_PASSWORD=changeme
+      - DB_NAME=citadel_agent
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - TEMPORAL_ADDRESS=temporal:7233
     depends_on:
-      - db
-      - redis
-      - api
-    command: |
-      sh -c "
-        echo 'Starting workflow worker...' &&
-        ./citadel-agent worker
-      "
+      postgres:
+        condition: service_healthy
+      temporal:
+        condition: service_started
+    volumes:
+      - ./ai-models:/app/ai-models:ro
     restart: unless-stopped
-    networks:
-      - citadel-network
 
-networks:
-  citadel-network:
-    driver: bridge
+  # Frontend (React App)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: citadel_frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+    environment:
+      - REACT_APP_API_URL=http://localhost:8081
+      - REACT_APP_WEBSOCKET_URL=ws://localhost:8081
+    restart: unless-stopped
+
+  # Nginx as Reverse Proxy (Optional)
+  nginx:
+    image: nginx:alpine
+    container_name: citadel_nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/nginx.conf:/etc/nginx/nginx.conf
+      - ./ssl:/etc/nginx/ssl
+    depends_on:
+      - api
+      - frontend
+    restart: unless-stopped
+
+  # Prometheus (Monitoring)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: citadel_prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./configs/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+    restart: unless-stopped
+
+  # Grafana (Dashboard)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: citadel_grafana
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./configs/monitoring/grafana/datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml
+      - ./configs/monitoring/grafana/dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml
+    depends_on:
+      - prometheus
+    restart: unless-stopped
 
 volumes:
   postgres_data:
   redis_data:
+  prometheus_data:
+  grafana_data:

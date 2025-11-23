@@ -1,23 +1,8 @@
-import React from 'react';
-import { Handle, Position, NodeProps, useReactFlow, useStoreApi } from 'reactflow';
+import { Handle, Position, NodeProps } from '@xyflow/react';
 import { NodeData } from '../../types';
 
-const NodeItem: React.FC<NodeProps<NodeData>> = ({ data, isConnectable }) => {
-  const { deleteElements } = useReactFlow();
-  const store = useStoreApi();
-
-  const handleDelete = () => {
-    const { nodeInternals } = store.getState();
-    const nodes = Array.from(nodeInternals.values());
-    
-    // Find the node to delete
-    const nodeToDelete = nodes.find(node => node.id === data.id);
-    
-    if (nodeToDelete) {
-      deleteElements({ nodes: [nodeToDelete] });
-    }
-  };
-
+const NodeItem: React.FC<NodeProps> = ({ data, isConnectable }) => {
+  const nodeData = data as unknown as NodeData;
   // Determine node color based on type
   const getNodeColor = (type: string) => {
     switch (type) {
@@ -35,19 +20,19 @@ const NodeItem: React.FC<NodeProps<NodeData>> = ({ data, isConnectable }) => {
   };
 
   return (
-    <div className={`px-4 py-2 rounded shadow-md min-w-[200px] ${getNodeColor(data.type)} text-white`}>
+    <div className={`px-4 py-2 rounded shadow-md min-w-[200px] ${getNodeColor(nodeData.type)} text-white`}>
       <Handle
         type="target"
         position={Position.Left}
         isConnectable={isConnectable}
         className="w-3 h-3 bg-white"
       />
-      
+
       <div className="text-center">
-        <div className="font-bold">{data.label}</div>
-        <div className="text-xs mt-1 opacity-80">{data.description}</div>
+        <div className="font-bold">{nodeData.label}</div>
+        <div className="text-xs mt-1 opacity-80">{nodeData.description}</div>
       </div>
-      
+
       <Handle
         type="source"
         position={Position.Right}

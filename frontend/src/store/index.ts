@@ -62,7 +62,7 @@ interface WorkflowState {
 }
 
 const useStore = create<WorkflowState>()(
-  devtools((set, get) => ({
+  devtools((set) => ({
     user: null,
     workflows: [],
     executions: [],
@@ -75,11 +75,11 @@ const useStore = create<WorkflowState>()(
     clearUser: () => set({ user: null }),
 
     setWorkflows: (workflows) => set({ workflows }),
-    addWorkflow: (workflow) => set((state) => ({ 
-      workflows: [...state.workflows, workflow] 
+    addWorkflow: (workflow) => set((state) => ({
+      workflows: [...state.workflows, workflow]
     })),
     updateWorkflow: (id, updates) => set((state) => ({
-      workflows: state.workflows.map(wf => 
+      workflows: state.workflows.map(wf =>
         wf.id === id ? { ...wf, ...updates } : wf
       )
     })),
@@ -90,11 +90,11 @@ const useStore = create<WorkflowState>()(
     selectWorkflow: (workflow) => set({ selectedWorkflow: workflow }),
 
     setExecutions: (executions) => set({ executions }),
-    addExecution: (execution) => set((state) => ({ 
-      executions: [...state.executions, execution] 
+    addExecution: (execution) => set((state) => ({
+      executions: [...state.executions, execution]
     })),
     updateExecution: (id, updates) => set((state) => ({
-      executions: state.executions.map(ex => 
+      executions: state.executions.map(ex =>
         ex.id === id ? { ...ex, ...updates } : ex
       )
     })),
