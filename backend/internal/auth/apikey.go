@@ -1,8 +1,13 @@
 package auth
 
 import (
+	"context"
+	"crypto/rand"
 	"crypto/subtle"
+	"encoding/base64"
 	"errors"
+	"fmt"
+	"log"
 	"time"
 
 	"gorm.io/gorm"
@@ -57,12 +62,21 @@ func (s *APIKeyService) ValidateAPIKey(key string) (string, error) {
 		return "", ErrAPIKeyInvalid
 	}
 
-	// Update last used timestamp asynchronously
+	// Update last used timestamp asynchronously with proper error handling
 	go func() {
-		s.db.Exec(
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		err := s.db.WithContext(ctx).Exec(
 			"UPDATE api_keys SET last_used_at = ? WHERE id = ?",
 			time.Now(), apiKey.ID,
-		)
+		).Error
+
+		if err != nil {
+			// Log error but don't fail the authentication
+			// In production, use proper logger
+			log.Printf("Failed to update API key last_used_at: %v", err)
+		}
 	}()
 
 	return apiKey.UserID, nil
@@ -143,21 +157,51 @@ func (s *APIKeyService) RotateAPIKey(keyID string, userID string) (string, error
 		return "", err
 	}
 
-	// Create new key with same details
-	newKey := make(map[string]interface{})
-	newKey["user_id"] = userID
-	newKey["name"] = oldKey.Name + " (rotated)"
-	newKey["permissions"] = oldKey.Permissions
-	newKey["expires_at"] = oldKey.ExpiresAt
+	// Generate new API key
+	newKey, err := generateAPIKey()
+	if err != nil {
+		return "", fmt.Errorf("failed to generate new API key: %w", err)
+	}
 
-	// This would need the actual model to generate the key
-	// For now, return empty string - should be implemented with proper model
+	// Generate key prefix for display (first 8 characters)
+	keyPrefix := newKey[:8]
+
+	// Create new key with same details
+	newKeyData := map[string]interface{}{
+		"user_id":     userID,
+		"key":         newKey,
+		"key_prefix":  keyPrefix,
+		"name":        oldKey.Name + " (rotated)",
+		"permissions": oldKey.Permissions,
+		"expires_at":  oldKey.ExpiresAt,
+		"created_at":  time.Now(),
+	}
+
+	// Insert new key
+	if err := s.db.Table("api_keys").Create(newKeyData).Error; err != nil {
+		return "", fmt.Errorf("failed to create new API key: %w", err)
+	}
 
 	// Revoke old key
 	err = s.RevokeAPIKey(keyID, userID)
 	if err != nil {
+		// Log error but still return new key
+		log.Printf("Warning: failed to revoke old API key %s: %v", keyID, err)
+	}
+
+	return newKey, nil
+}
+
+// generateAPIKey generates a cryptographically secure API key
+func generateAPIKey() (string, error) {
+	// Generate 32 random bytes
+	b := make([]byte, 32)
+	_, err := rand.Read(b)
+	if err != nil {
 		return "", err
 	}
 
-	return "", nil // TODO: Implement with proper model
+	// Encode as base64 and add prefix
+	key := "cta_" + base64.URLEncoding.EncodeToString(b)
+	return key, nil
 }

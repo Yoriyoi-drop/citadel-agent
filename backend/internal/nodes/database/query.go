@@ -5,11 +5,12 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
-	_ "github.com/lib/pq"        // PostgreSQL driver
 	_ "github.com/go-sql-driver/mysql" // MySQL driver
-	_ "github.com/mattn/go-sqlite3"   // SQLite driver
+	_ "github.com/lib/pq"              // PostgreSQL driver
+	_ "github.com/mattn/go-sqlite3"    // SQLite driver
 
 	"github.com/citadel-agent/backend/internal/interfaces"
 )
@@ -37,27 +38,28 @@ const (
 
 // DatabaseConfig represents the configuration for a database node
 type DatabaseConfig struct {
-	DBType          DatabaseType        `json:"db_type"`
-	ConnectionString string              `json:"connection_string"`
-	Query           string              `json:"query"`
-	QueryType       QueryType          `json:"query_type"`
-	Parameters      map[string]interface{} `json:"parameters"`
-	TableName       string              `json:"table_name"`
-	Fields          []string            `json:"fields"`
-	WhereClause     string              `json:"where_clause"`
-	OrderBy         string              `json:"order_by"`
-	Limit           int                 `json:"limit"`
-	EnableCaching   bool                `json:"enable_caching"`
-	CacheTTL        int                 `json:"cache_ttl"`       // in seconds
-	EnableProfiling bool                `json:"enable_profiling"`
-	ReturnRawResults bool               `json:"return_raw_results"`
-	CustomParams    map[string]interface{} `json:"custom_params"`
-	Timeout         int                 `json:"timeout"`         // in seconds
+	DBType           DatabaseType           `json:"db_type"`
+	ConnectionString string                 `json:"connection_string"`
+	Query            string                 `json:"query"`
+	QueryType        QueryType              `json:"query_type"`
+	Parameters       map[string]interface{} `json:"parameters"`
+	TableName        string                 `json:"table_name"`
+	Fields           []string               `json:"fields"`
+	WhereClause      string                 `json:"where_clause"`
+	OrderBy          string                 `json:"order_by"`
+	Limit            int                    `json:"limit"`
+	EnableCaching    bool                   `json:"enable_caching"`
+	CacheTTL         int                    `json:"cache_ttl"` // in seconds
+	EnableProfiling  bool                   `json:"enable_profiling"`
+	ReturnRawResults bool                   `json:"return_raw_results"`
+	CustomParams     map[string]interface{} `json:"custom_params"`
+	Timeout          int                    `json:"timeout"` // in seconds
 }
 
 // DatabaseNode represents a database operation node
 type DatabaseNode struct {
-	config *DatabaseConfig
+	config    *DatabaseConfig
+	validator *SQLValidator
 }
 
 // NewDatabaseNode creates a new database node
@@ -95,7 +97,8 @@ func NewDatabaseNode(config map[string]interface{}) (interfaces.NodeInstance, er
 	}
 
 	return &DatabaseNode{
-		config: &dbConfig,
+		config:    &dbConfig,
+		validator: NewSQLValidator(),
 	}, nil
 }
 
@@ -211,16 +214,44 @@ func (dn *DatabaseNode) Execute(ctx context.Context, inputs map[string]interface
 		}
 	}
 
-	// Connect to database
-	db, err := sql.Open(string(dbType), connectionString)
+	// Connect to database using connection pool
+	pool := GetGlobalPool()
+	db, err := pool.GetConnection(string(dbType), connectionString)
 	if err != nil {
-		return nil, fmt.Errorf("failed to connect to database: %w", err)
+		return nil, fmt.Errorf("failed to get database connection: %w", err)
 	}
-	defer db.Close()
+	// Don't defer db.Close() - connection is managed by pool
 
 	// Set timeout
 	ctx, cancel := context.WithTimeout(ctx, time.Duration(timeout)*time.Second)
 	defer cancel()
+
+	// Validate inputs before building query
+	if tableName != "" {
+		if err := dn.validator.ValidateTableName(tableName); err != nil {
+			return nil, fmt.Errorf("invalid table name: %w", err)
+		}
+	}
+
+	if orderBy != "" {
+		if err := dn.validator.ValidateOrderBy(orderBy); err != nil {
+			return nil, fmt.Errorf("invalid ORDER BY clause: %w", err)
+		}
+	}
+
+	if whereClause != "" {
+		sanitized, err := dn.validator.SanitizeWhereClause(whereClause)
+		if err != nil {
+			return nil, fmt.Errorf("invalid WHERE clause: %w", err)
+		}
+		whereClause = sanitized
+	}
+
+	if limit > 0 {
+		if err := dn.validator.ValidateLimit(limit); err != nil {
+			return nil, fmt.Errorf("invalid LIMIT: %w", err)
+		}
+	}
 
 	// Build query if not provided
 	if query == "" {
@@ -239,8 +270,8 @@ func (dn *DatabaseNode) Execute(ctx context.Context, inputs map[string]interface
 		result, err = dn.executeUpdate(ctx, db, query, parameters)
 	case QueryRaw:
 		// Determine if it's a SELECT or other type by checking the query string
-		lowerQuery := fmt.Sprintf("%s", query)
-		if lowerQuery != "" && lowerQuery[0:6] == "select" {
+		lowerQuery := strings.ToLower(strings.TrimSpace(query))
+		if strings.HasPrefix(lowerQuery, "select") {
 			result, err = dn.executeQuery(ctx, db, query, parameters)
 		} else {
 			result, err = dn.executeUpdate(ctx, db, query, parameters)
@@ -274,12 +305,12 @@ func (dn *DatabaseNode) Execute(ctx context.Context, inputs map[string]interface
 	// Add profiling data if enabled
 	if enableProfiling {
 		output["profiling"] = map[string]interface{}{
-			"start_time": startTime.Unix(),
-			"end_time":   time.Now().Unix(),
-			"duration":   time.Since(startTime).Seconds(),
-			"db_type":    string(dbType),
-			"query_type": string(queryType),
-			"query":      query,
+			"start_time":    startTime.Unix(),
+			"end_time":      time.Now().Unix(),
+			"duration":      time.Since(startTime).Seconds(),
+			"db_type":       string(dbType),
+			"query_type":    string(queryType),
+			"query":         query,
 			"rows_affected": 0, // This would be populated based on result
 		}
 	}
@@ -292,7 +323,7 @@ func (dn *DatabaseNode) buildQuery(qType QueryType, table, where, orderBy string
 	switch qType {
 	case QuerySelect:
 		query := "SELECT "
-		
+
 		if len(params) > 0 {
 			// Check if fields are specified in the params
 			fieldsParam, exists := params["fields"]
@@ -314,31 +345,31 @@ func (dn *DatabaseNode) buildQuery(qType QueryType, table, where, orderBy string
 		} else {
 			query += "*"
 		}
-		
+
 		query += fmt.Sprintf(" FROM %s", table)
-		
+
 		if where != "" {
 			query += fmt.Sprintf(" WHERE %s", where)
 		}
-		
+
 		if orderBy != "" {
 			query += fmt.Sprintf(" ORDER BY %s", orderBy)
 		}
-		
+
 		if limit > 0 {
 			query += fmt.Sprintf(" LIMIT %d", limit)
 		}
-		
+
 		return query, nil
-		
+
 	case QueryInsert:
 		query := fmt.Sprintf("INSERT INTO %s ", table)
-		
+
 		if len(params) > 0 {
 			// Build column list and value placeholders
 			columns := make([]string, 0, len(params))
 			values := make([]string, 0, len(params))
-			
+
 			for k := range params {
 				if k != "fields" && k != "where" { // Skip special parameters
 					columns = append(columns, k)
@@ -346,46 +377,46 @@ func (dn *DatabaseNode) buildQuery(qType QueryType, table, where, orderBy string
 					values = append(values, fmt.Sprintf("$%d", len(values)+1))
 				}
 			}
-			
+
 			query += fmt.Sprintf("(%s) VALUES (%s)",
 				joinStrings(columns, ", "),
 				joinStrings(values, ", "))
 		}
-		
+
 		return query, nil
-		
+
 	case QueryUpdate:
 		query := fmt.Sprintf("UPDATE %s SET ", table)
-		
+
 		if len(params) > 0 {
 			setParts := make([]string, 0, len(params))
 			paramIndex := 1
-			
+
 			for k := range params {
 				if k != "fields" && k != "where" && k != "id" { // Skip special parameters
 					setParts = append(setParts, fmt.Sprintf("%s = $%d", k, paramIndex))
 					paramIndex++
 				}
 			}
-			
+
 			query += joinStrings(setParts, ", ")
 		}
-		
+
 		if where != "" {
 			query += fmt.Sprintf(" WHERE %s", where)
 		}
-		
+
 		return query, nil
-		
+
 	case QueryDelete:
 		query := fmt.Sprintf("DELETE FROM %s", table)
-		
+
 		if where != "" {
 			query += fmt.Sprintf(" WHERE %s", where)
 		}
-		
+
 		return query, nil
-		
+
 	default:
 		return "", fmt.Errorf("unsupported query type for building: %s", qType)
 	}
@@ -467,7 +498,7 @@ func (dn *DatabaseNode) executeUpdate(ctx context.Context, db *sql.DB, query str
 
 	return map[string]interface{}{
 		"rows_affected": rowsAffected,
-		"success":      true,
+		"success":       true,
 	}, nil
 }
 
@@ -476,7 +507,7 @@ func joinStrings(strs []string, sep string) string {
 	if len(strs) == 0 {
 		return ""
 	}
-	
+
 	result := strs[0]
 	for _, s := range strs[1:] {
 		result += sep + s

@@ -1,9 +1,12 @@
 package middleware
 
 import (
+	"fmt"
 	"strings"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 // AuthMiddleware handles both JWT and API key authentication
@@ -66,16 +69,61 @@ func (m *AuthMiddleware) authenticateWithAPIKey(c *fiber.Ctx, apiKey string) err
 }
 
 // authenticateWithJWT validates JWT token and sets user context
-func (m *AuthMiddleware) authenticateWithJWT(c *fiber.Ctx, token string) error {
-	// TODO: Implement JWT validation
-	// For now, just pass through
-	// This should validate the JWT and extract user ID
+func (m *AuthMiddleware) authenticateWithJWT(c *fiber.Ctx, tokenString string) error {
+	// Parse and validate JWT token
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		// Validate signing method
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+		return []byte(m.jwtSecret), nil
+	})
 
-	// Placeholder - extract user ID from JWT
-	userID := "user-from-jwt" // TODO: Extract from JWT
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Invalid or expired token",
+		})
+	}
+
+	if !token.Valid {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Invalid token",
+		})
+	}
+
+	// Extract claims
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Invalid token claims",
+		})
+	}
+
+	// Extract user ID from claims
+	userID, ok := claims["user_id"].(string)
+	if !ok || userID == "" {
+		// Try alternative claim names
+		if sub, ok := claims["sub"].(string); ok {
+			userID = sub
+		} else {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"error": "User ID not found in token",
+			})
+		}
+	}
+
+	// Validate expiration
+	if exp, ok := claims["exp"].(float64); ok {
+		if time.Now().Unix() > int64(exp) {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"error": "Token has expired",
+			})
+		}
+	}
 
 	c.Locals("userID", userID)
 	c.Locals("authType", "jwt")
+	c.Locals("claims", claims)
 
 	return c.Next()
 }

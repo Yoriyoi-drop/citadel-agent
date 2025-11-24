@@ -8,21 +8,22 @@ import (
 	"runtime"
 	"time"
 
+	"github.com/citadel-agent/backend/internal/api/handlers"
+	"github.com/citadel-agent/backend/internal/config"
+	"github.com/citadel-agent/backend/internal/nodes"
+	"github.com/citadel-agent/backend/internal/workflow/core/engine"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
-
-	// "github.com/spf13/viper" // TODO: Re-enable when config is implemented
-
-	"github.com/citadel-agent/backend/internal/config"
-	"github.com/citadel-agent/backend/internal/nodes"
-	"github.com/citadel-agent/backend/internal/workflow/core/engine"
 )
 
 func main() {
-	// Initialize configuration
-	cfg := config.LoadConfig()
+	// Load configuration
+	cfg, err := config.LoadConfig()
+	if err != nil {
+		log.Fatalf("Failed to load configuration: %v", err)
+	}
 
 	// Initialize Fiber app
 	app := fiber.New(fiber.Config{
@@ -99,6 +100,17 @@ func main() {
 			"timestamp":  time.Now().Unix(),
 		})
 	})
+
+	// New Node Registry API
+	nodeRegistryHandler := handlers.NewNodeRegistryHandler()
+
+	// Node registry routes
+	api.Get("/registry/nodes", nodeRegistryHandler.ListNodes)
+	api.Get("/registry/nodes/:id", nodeRegistryHandler.GetNode)
+	api.Get("/registry/categories", nodeRegistryHandler.GetCategories)
+	api.Get("/registry/categories/:category", nodeRegistryHandler.ListByCategory)
+	api.Get("/registry/search", nodeRegistryHandler.SearchNodes)
+	api.Get("/registry/stats", nodeRegistryHandler.GetStats)
 
 	// Root route
 	app.Get("/", func(c *fiber.Ctx) error {

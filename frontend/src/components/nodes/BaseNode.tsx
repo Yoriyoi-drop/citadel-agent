@@ -5,10 +5,10 @@ import { Handle, Position, NodeProps } from '@xyflow/react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { 
-  Settings, 
-  Play, 
-  Copy, 
+import {
+  Settings,
+  Play,
+  Copy,
   Trash2,
   CheckCircle,
   XCircle,
@@ -16,6 +16,7 @@ import {
   Zap
 } from 'lucide-react';
 import { BaseNode as BaseNodeType } from '@/types/workflow';
+import { NodeIcon } from '@/components/NodeIcon';
 
 interface BaseNodeComponentProps extends NodeProps {
   data: {
@@ -51,17 +52,6 @@ const BaseNodeComponent = memo(({ data, selected }: BaseNodeComponentProps) => {
     }
   };
 
-  const getNodeIcon = () => {
-    switch (data.nodeType) {
-      case 'http_request': return '🌐';
-      case 'database_query': return '🗄️';
-      case 'ai_chat': return '🤖';
-      case 'webhook': return '🪝';
-      case 'transform_data': return '🔄';
-      case 'delay': return '⏰';
-      default: return '⚙️';
-    }
-  };
 
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -79,15 +69,14 @@ const BaseNodeComponent = memo(({ data, selected }: BaseNodeComponentProps) => {
   };
 
   return (
-    <Card 
-      className={`min-w-[200px] transition-all duration-200 ${getStatusColor()} ${
-        selected ? 'ring-2 ring-primary ring-offset-2' : ''
-      }`}
+    <Card
+      className={`min-w-[200px] transition-all duration-200 ${getStatusColor()} ${selected ? 'ring-2 ring-primary ring-offset-2' : ''
+        }`}
     >
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <span className="text-lg">{getNodeIcon()}</span>
+            <NodeIcon type={data.nodeType} size={18} />
             <h3 className="font-semibold text-sm">{data.label}</h3>
           </div>
           <div className="flex items-center space-x-1">
@@ -124,7 +113,7 @@ const BaseNodeComponent = memo(({ data, selected }: BaseNodeComponentProps) => {
           <p className="text-xs text-muted-foreground">{data.description}</p>
         )}
       </CardHeader>
-      
+
       <CardContent className="pt-0">
         {/* Input Handles */}
         {data.inputs.map((input, index) => (
@@ -137,7 +126,7 @@ const BaseNodeComponent = memo(({ data, selected }: BaseNodeComponentProps) => {
             className="w-3 h-3 bg-gray-400 border-2 border-white"
           />
         ))}
-        
+
         {/* Output Handles */}
         {data.outputs.map((output, index) => (
           <Handle
@@ -149,7 +138,7 @@ const BaseNodeComponent = memo(({ data, selected }: BaseNodeComponentProps) => {
             className="w-3 h-3 bg-blue-500 border-2 border-white"
           />
         ))}
-        
+
         {/* Port Labels */}
         <div className="flex justify-between text-xs">
           <div className="space-y-1">
@@ -162,7 +151,7 @@ const BaseNodeComponent = memo(({ data, selected }: BaseNodeComponentProps) => {
               <div className="text-muted-foreground">+{data.inputs.length - 2}</div>
             )}
           </div>
-          
+
           <div className="space-y-1 text-right">
             {data.outputs.slice(0, 2).map((output, index) => (
               <div key={index} className="text-muted-foreground">
@@ -174,7 +163,7 @@ const BaseNodeComponent = memo(({ data, selected }: BaseNodeComponentProps) => {
             )}
           </div>
         </div>
-        
+
         {/* Configuration Summary */}
         {Object.keys(data.config).length > 0 && (
           <div className="mt-3 pt-2 border-t">

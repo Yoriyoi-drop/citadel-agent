@@ -5,22 +5,16 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 // APIKeyHandler handles API key operations
 type APIKeyHandler struct {
-	db interface {
-		Create(value interface{}) error
-		Find(dest interface{}, conds ...interface{}) error
-		First(dest interface{}, conds ...interface{}) error
-		Save(value interface{}) error
-		Delete(value interface{}, conds ...interface{}) error
-		Exec(sql string, values ...interface{}) error
-	}
+	db *gorm.DB
 }
 
 // NewAPIKeyHandler creates a new API key handler
-func NewAPIKeyHandler(db interface{}) *APIKeyHandler {
+func NewAPIKeyHandler(db *gorm.DB) *APIKeyHandler {
 	return &APIKeyHandler{db: db}
 }
 
@@ -43,7 +37,6 @@ func (h *APIKeyHandler) CreateAPIKey(c *fiber.Ctx) error {
 	}
 
 	// Generate API key
-	keyBytes := make([]byte, 32)
 	// In production, use crypto/rand
 	key := "cta_" + uuid.New().String() // Simplified for now
 

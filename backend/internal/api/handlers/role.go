@@ -3,22 +3,20 @@ package handlers
 import (
 	"time"
 
+	"github.com/citadel-agent/backend/internal/auth"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 // RoleHandler handles role operations
 type RoleHandler struct {
-	db interface {
-		Exec(sql string, values ...interface{}) error
-	}
-	rbacService interface {
-		ValidatePermissions(permissions []string) error
-	}
+	db          *gorm.DB
+	rbacService *auth.RBACService
 }
 
 // NewRoleHandler creates a new role handler
-func NewRoleHandler(db interface{}, rbacService interface{}) *RoleHandler {
+func NewRoleHandler(db *gorm.DB, rbacService *auth.RBACService) *RoleHandler {
 	return &RoleHandler{
 		db:          db,
 		rbacService: rbacService,

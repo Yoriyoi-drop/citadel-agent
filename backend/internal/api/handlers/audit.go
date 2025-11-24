@@ -2,17 +2,16 @@ package handlers
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"gorm.io/gorm"
 )
 
 // AuditLogHandler handles audit log operations
 type AuditLogHandler struct {
-	db interface {
-		Exec(sql string, values ...interface{}) error
-	}
+	db *gorm.DB
 }
 
 // NewAuditLogHandler creates a new audit log handler
-func NewAuditLogHandler(db interface{}) *AuditLogHandler {
+func NewAuditLogHandler(db *gorm.DB) *AuditLogHandler {
 	return &AuditLogHandler{db: db}
 }
 

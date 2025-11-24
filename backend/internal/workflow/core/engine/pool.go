@@ -67,7 +67,7 @@ type WorkerPoolConfig struct {
 }
 
 // NewWorkerPool creates a new worker pool
-func NewWorkerPool(config WorkerPoolConfig) (*WorkerPool, error) {
+func NewWorkerPool(ctx context.Context, config WorkerPoolConfig) (*WorkerPool, error) {
 	if config.Workers <= 0 {
 		return nil, ErrInvalidWorker
 	}
@@ -80,13 +80,17 @@ func NewWorkerPool(config WorkerPoolConfig) (*WorkerPool, error) {
 		config.ResultBuffer = 100
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
+	// Use parent context if provided, otherwise create new one
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	poolCtx, cancel := context.WithCancel(ctx)
 
 	pool := &WorkerPool{
 		workers:      config.Workers,
 		jobQueue:     make(chan Job, config.QueueSize),
 		resultChan:   make(chan Result, config.ResultBuffer),
-		ctx:          ctx,
+		ctx:          poolCtx,
 		cancel:       cancel,
 		metrics:      &PoolMetrics{},
 		maxQueueSize: config.QueueSize,

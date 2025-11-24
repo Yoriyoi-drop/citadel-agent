@@ -39,25 +39,28 @@ func (s *RBACService) HasPermission(userID string, permission string) (bool, err
 	}
 
 	// Get permissions from roles
-	var permissions []string
+	var roles []struct {
+		Permissions []string `gorm:"serializer:json"`
+	}
 	err = s.db.Table("roles").
+		Select("permissions").
 		Where("id IN ?", roleIDs).
 		Where("deleted_at IS NULL").
-		Pluck("permissions", &permissions).Error
+		Find(&roles).Error
 	if err != nil {
 		return false, err
 	}
 
 	// Check if user has admin permission (grants all)
-	for _, perms := range permissions {
-		if contains(perms, "admin:*") {
+	for _, role := range roles {
+		if contains(role.Permissions, "admin:*") {
 			return true, nil
 		}
 	}
 
 	// Check for specific permission
-	for _, perms := range permissions {
-		if contains(perms, permission) {
+	for _, role := range roles {
+		if contains(role.Permissions, permission) {
 			return true, nil
 		}
 	}
