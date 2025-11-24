@@ -1,0 +1,76 @@
+# Citadel Agent Application Configuration
+
+server:
+  port: 8080
+  host: "0.0.0.0"
+  read_timeout: 15s
+  write_timeout: 15s
+  idle_timeout: 60s
+
+database:
+  host: ${DB_HOST:localhost}
+  port: ${DB_PORT:5432}
+  user: ${DB_USER:citadel}
+  password: ${DB_PASSWORD:citadel}
+  name: ${DB_NAME:citadel}
+  ssl_mode: disable
+  max_connections: 20
+  conn_max_lifetime: 30m
+
+redis:
+  address: ${REDIS_URL:localhost:6379}
+  password: ${REDIS_PASSWORD:}
+  db: 0
+  pool_size: 10
+  min_idle_conns: 5
+  conn_max_lifetime: 30m
+
+temporal:
+  address: ${TEMPORAL_ADDRESS:localhost:7233}
+  namespace: default
+
+ai:
+  # Configuration for AI services
+  local_models_path: "./ai-models"
+  openai_api_key: ${OPENAI_API_KEY:}
+  openai_base_url: "https://api.openai.com/v1"
+  default_model: "gpt-4o"
+  
+  # Local model settings
+  local_model_enabled: true
+  local_model_path: "./ai-models/llama-3-instruct.Q4_K_M.gguf"
+  local_model_type: "llama"
+  local_model_context_size: 4096
+  
+  # Cost tracking settings
+  cost_tracking_enabled: true
+  daily_budget: 10.00  # USD
+  cost_notification_threshold: 8.00  # USD
+
+logging:
+  level: ${LOG_LEVEL:info}
+  format: json
+  enable_stdout: true
+  enable_file: false
+  file_path: "./logs/app.log"
+
+security:
+  jwt_secret: ${JWT_SECRET:default-secret-change-in-production}
+  jwt_expires_in: 24h
+  enable_rate_limiting: true
+  requests_per_minute: 100
+
+workflows:
+  execution_timeout: 300s  # 5 minutes
+  max_concurrent_executions: 10
+  enable_execution_logging: true
+  enable_persistence: true
+
+cache:
+  enabled: true
+  default_ttl: 5m
+
+tracing:
+  enabled: false
+  endpoint: ""
+  service_name: "citadel-agent"

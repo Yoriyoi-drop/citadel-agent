@@ -155,8 +155,8 @@ type WorkflowStatistics struct {
 	LastExecutionStatus ExecutionStatus `json:"last_execution_status"`
 }
 
-// NodeMetadata holds metadata about a node
-type NodeMetadata struct {
+// NodeDefinition holds definition of a node type
+type NodeDefinition struct {
 	ID          string                 `json:"id"`
 	Type        string                 `json:"type"`
 	Category    string                 `json:"category"`

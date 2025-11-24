@@ -7,317 +7,202 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/citadel-agent/backend/internal/interfaces"
 )
 
-// HTTPRequestConfig represents configuration for HTTP request node
-type HTTPRequestConfig struct {
-	URL         string            `json:"url"`
-	Method      string            `json:"method"`
-	Headers     map[string]string `json:"headers"`
-	Body        interface{}       `json:"body"`
-	Timeout     int               `json:"timeout"`      // in seconds
-	AuthType    string            `json:"auth_type"`    // "none", "basic", "bearer", "api_key"
-	AuthValue   string            `json:"auth_value"`
-	VerifySSL   bool              `json:"verify_ssl"`
-	RetryCount  int               `json:"retry_count"`  // Number of retries
-	RetryDelay  int               `json:"retry_delay"`  // Delay between retries in seconds
-	EnableCaching bool            `json:"enable_caching"`
-	CacheTTL    int               `json:"cache_ttl"`    // Cache TTL in seconds
-	EnableProfiling bool          `json:"enable_profiling"`
-	ReturnRawResults bool          `json:"return_raw_results"`
-	CustomParams map[string]interface{} `json:"custom_params"`
-}
-
-// HTTPRequestNode represents an HTTP request node
+// HTTPRequestNode implements a node that makes HTTP requests
 type HTTPRequestNode struct {
-	config *HTTPRequestConfig
+	id          string
+	nodeType    string
+	method      string
+	url         string
+	headers     map[string]string
+	body        string
+	timeout     time.Duration
+	authType    string
+	authValue   string
+	config      map[string]interface{}
 }
 
-// NewHTTPRequestNode creates a new HTTP request node
-func NewHTTPRequestNode(config map[string]interface{}) (interfaces.NodeInstance, error) {
-	// Convert config map to struct
-	jsonData, err := json.Marshal(config)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal config: %w", err)
-	}
+// Initialize sets up the HTTP request node with configuration
+func (h *HTTPRequestNode) Initialize(config map[string]interface{}) error {
+	h.config = config
 
-	var httpConfig HTTPRequestConfig
-	if err := json.Unmarshal(jsonData, &httpConfig); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal config: %w", err)
-	}
-
-	// Validate and set defaults
-	if httpConfig.Method == "" {
-		httpConfig.Method = "GET"
-	}
-
-	httpConfig.Method = strings.ToUpper(httpConfig.Method)
-
-	if httpConfig.Timeout == 0 {
-		httpConfig.Timeout = 30 // 30 seconds default
-	}
-
-	if httpConfig.RetryCount == 0 {
-		httpConfig.RetryCount = 3
-	}
-
-	if httpConfig.RetryDelay == 0 {
-		httpConfig.RetryDelay = 1 // 1 second default delay
-	}
-
-	if httpConfig.CacheTTL == 0 {
-		httpConfig.CacheTTL = 3600 // 1 hour default cache TTL
-	}
-
-	if httpConfig.Headers == nil {
-		httpConfig.Headers = make(map[string]string)
-	}
-
-	return &HTTPRequestNode{
-		config: &httpConfig,
-	}, nil
-}
-
-// Execute implements the NodeInstance interface
-func (h *HTTPRequestNode) Execute(ctx context.Context, inputs map[string]interface{}) (map[string]interface{}, error) {
-	startTime := time.Now()
-
-	// Override config values with inputs if provided
-	url := h.config.URL
-	if inputURL, exists := inputs["url"]; exists {
-		if urlStr, ok := inputURL.(string); ok && urlStr != "" {
-			url = urlStr
+	if method, ok := config["method"]; ok {
+		if m, ok := method.(string); ok {
+			h.method = m
+		} else {
+			return fmt.Errorf("method must be a string")
 		}
+	} else {
+		h.method = "GET" // default method
 	}
 
-	if url == "" {
-		return nil, fmt.Errorf("URL is required")
-	}
-
-	method := h.config.Method
-	if inputMethod, exists := inputs["method"]; exists {
-		if methodStr, ok := inputMethod.(string); ok && methodStr != "" {
-			method = strings.ToUpper(methodStr)
+	if url, ok := config["url"]; ok {
+		if u, ok := url.(string); ok {
+			h.url = u
+		} else {
+			return fmt.Errorf("url must be a string")
 		}
+	} else {
+		return fmt.Errorf("url is required")
 	}
 
-	body := h.config.Body
-	if inputBody, exists := inputs["body"]; exists {
-		body = inputBody
-	}
-
-	retryCount := h.config.RetryCount
-	if inputRetryCount, exists := inputs["retry_count"]; exists {
-		if retryCountFloat, ok := inputRetryCount.(float64); ok {
-			retryCount = int(retryCountFloat)
-		}
-	}
-
-	retryDelay := h.config.RetryDelay
-	if inputRetryDelay, exists := inputs["retry_delay"]; exists {
-		if retryDelayFloat, ok := inputRetryDelay.(float64); ok {
-			retryDelay = int(retryDelayFloat)
-		}
-	}
-
-	timeout := h.config.Timeout
-	if inputTimeout, exists := inputs["timeout"]; exists {
-		if timeoutFloat, ok := inputTimeout.(float64); ok {
-			timeout = int(timeoutFloat)
-		}
-	}
-
-	headers := h.config.Headers
-	if inputHeaders, exists := inputs["headers"]; exists {
-		if inputHeaderMap, ok := inputHeaders.(map[string]interface{}); ok {
-			headers = make(map[string]string)
-			for k, v := range inputHeaderMap {
+	if headers, ok := config["headers"]; ok {
+		if hMap, ok := headers.(map[string]interface{}); ok {
+			h.headers = make(map[string]string)
+			for k, v := range hMap {
 				if vStr, ok := v.(string); ok {
-					headers[k] = vStr
+					h.headers[k] = vStr
+				} else {
+					h.headers[k] = fmt.Sprintf("%v", v)
 				}
 			}
+		} else {
+			return fmt.Errorf("headers must be an object")
 		}
+	} else {
+		h.headers = make(map[string]string)
 	}
 
-	authType := h.config.AuthType
-	if inputAuthType, exists := inputs["auth_type"]; exists {
-		if authTypeStr, ok := inputAuthType.(string); ok {
-			authType = authTypeStr
-		}
-	}
-
-	authValue := h.config.AuthValue
-	if inputAuthValue, exists := inputs["auth_value"]; exists {
-		if authValueStr, ok := inputAuthValue.(string); ok {
-			authValue = authValueStr
-		}
-	}
-
-	enableProfiling := h.config.EnableProfiling
-	if inputEnableProfiling, exists := inputs["enable_profiling"]; exists {
-		if inputEnableProfiling, ok := inputEnableProfiling.(bool); ok {
-			enableProfiling = inputEnableProfiling
-		}
-	}
-
-	returnRawResults := h.config.ReturnRawResults
-	if inputReturnRaw, exists := inputs["return_raw_results"]; exists {
-		if inputReturnRaw, ok := inputReturnRaw.(bool); ok {
-			returnRawResults = inputReturnRaw
-		}
-	}
-
-	// Prepare request
-	client := &http.Client{
-		Timeout: time.Duration(timeout) * time.Second,
-	}
-
-	var req *http.Request
-	var err error
-
-	// Marshal body if it's not already a string
-	var bodyReader io.Reader
-	if body != nil {
-		var bodyBytes []byte
-		switch v := body.(type) {
-		case string:
-			bodyReader = strings.NewReader(v)
-		case []byte:
-			bodyReader = bytes.NewReader(v)
-		default:
-			bodyBytes, err = json.Marshal(body)
+	if body, ok := config["body"]; ok {
+		if b, ok := body.(string); ok {
+			h.body = b
+		} else {
+			// Try to serialize the body if it's not a string
+			bodyBytes, err := json.Marshal(body)
 			if err != nil {
-				return nil, fmt.Errorf("failed to marshal request body: %w", err)
+				return fmt.Errorf("failed to serialize body: %v", err)
 			}
-			bodyReader = bytes.NewReader(bodyBytes)
+			h.body = string(bodyBytes)
 		}
 	}
 
-	req, err = http.NewRequestWithContext(ctx, method, url, bodyReader)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %w", err)
+	if timeout, ok := config["timeout"]; ok {
+		if t, ok := timeout.(float64); ok {
+			h.timeout = time.Duration(t) * time.Second
+		} else if t, ok := timeout.(int); ok {
+			h.timeout = time.Duration(t) * time.Second
+		} else {
+			return fmt.Errorf("timeout must be a number")
+		}
+	} else {
+		h.timeout = 30 * time.Second // default timeout
 	}
 
-	// Set headers from config
-	for key, value := range headers {
+	if authType, ok := config["auth_type"]; ok {
+		if at, ok := authType.(string); ok {
+			h.authType = at
+		}
+	}
+
+	if authValue, ok := config["auth_value"]; ok {
+		if av, ok := authValue.(string); ok {
+			h.authValue = av
+		}
+	}
+
+	return nil
+}
+
+// Execute runs the HTTP request
+func (h *HTTPRequestNode) Execute(ctx context.Context, inputs map[string]interface{}) (map[string]interface{}, error) {
+	client := &http.Client{
+		Timeout: h.timeout,
+	}
+
+	// Prepare request body
+	var bodyReader io.Reader
+	if h.body != "" {
+		bodyReader = bytes.NewBufferString(h.body)
+	} else if len(inputs) > 0 {
+		// If no explicit body, try to use inputs
+		inputBytes, err := json.Marshal(inputs)
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal input data: %v", err)
+		}
+		bodyReader = bytes.NewBuffer(inputBytes)
+	}
+
+	// Create the request
+	req, err := http.NewRequestWithContext(ctx, h.method, h.url, bodyReader)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %v", err)
+	}
+
+	// Set headers
+	for key, value := range h.headers {
 		req.Header.Set(key, value)
 	}
 
-	// Set Content-Type header if not set and we have a body
-	if body != nil && req.Header.Get("Content-Type") == "" {
-		req.Header.Set("Content-Type", "application/json")
+	// Set content type if not already set and we have a body
+	if h.body != "" || len(inputs) > 0 {
+		if req.Header.Get("Content-Type") == "" {
+			req.Header.Set("Content-Type", "application/json")
+		}
 	}
 
-	// Add authentication headers
-	switch authType {
-	case "bearer":
-		req.Header.Set("Authorization", "Bearer "+authValue)
-	case "basic":
-		// Basic auth implementation would go here
-		// For now, just add a placeholder
-		req.Header.Set("Authorization", "Basic "+authValue)
-	case "api_key":
-		// API key implementation - often in a custom header
-		apiKeyHeader := "X-API-Key" // Default, could be configurable
-		if apiKeyHeaderVal, exists := inputs["api_key_header"]; exists {
-			if apiKeyHeaderStr, ok := apiKeyHeaderVal.(string); ok {
-				apiKeyHeader = apiKeyHeaderStr
-			}
+	// Set up authentication if configured
+	if h.authType != "" && h.authValue != "" {
+		switch h.authType {
+		case "bearer":
+			req.Header.Set("Authorization", "Bearer "+h.authValue)
+		case "api_key":
+			req.Header.Set("Authorization", h.authValue)
+		case "basic":
+			// For basic auth, the auth_value should be in format "username:password"
+			req.Header.Set("Authorization", "Basic "+h.authValue)
 		}
-		req.Header.Set(apiKeyHeader, authValue)
 	}
 
-	// Make the request with retries
-	var resp *http.Response
-	var respErr error
-
-	for attempt := 0; attempt <= retryCount; attempt++ {
-		resp, respErr = client.Do(req)
-		if respErr == nil {
-			break // Success, break out of retry loop
-		}
-
-		if attempt == retryCount {
-			// Last attempt, return error
-			return nil, fmt.Errorf("failed to execute request after %d attempts: %w", retryCount+1, respErr)
-		}
-
-		// Wait before retrying
-		time.Sleep(time.Duration(retryDelay) * time.Second)
-	}
-
-	if resp == nil {
-		return nil, fmt.Errorf("response is nil after all attempts")
+	// Make the request
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to execute request: %v", err)
 	}
 	defer resp.Body.Close()
 
 	// Read response body
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read response body: %w", err)
+		return nil, fmt.Errorf("failed to read response body: %v", err)
 	}
 
-	// Try to parse response as JSON
-	var responseData interface{}
-	if len(respBody) > 0 {
-		if err := json.Unmarshal(respBody, &responseData); err != nil {
-			// If JSON parsing fails, return the raw response body
-			responseData = string(respBody)
-		}
-	} else {
-		// Empty body, return a message indicating empty response
-		responseData = map[string]interface{}{
-			"message": "empty response body",
-		}
-	}
-
-	// Prepare result
+	// Prepare response data
 	result := map[string]interface{}{
-		"success":       resp.StatusCode >= 200 && resp.StatusCode < 300,
-		"status":        resp.Status,
-		"status_code":   resp.StatusCode,
-		"data":          responseData,
-		"headers":       resp.Header,
-		"url":           url,
-		"method":        method,
-		"request_time":  time.Since(startTime).Seconds(),
-		"timestamp":     time.Now().Unix(),
-		"input_data":    inputs,
-		"retries_used":  retryCount,
-		"execution_time": time.Since(startTime).Seconds(),
-		"response_size": len(respBody),
-	}
-
-	// Add profiling data if enabled
-	if enableProfiling {
-		result["profiling"] = map[string]interface{}{
-			"start_time": startTime.Unix(),
-			"end_time":   time.Now().Unix(),
-			"duration":   time.Since(startTime).Seconds(),
-			"retries":    retryCount,
-			"retry_delay": retryDelay,
-			"timeout":    timeout,
-		}
-	}
-
-	// Return raw results if requested
-	if returnRawResults {
-		result["raw_response"] = string(respBody)
+		"status_code": resp.StatusCode,
+		"status":      resp.Status,
+		"headers":     resp.Header,
+		"body":        string(respBody),
+		"method":      h.method,
+		"url":         h.url,
 	}
 
 	return result, nil
 }
 
-// GetType returns the type of node
+// GetType returns the type of the node
 func (h *HTTPRequestNode) GetType() string {
-	return "http_request"
+	return h.nodeType
 }
 
-// GetID returns the unique ID of the node instance
+// GetID returns the unique identifier for this node instance
 func (h *HTTPRequestNode) GetID() string {
-	return fmt.Sprintf("http_%s_%d", h.config.Method, time.Now().Unix())
+	return h.id
+}
+
+// NewHTTPRequestNode creates a new HTTP request node constructor for the registry
+func NewHTTPRequestNode(config map[string]interface{}) (interfaces.NodeInstance, error) {
+	node := &HTTPRequestNode{
+		id:       fmt.Sprintf("http_%d", time.Now().UnixNano()),
+		nodeType: "http_request",
+	}
+
+	if err := node.Initialize(config); err != nil {
+		return nil, err
+	}
+
+	return node, nil
 }

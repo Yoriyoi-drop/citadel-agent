@@ -1,0 +1,36 @@
+{
+  "id": "demo-workflow",
+  "name": "Demo HTTP Request Workflow",
+  "description": "A simple workflow that makes an HTTP request and logs the result",
+  "nodes": {
+    "http-request-1": {
+      "id": "http-request-1",
+      "type": "http_request",
+      "config": {
+        "method": "GET",
+        "url": "https://httpbin.org/get?test=hello",
+        "headers": {
+          "User-Agent": "Citadel Agent Demo"
+        },
+        "timeout": 30
+      },
+      "position": {"x": 100, "y": 100}
+    },
+    "logger-1": {
+      "id": "logger-1",
+      "type": "logger",
+      "config": {
+        "level": "info",
+        "message": "HTTP Response: {{body}}"
+      },
+      "position": {"x": 300, "y": 100}
+    }
+  },
+  "edges": [
+    {
+      "id": "edge-1",
+      "source": "http-request-1",
+      "target": "logger-1"
+    }
+  ]
+}

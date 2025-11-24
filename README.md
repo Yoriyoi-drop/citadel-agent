@@ -1,92 +1,152 @@
 # Citadel Agent
 
-> Enterprise-grade, AI-powered workflow automation platform - Better than n8n with local AI capabilities
+Citadel Agent is a powerful workflow automation platform that allows you to create, manage, and execute complex workflows using a visual interface. It supports hundreds of different node types for various operations including HTTP requests, database operations, AI processing, and more.
 
 ## 🚀 Features
 
-- **Visual Workflow Builder**: Drag-and-drop interface like n8n
-- **AI-Powered Nodes**: Local and API-based AI integration
-- **40+ Production-ready Nodes**: HTTP, Database, AI, Security, Utility, etc.
-- **Scalable Architecture**: Handle 10,000+ concurrent workflows
-- **Privacy-First**: Data stays on your infrastructure
-- **Cost-Effective**: 90% cheaper than competitors
-- **Self-Contained**: All dependencies included
+- **Visual Workflow Builder**: Drag-and-drop interface to create workflows
+- **150+ Node Types**: Including HTTP, Database, AI, Utility, Logic, and Flow nodes
+- **Self-Hosted**: Deploy on your own infrastructure
+- **AI Integration**: Supports both local models and API-based AI services
+- **Real-time Execution**: Monitor and debug workflows as they run
+- **Scalable Architecture**: Built with Temporal for reliable execution
 
 ## 🛠️ Tech Stack
 
-### Backend
-- **Language**: Go 1.21+
-- **Web Framework**: Fiber v2
-- **Workflow Engine**: Temporal.io
-- **Database**: PostgreSQL 15+, DuckDB
-- **Cache**: Redis 7+
-- **AI/ML**: Local models with llama.cpp, whisper.cpp
+- **Backend**: Go, Temporal, Fiber, PostgreSQL, Redis
+- **Frontend**: React, ReactFlow, Zustand, TypeScript
+- **AI**: Local LLMs (Llama), OpenAI API, Embeddings
+- **Infrastructure**: Docker, Docker Compose, Prometheus, Grafana
 
-### Frontend
-- **Framework**: React 18 + TypeScript
-- **Styling**: Tailwind CSS
-- **Workflow Builder**: ReactFlow
-- **State Management**: Zustand
+## 📋 Prerequisites
 
-## 📁 Project Structure
-
-```
-citadel-agent/
-├── backend/                    # Go backend
-│   ├── cmd/                   # Main applications
-│   ├── internal/              # Internal packages
-│   │   ├── api/              # API handlers
-│   │   ├── workflow/         # Workflow engine
-│   │   ├── nodes/            # Node implementations
-│   │   └── ...
-│   └── pkg/                  # Public libraries
-├── frontend/                  # React frontend
-├── ai-models/                 # Local AI models (15GB)
-├── database/                  # Database setup
-├── docker/                    # Docker configuration
-├── docs/                      # Documentation
-├── tests/                     # Test suites
-└── scripts/                   # Automation scripts
-```
+- Go 1.21+
+- Node.js 18+
+- Docker and Docker Compose
+- Git
 
 ## 🚀 Quick Start
 
+### 1. Clone the repository
+
 ```bash
-# Clone the repository
-git clone https://github.com/your-org/citadel-agent.git
-
-# Navigate to project directory
+git clone https://github.com/your-username/citadel-agent.git
 cd citadel-agent
-
-# Setup environment
-cp .env.example .env
-# Edit .env with your configuration
-
-# Download AI models (optional, for local AI)
-./scripts/download-models.sh
-
-# Start the application
-docker-compose up --build
-
-# Or run locally
-# Backend
-cd backend && go run cmd/api/main.go
-# Frontend
-cd frontend && npm install && npm run dev
 ```
 
-## 📖 Documentation
+### 2. Run the setup script
 
-- [Getting Started](./docs/getting-started/quick-start.md)
-- [Workflow Guide](./docs/guides/workflow-design.md)
-- [Node Development](./docs/guides/node-development.md)
-- [AI Integration](./docs/guides/ai-integration.md)
-- [API Reference](./docs/api-reference/rest-api.md)
+```bash
+./scripts/setup-project.sh
+```
+
+### 3. Start the services
+
+```bash
+make up
+```
+
+### 4. Start the backend server
+
+In another terminal:
+
+```bash
+make run-backend
+```
+
+### 5. Start the frontend
+
+In another terminal:
+
+```bash
+make dev-frontend
+```
+
+The application will be available at:
+- Frontend: http://localhost:5173
+- Backend API: http://localhost:8080
+- Temporal UI: http://localhost:8081
+
+## 🏗️ Project Structure
+
+```
+backend/
+├── internal/
+│   ├── workflow/core/     # Core workflow engine and interfaces
+│   ├── nodes/             # Node implementations (http, database, utility, etc.)
+│   └── api/               # API handlers
+├── pkg/                   # Shared utilities
+├── tests/                 # Test files
+└── main.go                # Main application entry point
+
+frontend/
+├── src/
+│   ├── components/        # React components
+│   ├── stores/            # Zustand stores
+│   └── api/               # API client
+├── package.json
+└── vite.config.ts
+
+configs/                    # Configuration files
+├── app.yaml               # Application configuration
+├── db/                    # Database schema and migrations
+└── nodes/                 # Node configuration
+
+scripts/                    # Utility scripts
+└── setup-project.sh       # Setup script
+```
+
+## 🧪 Testing
+
+Run backend tests:
+
+```bash
+make test-backend
+```
+
+Run all tests:
+
+```bash
+make test
+```
+
+## 🛠️ Development
+
+### Adding a new node type
+
+1. Create a new file in the appropriate category under `backend/internal/nodes/`
+2. Implement the `NodeInstance` interface
+3. Register the node in the `registerNodes` function in `main.go`
+
+### Running in development mode
+
+```bash
+# Auto-reload backend on changes
+make dev-backend
+
+# Run frontend in development mode
+make dev-frontend
+```
+
+## 🚢 Deployment
+
+For production deployment, check out the `production` branch for containerized deployment configurations.
+
+## 📚 Documentation
+
+- [API Documentation](./API_DOCS.md)
+- [Architecture Guide](./ARCHITECTURE.md)
+- [Node Development Guide](./docs/guides/node-development.md)
+- [AI Integration Guide](./docs/guides/ai-integration.md)
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our [Contributing Guide](./CONTRIBUTING.md) for details.
+Contributions are welcome! Please read our [Contributing Guide](./CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
 
 ## 📄 License
 
-This project is licensed under the Apache 2.0 License - see the [LICENSE](./LICENSE) file for details.
+This project is licensed under the Apache License 2.0 - see the [LICENSE](./LICENSE) file for details.
+
+## 🆘 Support
+
+If you have any questions or issues, please open an issue in the GitHub repository.

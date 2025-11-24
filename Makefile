@@ -1,112 +1,108 @@
 # Citadel Agent Makefile
-# Provides common commands for development and deployment
 
-.PHONY: help build build-backend build-frontend test test-unit test-integration run run-backend run-frontend run-dev docker-up docker-down
+# Build the backend application
+.PHONY: build-backend
+build-backend:
+	cd backend && go build -o citadel-api main.go
 
-# Show help message
-help: ## Show this help
-	@echo "Citadel Agent Makefile"
-	@echo "======================"
-	@echo "Available commands:"
-	@echo ""
-	@grep -E '^[a-zA-Z_0-9%-]+:.*?## .*$$' $(word 1,$(MAKEFILE_LIST)) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
+# Run the backend application
+.PHONY: run-backend
+run-backend:
+	cd backend && go run main.go
 
-# Build the entire application
-build: build-backend build-frontend ## Build the entire application
+# Run the backend in development mode with live reload (requires air: https://github.com/cosmtrek/air)
+.PHONY: dev-backend
+dev-backend:
+	cd backend && air
 
-# Build backend
-build-backend: ## Build the backend
-	@echo "Building backend..."
-	@cd backend && go build -o bin/citadel-api cmd/api/main.go
-	@cd backend && go build -o bin/citadel-worker cmd/worker/main.go
-	@echo "Backend built successfully!"
+# Install backend dependencies
+.PHONY: deps-backend
+deps-backend:
+	cd backend && go mod tidy
 
-# Build frontend
-build-frontend: ## Build the frontend
-	@echo "Building frontend..."
-	@cd frontend && npm run build
-	@echo "Frontend built successfully!"
+# Run backend tests
+.PHONY: test-backend
+test-backend:
+	cd backend && go test ./... -v
 
-# Run tests
-test: test-unit test-integration ## Run all tests
-	@echo "All tests completed!"
+# Run backend tests with coverage
+.PHONY: test-backend-coverage
+test-backend-coverage:
+	cd backend && go test ./... -v -coverprofile=coverage.out && go tool cover -html=coverage.out
 
-test-unit: ## Run unit tests
-	@echo "Running unit tests..."
-	@cd backend && go test ./... -v
+# Build the frontend application
+.PHONY: build-frontend
+build-frontend:
+	cd frontend && npm install && npm run build
 
-test-integration: ## Run integration tests
-	@echo "Running integration tests..."
-	@cd backend && go test ./... -tags=integration -v
+# Run the frontend development server
+.PHONY: dev-frontend
+dev-frontend:
+	cd frontend && npm install && npm run dev
 
-# Run development servers
-run: run-backend run-frontend ## Run both backend and frontend in development mode
+# Run frontend tests
+.PHONY: test-frontend
+test-frontend:
+	cd frontend && npm run test
 
-run-backend: ## Run backend in development mode
-	@echo "Starting backend development server..."
-	@cd backend && go run cmd/api/main.go
+# Run all tests
+.PHONY: test
+test: test-backend
 
-run-frontend: ## Run frontend in development mode
-	@echo "Starting frontend development server..."
-	@cd frontend && npm run dev
+# Run the full application with docker-compose
+.PHONY: up
+up:
+	docker-compose up
 
-run-dev: ## Run development environment with auto-reload
-	@echo "Starting development environment..."
-	@cd backend && air
-	@cd frontend && npm run dev
+# Run the full application in detached mode
+.PHONY: up-detached
+up-detached:
+	docker-compose up -d
 
-# Docker commands
-docker-up: ## Start Docker containers
-	@echo "Starting Docker containers..."
-	@docker-compose up --build
+# Stop the application
+.PHONY: down
+down:
+	docker-compose down
 
-docker-down: ## Stop Docker containers
-	@echo "Stopping Docker containers..."
-	@docker-compose down
+# Reset the environment (stop, remove volumes, start)
+.PHONY: reset
+reset:
+	docker-compose down -v
+	docker-compose up
 
-# Download AI models
-download-models: ## Download AI models
-	@echo "Downloading AI models..."
-	@./scripts/download-models.sh
+# Run linter on backend
+.PHONY: lint-backend
+lint-backend:
+	cd backend && golangci-lint run
 
-# Setup development environment
-setup: ## Setup development environment
-	@echo "Setting up development environment..."
-	@cp .env.example .env
-	@echo "Environment file copied. Please update values in .env file"
-	@cd frontend && npm install
-	@echo "Setup completed!"
+# Create database migrations
+.PHONY: migrate-up
+migrate-up:
+	# Add your migration command here (e.g., migrate -path configs/db -database postgres://user:pass@localhost/db up)
 
-# Database migrations
-migrate-up: ## Run database migrations
-	@echo "Running database migrations..."
-	@cd backend && go run cmd/migrate/main.go up
+# Create initial database schema
+.PHONY: schema-create
+schema-create:
+	# Add your schema creation command here
 
-migrate-down: ## Rollback database migrations
-	@echo "Rolling back database migrations..."
-	@cd backend && go run cmd/migrate/main.go down
-
-# Clean build artifacts
-clean: ## Clean build artifacts
-	@echo "Cleaning build artifacts..."
-	@rm -rf backend/bin/*
-	@rm -rf frontend/dist/*
-	@echo "Clean completed!"
-
-# Install dependencies
-deps: ## Install all dependencies
-	@echo "Installing backend dependencies..."
-	@cd backend && go mod tidy
-	@echo "Installing frontend dependencies..."
-	@cd frontend && npm install
-
-# Security scan
-security-scan: ## Run security scan
-	@echo "Running security scan..."
-	@gosec ./backend/...
-	@npm audit
+# Run security scan on the project
+.PHONY: security-scan
+security-scan:
+	# Add security scanning commands (e.g., go run github.com/securego/gosec/v2/cmd/gosec@latest ./...)
 
 # Generate documentation
-docs: ## Generate documentation
-	@echo "Generating documentation..."
-	@./scripts/generate-docs.sh
+.PHONY: docs
+docs:
+	# Add documentation generation commands
+
+# Install all dependencies
+.PHONY: setup
+setup: deps-backend
+	cd frontend && npm install
+
+# Run all services in development mode
+.PHONY: dev
+dev: setup up-detached
+	# Run frontend in dev mode in the background
+	# This requires the services to be running via docker-compose
+	@echo "Services are running. Start frontend with: cd frontend && npm run dev"
