@@ -22,15 +22,28 @@ const ConnectionLineComponent = memo(({
   });
 
   return (
-    <BaseEdge
-      path={edgePath}
-      style={{
-        ...connectionLineStyle,
-        strokeWidth: 2,
-        stroke: '#3b82f6',
-        strokeDasharray: '5,5',
-      }}
-    />
+    <g>
+      {/* Glow effect */}
+      <path
+        d={edgePath}
+        fill="none"
+        stroke="#3b82f6"
+        strokeWidth={6}
+        opacity={0.2}
+        className="pointer-events-none"
+      />
+      {/* Main line */}
+      <BaseEdge
+        path={edgePath}
+        style={{
+          ...connectionLineStyle,
+          strokeWidth: 2.5,
+          stroke: '#3b82f6',
+          strokeDasharray: '8,4',
+          animation: 'dash 0.5s linear infinite',
+        }}
+      />
+    </g>
   );
 });
 

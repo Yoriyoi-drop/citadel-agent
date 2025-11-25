@@ -1,0 +1,58 @@
+{
+    "id": "http-processing-workflow",
+    "name": "HTTP Data Processing",
+    "description": "Fetch data from an API, process it, and save to a database",
+    "nodes": {
+        "fetch-users": {
+            "id": "fetch-users",
+            "type": "http_request",
+            "config": {
+                "method": "GET",
+                "url": "https://jsonplaceholder.typicode.com/users",
+                "timeout": 30
+            },
+            "position": {
+                "x": 100,
+                "y": 200
+            }
+        },
+        "filter-users": {
+            "id": "filter-users",
+            "type": "json_transform",
+            "config": {
+                "expression": "$.filter(user => user.id < 5)"
+            },
+            "position": {
+                "x": 400,
+                "y": 200
+            }
+        },
+        "save-to-db": {
+            "id": "save-to-db",
+            "type": "postgres_query",
+            "config": {
+                "query": "INSERT INTO users (name, email) VALUES ($1, $2)",
+                "params": [
+                    "{{name}}",
+                    "{{email}}"
+                ]
+            },
+            "position": {
+                "x": 700,
+                "y": 200
+            }
+        }
+    },
+    "edges": [
+        {
+            "id": "edge-1",
+            "source": "fetch-users",
+            "target": "filter-users"
+        },
+        {
+            "id": "edge-2",
+            "source": "filter-users",
+            "target": "save-to-db"
+        }
+    ]
+}

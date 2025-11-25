@@ -1,0 +1,55 @@
+{
+    "id": "scheduled-task-workflow",
+    "name": "Hourly Health Check",
+    "description": "Run a health check every hour and log the result",
+    "nodes": {
+        "schedule-trigger": {
+            "id": "schedule-trigger",
+            "type": "cron_trigger",
+            "config": {
+                "cron": "0 * * * *"
+            },
+            "position": {
+                "x": 100,
+                "y": 200
+            }
+        },
+        "health-check": {
+            "id": "health-check",
+            "type": "http_request",
+            "config": {
+                "method": "GET",
+                "url": "https://api.example.com/health",
+                "timeout": 10
+            },
+            "position": {
+                "x": 400,
+                "y": 200
+            }
+        },
+        "log-result": {
+            "id": "log-result",
+            "type": "logger",
+            "config": {
+                "level": "info",
+                "message": "Health check status: {{status}}"
+            },
+            "position": {
+                "x": 700,
+                "y": 200
+            }
+        }
+    },
+    "edges": [
+        {
+            "id": "edge-1",
+            "source": "schedule-trigger",
+            "target": "health-check"
+        },
+        {
+            "id": "edge-2",
+            "source": "health-check",
+            "target": "log-result"
+        }
+    ]
+}

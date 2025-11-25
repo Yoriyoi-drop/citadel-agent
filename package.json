@@ -1,6 +1,9 @@
 {
   "name": "citadel-agent",
   "version": "1.0.0",
+  "bin": {
+    "citadel-agent": "./scripts/citadel-agent.js"
+  },
   "description": "A powerful workflow automation engine with AI agent capabilities",
   "main": "index.js",
   "scripts": {
@@ -15,7 +18,8 @@
     "test:integration": "cd backend && go test -v ./test/integration/...",
     "docker:build": "docker-compose -f docker/compose/docker-compose.yml build",
     "docker:up": "docker-compose -f docker/compose/docker-compose.yml up -d",
-    "docker:down": "docker-compose -f docker/compose/docker-compose.yml down"
+    "docker:down": "docker-compose -f docker/compose/docker-compose.yml down",
+    "citadel-agent": "node ./scripts/citadel-agent.js"
   },
   "keywords": [
     "workflow",

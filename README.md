@@ -1,6 +1,12 @@
 # Citadel Agent
 
+[![CI/CD Pipeline](https://github.com/fajar/citadel-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/fajar/citadel-agent/actions/workflows/ci.yml)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
+[![Go Report Card](https://goreportcard.com/badge/github.com/fajar/citadel-agent)](https://goreportcard.com/report/github.com/fajar/citadel-agent)
+
 Citadel Agent is a powerful workflow automation platform that allows you to create, manage, and execute complex workflows using a visual interface. It supports hundreds of different node types for various operations including HTTP requests, database operations, AI processing, and more.
+
+![Citadel Agent Workflow Builder](workflow_builder_mockup.png)
 
 ## 🚀 Features
 
@@ -27,45 +33,36 @@ Citadel Agent is a powerful workflow automation platform that allows you to crea
 
 ## 🚀 Quick Start
 
-### 1. Clone the repository
+Get Citadel Agent up and running in minutes with a single command:
 
 ```bash
-git clone https://github.com/your-username/citadel-agent.git
+git clone https://github.com/fajar/citadel-agent.git
 cd citadel-agent
-```
-
-### 2. Run the setup script
-
-```bash
-./scripts/setup-project.sh
-```
-
-### 3. Start the services
-
-```bash
 make up
 ```
 
-### 4. Start the backend server
+This will start all services (Frontend, Backend, Temporal, Postgres, Redis) using Docker Compose.
 
-In another terminal:
+Once started, access the application at:
+- **Frontend**: http://localhost:5173
+- **Backend API**: http://localhost:8080
+- **Temporal UI**: http://localhost:8081
 
-```bash
-make run-backend
-```
+### Alternative: Manual Setup
 
-### 5. Start the frontend
+If you prefer to run services individually or need more control:
 
-In another terminal:
+1. **Setup Project**: `./scripts/setup-project.sh`
+2. **Start Backend**: `make run-backend`
+3. **Start Frontend**: `make dev-frontend`
 
-```bash
-make dev-frontend
-```
+## 💡 Examples
 
-The application will be available at:
-- Frontend: http://localhost:5173
-- Backend API: http://localhost:8080
-- Temporal UI: http://localhost:8081
+Check out the `examples/` directory for ready-to-use workflows:
+
+- **[HTTP Data Processing](examples/http-processing-workflow.json)**: Fetch data from an API, process it, and save to a database.
+- **[Scheduled Task](examples/scheduled-task.json)**: Run a recurring task every hour.
+- **[API Integration](examples/api-integration.json)**: Connect multiple APIs together.
 
 ## 🏗️ Project Structure
 

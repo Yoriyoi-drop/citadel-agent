@@ -91,11 +91,15 @@ export interface NodeType {
   description: string;
   category: 'trigger' | 'action' | 'transform' | 'utility' | 'ai' | 'database' | 'communication';
   icon: string;
+  color?: string;
   inputs: NodePort[];
   outputs: NodePort[];
   config: NodeConfig[];
   version: string;
+  tags?: string[];
   documentation?: string;
+  deprecated?: boolean;
+  author?: string;
 }
 
 export interface NodeConfig {

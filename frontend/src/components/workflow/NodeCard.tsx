@@ -15,25 +15,25 @@ interface NodeCardProps {
 export const NodeCard = memo(({ nodeType, onDragStart, onAdd }: NodeCardProps) => {
     return (
         <Card
-            className="cursor-grab active:cursor-grabbing hover:shadow-md transition-all duration-200 border-l-4"
+            className="cursor-grab active:cursor-grabbing hover:shadow-md transition-all duration-200 border-l-4 hover:border-l-4"
             style={{ borderLeftColor: nodeType.color || '#64748b' }}
             draggable
             onDragStart={(e) => onDragStart(e, nodeType)}
         >
-            <CardHeader className="p-3 pb-0">
-                <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-2">
+            <CardHeader className="p-2 pb-0">
+                <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-start gap-2 min-w-0 flex-1">
                         <NodeIconBadge
                             type={nodeType.id}
                             category={nodeType.category}
-                            size={18}
-                            className="shrink-0"
+                            size={16}
+                            className="shrink-0 mt-0.5"
                         />
-                        <div>
-                            <CardTitle className="text-sm font-medium leading-none">
+                        <div className="min-w-0 flex-1">
+                            <CardTitle className="text-xs font-semibold leading-tight line-clamp-1">
                                 {nodeType.name}
                             </CardTitle>
-                            <CardDescription className="text-xs mt-1 line-clamp-2">
+                            <CardDescription className="text-[10px] mt-0.5 line-clamp-1">
                                 {nodeType.description}
                             </CardDescription>
                         </div>
@@ -42,18 +42,18 @@ export const NodeCard = memo(({ nodeType, onDragStart, onAdd }: NodeCardProps) =
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="h-6 w-6 -mr-1 -mt-1 text-muted-foreground hover:text-primary"
+                            className="h-5 w-5 shrink-0 text-muted-foreground hover:text-primary"
                             onClick={() => onAdd(nodeType)}
                         >
-                            <Plus className="h-4 w-4" />
+                            <Plus className="h-3 w-3" />
                         </Button>
                     )}
                 </div>
             </CardHeader>
-            <CardContent className="p-3 pt-2">
+            <CardContent className="p-2 pt-1">
                 <div className="flex flex-wrap gap-1">
-                    {nodeType.tags?.slice(0, 3).map((tag) => (
-                        <Badge key={tag} variant="secondary" className="text-[10px] px-1 h-4">
+                    {nodeType.tags?.slice(0, 2).map((tag) => (
+                        <Badge key={tag} variant="secondary" className="text-[9px] px-1 py-0 h-3.5 leading-none">
                             {tag}
                         </Badge>
                     ))}

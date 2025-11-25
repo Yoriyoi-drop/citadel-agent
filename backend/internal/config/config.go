@@ -110,7 +110,7 @@ func LoadConfig() (*Config, error) {
 	viper.SetDefault("temporal_namespace", "default")
 
 	viper.SetDefault("secure_cookies", false)
-	viper.SetDefault("cors_allowed_origins", "http://localhost:3000,http://localhost:8080")
+	viper.SetDefault("cors_allowed_origins", "*")
 	viper.SetDefault("rate_limit_requests", 100)
 	viper.SetDefault("rate_limit_window", 60)
 

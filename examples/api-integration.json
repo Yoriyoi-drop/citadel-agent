@@ -1,0 +1,80 @@
+{
+    "id": "api-integration-workflow",
+    "name": "Multi-API Integration",
+    "description": "Chain multiple API requests together",
+    "nodes": {
+        "webhook-trigger": {
+            "id": "webhook-trigger",
+            "type": "webhook",
+            "config": {
+                "method": "POST",
+                "path": "/process-order"
+            },
+            "position": {
+                "x": 100,
+                "y": 200
+            }
+        },
+        "get-customer": {
+            "id": "get-customer",
+            "type": "http_request",
+            "config": {
+                "method": "GET",
+                "url": "https://crm.example.com/customers/{{body.customer_id}}"
+            },
+            "position": {
+                "x": 400,
+                "y": 200
+            }
+        },
+        "create-invoice": {
+            "id": "create-invoice",
+            "type": "http_request",
+            "config": {
+                "method": "POST",
+                "url": "https://billing.example.com/invoices",
+                "body": {
+                    "customer_email": "{{get-customer.body.email}}",
+                    "amount": "{{webhook-trigger.body.amount}}",
+                    "items": "{{webhook-trigger.body.items}}"
+                }
+            },
+            "position": {
+                "x": 700,
+                "y": 200
+            }
+        },
+        "notify-slack": {
+            "id": "notify-slack",
+            "type": "http_request",
+            "config": {
+                "method": "POST",
+                "url": "https://hooks.slack.com/services/xxx/yyy/zzz",
+                "body": {
+                    "text": "Invoice created for {{get-customer.body.name}}"
+                }
+            },
+            "position": {
+                "x": 1000,
+                "y": 200
+            }
+        }
+    },
+    "edges": [
+        {
+            "id": "edge-1",
+            "source": "webhook-trigger",
+            "target": "get-customer"
+        },
+        {
+            "id": "edge-2",
+            "source": "get-customer",
+            "target": "create-invoice"
+        },
+        {
+            "id": "edge-3",
+            "source": "create-invoice",
+            "target": "notify-slack"
+        }
+    ]
+}

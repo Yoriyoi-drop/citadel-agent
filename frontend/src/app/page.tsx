@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MainLayout } from '@/components/layouts/MainLayout';
@@ -25,7 +26,12 @@ import {
   Plus,
   Eye,
   Edit,
-  Trash2
+  Trash2,
+  Search,
+  Filter,
+  ArrowUpRight,
+  Loader2,
+  AlertCircle
 } from 'lucide-react';
 
 // Mock data
@@ -92,35 +98,49 @@ const stats = [
     title: 'Total Workflows',
     value: '24',
     change: '+2 from last week',
+    trend: '+8.3%',
     icon: GitBranch,
-    color: 'text-blue-600'
+    color: 'text-blue-600',
+    bgColor: 'bg-blue-50 dark:bg-blue-950',
+    iconColor: 'text-blue-600'
   },
   {
     title: 'Active Workflows',
     value: '18',
     change: '+3 from yesterday',
+    trend: '+16.7%',
     icon: PlayCircle,
-    color: 'text-green-600'
+    color: 'text-green-600',
+    bgColor: 'bg-green-50 dark:bg-green-950',
+    iconColor: 'text-green-600'
   },
   {
     title: 'Total Executions',
     value: '1,247',
     change: '+127 from yesterday',
+    trend: '+11.3%',
     icon: Activity,
-    color: 'text-purple-600'
+    color: 'text-purple-600',
+    bgColor: 'bg-purple-50 dark:bg-purple-950',
+    iconColor: 'text-purple-600'
   },
   {
     title: 'Success Rate',
     value: '96.2%',
     change: '+1.2% from last week',
+    trend: '+1.2%',
     icon: TrendingUp,
-    color: 'text-emerald-600'
+    color: 'text-emerald-600',
+    bgColor: 'bg-emerald-50 dark:bg-emerald-950',
+    iconColor: 'text-emerald-600',
+    showProgress: true,
+    progressValue: 96.2
   }
 ];
 
-// Mock workflow data with nodes and edges
+// Mock workflow data with nodes and edges (keeping existing data)
 const mockWorkflowData: Record<string, { nodes: any[], edges: any[] }> = {
-  '1': { // Customer Data Processing
+  '1': {
     nodes: [
       {
         id: 'trigger-1',
@@ -146,7 +166,7 @@ const mockWorkflowData: Record<string, { nodes: any[], edges: any[] }> = {
       { id: 'e2-3', source: 'transform-1', target: 'db-1', sourceHandle: 'out-1', targetHandle: 'in-1' }
     ]
   },
-  '2': { // Email Campaign Automation
+  '2': {
     nodes: [
       {
         id: 'schedule-1',
@@ -172,7 +192,7 @@ const mockWorkflowData: Record<string, { nodes: any[], edges: any[] }> = {
       { id: 'e2-3', source: 'db-read-1', target: 'email-1', sourceHandle: 'out-1', targetHandle: 'in-1' }
     ]
   },
-  '3': { // Report Generation
+  '3': {
     nodes: [
       {
         id: 'trigger-1',
@@ -217,14 +237,14 @@ const mockWorkflowData: Record<string, { nodes: any[], edges: any[] }> = {
 
 export default function Dashboard() {
   const [selectedTab, setSelectedTab] = useState('overview');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterStatus, setFilterStatus] = useState<string>('all');
   const router = useRouter();
   const { setCurrentWorkflow } = useWorkflowStore();
 
   const handleEditWorkflow = (workflow: any) => {
-    // Get mock data for this workflow if available
     const mockData = mockWorkflowData[workflow.id] || { nodes: [], edges: [] };
 
-    // Populate store with template data
     setCurrentWorkflow({
       id: workflow.id,
       name: workflow.name,
@@ -245,40 +265,62 @@ export default function Dashboard() {
     router.push(`/workflows/${workflow.id}`);
   };
 
+  const getStatusBadge = (status: string) => {
+    const variants = {
+      active: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 border-green-200 dark:border-green-800',
+      completed: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 border-green-200 dark:border-green-800',
+      running: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200 dark:border-blue-800',
+      failed: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border-red-200 dark:border-red-800',
+      inactive: 'bg-gray-100 text-gray-700 dark:bg-gray-800/30 dark:text-gray-400 border-gray-200 dark:border-gray-700'
+    };
+
+    const labels = {
+      active: 'Active',
+      completed: 'Completed',
+      running: 'Running',
+      failed: 'Failed',
+      inactive: 'Inactive'
+    };
+
+    return (
+      <Badge className={`${variants[status as keyof typeof variants] || variants.inactive} border font-medium px-2.5 py-0.5`}>
+        {labels[status as keyof typeof labels] || status}
+      </Badge>
+    );
+  };
+
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'completed': return <CheckCircle className="w-4 h-4" />;
-      case 'failed': return <XCircle className="w-4 h-4" />;
-      case 'running': return <Clock className="w-4 h-4 animate-spin" />;
-      default: return <Clock className="w-4 h-4" />;
+      case 'completed':
+        return <CheckCircle className="w-4 h-4 text-green-600" />;
+      case 'failed':
+        return <XCircle className="w-4 h-4 text-red-600" />;
+      case 'running':
+        return <Loader2 className="w-4 h-4 text-blue-600 animate-spin" />;
+      default:
+        return <Clock className="w-4 h-4 text-gray-600" />;
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'active':
-      case 'completed':
-        return <Badge className="bg-primary text-primary-foreground hover:bg-primary border-0 rounded-full">active</Badge>;
-      case 'running':
-        return <Badge className="bg-secondary text-secondary-foreground hover:bg-secondary border-0 rounded-full">running</Badge>;
-      case 'failed':
-        return <Badge className="bg-foreground text-background hover:bg-foreground border-0 rounded-full">failed</Badge>;
-      default:
-        return <Badge variant="secondary" className="rounded-full">inactive</Badge>;
-    }
-  };
+  // Filter workflows based on search and status
+  const filteredWorkflows = recentWorkflows.filter(workflow => {
+    const matchesSearch = workflow.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      workflow.description.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesFilter = filterStatus === 'all' || workflow.status === filterStatus;
+    return matchesSearch && matchesFilter;
+  });
 
   return (
     <MainLayout>
-      <div className="p-4 space-y-6">
+      <div className="p-6 lg:p-8 space-y-8">
         {/* Header Section */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-            <p className="text-muted-foreground">Welcome back! Here's what's happening with your workflows.</p>
+            <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+            <p className="text-muted-foreground mt-1">Welcome back! Here's what's happening with your workflows.</p>
           </div>
           <Link href="/workflows/new">
-            <Button>
+            <Button size="lg" className="shadow-sm">
               <Plus className="w-4 h-4 mr-2" />
               New Workflow
             </Button>
@@ -286,20 +328,34 @@ export default function Dashboard() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {stats.map((stat, index) => (
-            <Card key={index} className="bg-muted/30 border-0 shadow-sm hover:shadow-md transition-all">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <Card key={index} className="border shadow-sm hover:shadow-md transition-all duration-200">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                   {stat.title}
                 </CardTitle>
-                <stat.icon className="h-4 w-4 text-muted-foreground" />
+                <div className={`p-2.5 rounded-lg ${stat.bgColor}`}>
+                  <stat.icon className={`h-5 w-5 ${stat.iconColor}`} />
+                </div>
               </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stat.value}</div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {stat.change}
-                </p>
+              <CardContent className="space-y-3">
+                <div className="text-3xl font-bold">{stat.value}</div>
+                {stat.showProgress && (
+                  <div className="space-y-2">
+                    <Progress value={stat.progressValue} className="h-2" />
+                    <p className="text-xs text-muted-foreground">
+                      {stat.change}
+                    </p>
+                  </div>
+                )}
+                {!stat.showProgress && (
+                  <div className="flex items-center text-xs">
+                    <ArrowUpRight className="w-3 h-3 text-green-600 mr-1" />
+                    <span className="text-green-600 font-medium">{stat.trend}</span>
+                    <span className="text-muted-foreground ml-1">from last week</span>
+                  </div>
+                )}
               </CardContent>
             </Card>
           ))}
@@ -307,7 +363,7 @@ export default function Dashboard() {
 
         {/* Main Content */}
         <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6">
-          <TabsList>
+          <TabsList className="bg-muted/50">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="workflows">Recent Workflows</TabsTrigger>
             <TabsTrigger value="executions">Recent Executions</TabsTrigger>
@@ -317,96 +373,125 @@ export default function Dashboard() {
           <TabsContent value="overview" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Recent Workflows */}
-              <Card className="border-0 shadow-sm">
-                <CardHeader className="flex flex-row items-center justify-between">
+              <Card className="shadow-sm border">
+                <CardHeader className="flex flex-row items-center justify-between pb-4">
                   <div>
-                    <CardTitle>Recent Workflows</CardTitle>
-                    <CardDescription>Your most recently modified workflows</CardDescription>
+                    <CardTitle className="text-xl">Recent Workflows</CardTitle>
+                    <CardDescription className="mt-1">Your most recently modified workflows</CardDescription>
                   </div>
-                  <Button variant="ghost" size="sm" className="h-8 text-muted-foreground hover:text-foreground">View All</Button>
+                  <Link href="/workflows">
+                    <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+                      View All
+                      <ArrowUpRight className="w-4 h-4 ml-1" />
+                    </Button>
+                  </Link>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {recentWorkflows.map((workflow) => (
-                      <div
-                        key={workflow.id}
-                        className="flex items-center justify-between p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
-                      >
-                        <div className="space-y-1">
-                          <div className="flex items-center space-x-2">
-                            <span className="font-medium">{workflow.name}</span>
-                            {getStatusBadge(workflow.status)}
-                          </div>
-                          <p className="text-sm text-muted-foreground line-clamp-1">
-                            {workflow.description}
-                          </p>
-                          <div className="flex items-center text-xs text-muted-foreground space-x-4">
-                            <span>Last run: {workflow.lastRun}</span>
-                            <span>{workflow.executions} executions</span>
-                            <span>{workflow.successRate}% success</span>
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8"
-                            onClick={() => handleEditWorkflow(workflow)}
-                          >
-                            <Eye className="w-4 h-4" />
+                  <div className="space-y-3">
+                    {recentWorkflows.length === 0 ? (
+                      <div className="text-center py-12">
+                        <GitBranch className="w-12 h-12 mx-auto text-muted-foreground/50 mb-3" />
+                        <p className="text-muted-foreground">No workflows yet</p>
+                        <Link href="/workflows/new">
+                          <Button variant="outline" size="sm" className="mt-4">
+                            <Plus className="w-4 h-4 mr-2" />
+                            Create Your First Workflow
                           </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8"
-                            onClick={() => handleEditWorkflow(workflow)}
-                          >
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                        </div>
+                        </Link>
                       </div>
-                    ))}
+                    ) : (
+                      recentWorkflows.map((workflow) => (
+                        <div
+                          key={workflow.id}
+                          className="group flex items-start justify-between p-4 rounded-lg border bg-card hover:bg-accent/50 transition-all duration-200 cursor-pointer"
+                          onClick={() => handleEditWorkflow(workflow)}
+                        >
+                          <div className="space-y-2 flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="font-semibold text-base truncate">{workflow.name}</span>
+                              {getStatusBadge(workflow.status)}
+                            </div>
+                            <p className="text-sm text-muted-foreground line-clamp-1">
+                              {workflow.description}
+                            </p>
+                            <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                              <span className="flex items-center gap-1">
+                                <Clock className="w-3 h-3" />
+                                {workflow.lastRun}
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <Activity className="w-3 h-3" />
+                                {workflow.executions} runs
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <CheckCircle className="w-3 h-3" />
+                                {workflow.successRate}%
+                              </span>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleEditWorkflow(workflow);
+                              }}
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))
+                    )}
                   </div>
                 </CardContent>
               </Card>
 
               {/* Recent Executions */}
-              <Card className="border-0 shadow-sm">
-                <CardHeader className="flex flex-row items-center justify-between">
+              <Card className="shadow-sm border">
+                <CardHeader className="flex flex-row items-center justify-between pb-4">
                   <div>
-                    <CardTitle>Recent Executions</CardTitle>
-                    <CardDescription>Latest workflow executions</CardDescription>
+                    <CardTitle className="text-xl">Recent Executions</CardTitle>
+                    <CardDescription className="mt-1">Latest workflow executions</CardDescription>
                   </div>
-                  <Button variant="outline" size="sm" className="h-8">View All</Button>
+                  <Link href="/executions">
+                    <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+                      View All
+                      <ArrowUpRight className="w-4 h-4 ml-1" />
+                    </Button>
+                  </Link>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
+                  <div className="space-y-3">
                     {recentExecutions.map((execution) => (
                       <div
                         key={execution.id}
-                        className="flex items-center justify-between p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
+                        className="flex items-start justify-between p-4 rounded-lg border bg-card hover:bg-accent/50 transition-all duration-200"
                       >
-                        <div className="space-y-1">
-                          <div className="flex items-center space-x-2">
-                            {execution.status === 'completed' ? (
-                              <CheckCircle className="w-4 h-4" />
-                            ) : execution.status === 'failed' ? (
-                              <XCircle className="w-4 h-4" />
-                            ) : (
-                              <PlayCircle className="w-4 h-4" />
-                            )}
-                            <span className="font-medium">{execution.workflowName}</span>
+                        <div className="space-y-2 flex-1">
+                          <div className="flex items-center gap-2">
+                            {getStatusIcon(execution.status)}
+                            <span className="font-semibold text-base">{execution.workflowName}</span>
                             {getStatusBadge(execution.status)}
                           </div>
-                          <div className="flex items-center text-xs text-muted-foreground space-x-4">
-                            <span>Duration: {execution.duration}</span>
-                            <span>{execution.nodes} nodes</span>
+                          <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                            <span className="flex items-center gap-1">
+                              <Clock className="w-3 h-3" />
+                              {execution.duration}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <GitBranch className="w-3 h-3" />
+                              {execution.nodes} nodes
+                            </span>
                             <span>{new Date(execution.startTime).toLocaleString()}</span>
                           </div>
                           {execution.error && (
-                            <p className="text-xs text-muted-foreground mt-1">
-                              {execution.error}
-                            </p>
+                            <div className="flex items-start gap-2 text-xs text-red-600 bg-red-50 dark:bg-red-950/30 p-2 rounded">
+                              <AlertCircle className="w-3 h-3 mt-0.5 flex-shrink-0" />
+                              <span>{execution.error}</span>
+                            </div>
                           )}
                         </div>
                         <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -421,82 +506,118 @@ export default function Dashboard() {
           </TabsContent>
 
           <TabsContent value="workflows">
-            <Card>
+            <Card className="shadow-sm border">
               <CardHeader>
-                <CardTitle>All Workflows</CardTitle>
-                <CardDescription>Manage all your workflows</CardDescription>
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div>
+                    <CardTitle className="text-xl">All Workflows</CardTitle>
+                    <CardDescription className="mt-1">Manage all your workflows</CardDescription>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="relative flex-1 md:w-64">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Search workflows..."
+                        className="pl-9"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                      />
+                    </div>
+                    <select
+                      className="px-3 py-2 border rounded-md text-sm bg-background"
+                      value={filterStatus}
+                      onChange={(e) => setFilterStatus(e.target.value)}
+                    >
+                      <option value="all">All Status</option>
+                      <option value="active">Active</option>
+                      <option value="inactive">Inactive</option>
+                    </select>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {recentWorkflows.map((workflow) => (
-                    <div key={workflow.id} className="flex items-center justify-between p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-2">
-                          <h3 className="font-semibold">{workflow.name}</h3>
-                          {getStatusBadge(workflow.status)}
-                        </div>
-                        <p className="text-sm text-muted-foreground mt-1">{workflow.description}</p>
-                        <div className="flex items-center space-x-6 mt-3 text-sm">
-                          <span>{workflow.executions} executions</span>
-                          <span>{workflow.successRate}% success rate</span>
-                          <span>Last run: {workflow.lastRun}</span>
-                        </div>
-                      </div>
-                      <div className="flex space-x-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEditWorkflow(workflow)}
-                        >
-                          <Eye className="w-4 h-4 mr-2" />
-                          View
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEditWorkflow(workflow)}
-                        >
-                          <Edit className="w-4 h-4 mr-2" />
-                          Edit
-                        </Button>
-                        <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-700 hover:bg-red-50">
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          Delete
-                        </Button>
-                      </div>
+                <div className="space-y-3">
+                  {filteredWorkflows.length === 0 ? (
+                    <div className="text-center py-12">
+                      <Search className="w-12 h-12 mx-auto text-muted-foreground/50 mb-3" />
+                      <p className="text-muted-foreground">No workflows found</p>
+                      <p className="text-sm text-muted-foreground mt-1">Try adjusting your search or filter</p>
                     </div>
-                  ))}
+                  ) : (
+                    filteredWorkflows.map((workflow) => (
+                      <div key={workflow.id} className="flex items-center justify-between p-5 rounded-lg border bg-card hover:bg-accent/50 transition-all duration-200">
+                        <div className="flex-1 space-y-2">
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-semibold text-lg">{workflow.name}</h3>
+                            {getStatusBadge(workflow.status)}
+                          </div>
+                          <p className="text-sm text-muted-foreground">{workflow.description}</p>
+                          <div className="flex items-center gap-6 text-sm text-muted-foreground">
+                            <span className="flex items-center gap-1.5">
+                              <Activity className="w-4 h-4" />
+                              {workflow.executions} executions
+                            </span>
+                            <span className="flex items-center gap-1.5">
+                              <CheckCircle className="w-4 h-4" />
+                              {workflow.successRate}% success
+                            </span>
+                            <span className="flex items-center gap-1.5">
+                              <Clock className="w-4 h-4" />
+                              Last run: {workflow.lastRun}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEditWorkflow(workflow)}
+                          >
+                            <Edit className="w-4 h-4 mr-2" />
+                            Edit
+                          </Button>
+                          <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700 hover:bg-red-50">
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Delete
+                          </Button>
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
               </CardContent>
             </Card>
           </TabsContent>
 
           <TabsContent value="executions">
-            <Card>
+            <Card className="shadow-sm border">
               <CardHeader>
-                <CardTitle>Execution History</CardTitle>
-                <CardDescription>View all workflow executions</CardDescription>
+                <CardTitle className="text-xl">Execution History</CardTitle>
+                <CardDescription className="mt-1">View all workflow executions</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {recentExecutions.map((execution) => (
-                    <div key={execution.id} className="flex items-center justify-between p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-2">
+                    <div key={execution.id} className="flex items-center justify-between p-5 rounded-lg border bg-card hover:bg-accent/50 transition-all duration-200">
+                      <div className="flex-1 space-y-2">
+                        <div className="flex items-center gap-2">
                           {getStatusIcon(execution.status)}
-                          <h3 className="font-semibold">{execution.workflowName}</h3>
+                          <h3 className="font-semibold text-lg">{execution.workflowName}</h3>
                           {getStatusBadge(execution.status)}
                         </div>
-                        <div className="flex items-center space-x-6 mt-3 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-6 text-sm text-muted-foreground">
                           <span>Started: {new Date(execution.startTime).toLocaleString()}</span>
                           <span>Duration: {execution.duration}</span>
                           <span>{execution.nodes} nodes</span>
                         </div>
                         {execution.error && (
-                          <p className="text-sm text-muted-foreground mt-2">{execution.error}</p>
+                          <div className="flex items-start gap-2 text-sm text-red-600 bg-red-50 dark:bg-red-950/30 p-3 rounded">
+                            <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                            <span>{execution.error}</span>
+                          </div>
                         )}
                       </div>
-                      <Button variant="ghost" size="sm">
+                      <Button variant="outline" size="sm">
                         <Eye className="w-4 h-4 mr-2" />
                         View Details
                       </Button>
@@ -509,46 +630,47 @@ export default function Dashboard() {
 
           <TabsContent value="analytics">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
+              <Card className="shadow-sm border">
                 <CardHeader>
-                  <CardTitle>Execution Trends</CardTitle>
-                  <CardDescription>Workflow execution trends over time</CardDescription>
+                  <CardTitle className="text-xl">Execution Trends</CardTitle>
+                  <CardDescription className="mt-1">Workflow execution trends over time</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="h-[300px] flex items-center justify-center text-muted-foreground">
-                    <BarChart3 className="w-12 h-12 mb-2" />
-                    <p>Analytics chart would be displayed here</p>
+                  <div className="h-[300px] flex flex-col items-center justify-center text-muted-foreground">
+                    <BarChart3 className="w-16 h-16 mb-4 opacity-50" />
+                    <p className="text-lg font-medium">Analytics Chart</p>
+                    <p className="text-sm mt-1">Chart visualization would be displayed here</p>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="shadow-sm border">
                 <CardHeader>
-                  <CardTitle>Performance Metrics</CardTitle>
-                  <CardDescription>Key performance indicators</CardDescription>
+                  <CardTitle className="text-xl">Performance Metrics</CardTitle>
+                  <CardDescription className="mt-1">Key performance indicators</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
+                  <div className="space-y-6">
                     <div>
-                      <div className="flex justify-between text-sm mb-2">
+                      <div className="flex justify-between text-sm font-medium mb-3">
                         <span>Average Execution Time</span>
-                        <span>2m 15s</span>
+                        <span className="text-muted-foreground">2m 15s</span>
                       </div>
-                      <Progress value={75} />
+                      <Progress value={75} className="h-2" />
                     </div>
                     <div>
-                      <div className="flex justify-between text-sm mb-2">
+                      <div className="flex justify-between text-sm font-medium mb-3">
                         <span>Success Rate</span>
-                        <span>96.2%</span>
+                        <span className="text-green-600">96.2%</span>
                       </div>
-                      <Progress value={96} />
+                      <Progress value={96} className="h-2 [&>div]:bg-green-600" />
                     </div>
                     <div>
-                      <div className="flex justify-between text-sm mb-2">
+                      <div className="flex justify-between text-sm font-medium mb-3">
                         <span>Resource Usage</span>
-                        <span>68%</span>
+                        <span className="text-muted-foreground">68%</span>
                       </div>
-                      <Progress value={68} />
+                      <Progress value={68} className="h-2" />
                     </div>
                   </div>
                 </CardContent>
