@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/citadel-agent/backend/internal/nodes/http"
-	"github.com/citadel-agent/backend/internal/workflow/core/types"
+	"citadel-agent/backend/internal/nodes/http"
+	"citadel-agent/backend/internal/workflow/core/types"
 )
 
 func TestHTTPRequestNode(t *testing.T) {

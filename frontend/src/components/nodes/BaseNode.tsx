@@ -2,21 +2,25 @@
 
 import { memo } from 'react';
 import { Handle, Position, NodeProps } from '@xyflow/react';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
-  Settings,
   Play,
   Copy,
   Trash2,
-  CheckCircle,
-  XCircle,
-  Clock,
-  Zap
+  MoreHorizontal,
+  AlertCircle,
+  CheckCircle2,
+  Loader2
 } from 'lucide-react';
 import { BaseNode as BaseNodeType } from '@/types/workflow';
 import { NodeIcon } from '@/components/NodeIcon';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface BaseNodeComponentProps extends NodeProps {
   data: {
@@ -36,156 +40,121 @@ interface BaseNodeComponentProps extends NodeProps {
 const BaseNodeComponent = memo(({ data, selected }: BaseNodeComponentProps) => {
   const getStatusColor = () => {
     switch (data.status) {
-      case 'running': return 'border-blue-500 bg-blue-50';
-      case 'success': return 'border-green-500 bg-green-50';
-      case 'error': return 'border-red-500 bg-red-50';
-      default: return 'border-gray-300 bg-white';
+      case 'running': return 'border-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.3)]';
+      case 'success': return 'border-green-500 shadow-[0_0_10px_rgba(34,197,94,0.3)]';
+      case 'error': return 'border-red-500 shadow-[0_0_10px_rgba(239,68,68,0.3)]';
+      default: return 'border-border hover:border-primary/50';
     }
   };
 
   const getStatusIcon = () => {
     switch (data.status) {
-      case 'success': return <CheckCircle className="w-4 h-4 text-green-500" />;
-      case 'error': return <XCircle className="w-4 h-4 text-red-500" />;
-      case 'running': return <Clock className="w-4 h-4 text-blue-500 animate-spin" />;
-      default: return <Zap className="w-4 h-4 text-gray-500" />;
+      case 'success': return <CheckCircle2 className="w-3 h-3 text-green-500" />;
+      case 'error': return <AlertCircle className="w-3 h-3 text-red-500" />;
+      case 'running': return <Loader2 className="w-3 h-3 text-blue-500 animate-spin" />;
+      default: return null;
     }
   };
 
-
-  const handleDelete = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    data.onDelete();
-  };
-
-  const handleDuplicate = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    // Handle duplication logic
-  };
-
-  const handleRun = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    // Handle run logic
-  };
-
   return (
-    <Card
-      className={`min-w-[200px] transition-all duration-200 ${getStatusColor()} ${selected ? 'ring-2 ring-primary ring-offset-2' : ''
-        }`}
-    >
-      <CardHeader className="pb-2">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <NodeIcon type={data.nodeType} size={18} />
-            <h3 className="font-semibold text-sm">{data.label}</h3>
-          </div>
-          <div className="flex items-center space-x-1">
+    <div className="relative group">
+      {/* Node Card */}
+      <Card
+        className={`
+          min-w-[180px] max-w-[220px] h-[50px]
+          flex items-center px-3 gap-3
+          transition-all duration-200
+          bg-card/95 backdrop-blur-sm
+          border-2
+          ${getStatusColor()}
+          ${selected ? 'ring-2 ring-primary ring-offset-2 border-primary' : ''}
+        `}
+      >
+        {/* Icon Box */}
+        <div className={`
+          flex items-center justify-center w-8 h-8 rounded-md
+          bg-muted/50 border border-border/50
+        `}>
+          <NodeIcon type={data.nodeType} size={16} />
+        </div>
+
+        {/* Label & Status */}
+        <div className="flex-1 min-w-0 flex flex-col justify-center">
+          <div className="flex items-center gap-2">
+            <span className="font-medium text-sm truncate leading-none">
+              {data.label}
+            </span>
             {getStatusIcon()}
-            <div className="opacity-0 hover:opacity-100 transition-opacity flex space-x-1">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 w-6 p-0"
-                onClick={handleRun}
-              >
-                <Play className="w-3 h-3" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 w-6 p-0"
-                onClick={handleDuplicate}
-              >
-                <Copy className="w-3 h-3" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
-                onClick={handleDelete}
-              >
-                <Trash2 className="w-3 h-3" />
-              </Button>
-            </div>
           </div>
-        </div>
-        {data.description && (
-          <p className="text-xs text-muted-foreground">{data.description}</p>
-        )}
-      </CardHeader>
-
-      <CardContent className="pt-0">
-        {/* Input Handles */}
-        {data.inputs.map((input, index) => (
-          <Handle
-            key={`input-${index}`}
-            type="target"
-            position={Position.Left}
-            id={input.id}
-            style={{ top: `${30 + index * 20}px` }}
-            className="w-3 h-3 bg-gray-400 border-2 border-white"
-          />
-        ))}
-
-        {/* Output Handles */}
-        {data.outputs.map((output, index) => (
-          <Handle
-            key={`output-${index}`}
-            type="source"
-            position={Position.Right}
-            id={output.id}
-            style={{ top: `${30 + index * 20}px` }}
-            className="w-3 h-3 bg-blue-500 border-2 border-white"
-          />
-        ))}
-
-        {/* Port Labels */}
-        <div className="flex justify-between text-xs">
-          <div className="space-y-1">
-            {data.inputs.slice(0, 2).map((input, index) => (
-              <div key={index} className="text-muted-foreground">
-                {input.name}
-              </div>
-            ))}
-            {data.inputs.length > 2 && (
-              <div className="text-muted-foreground">+{data.inputs.length - 2}</div>
-            )}
-          </div>
-
-          <div className="space-y-1 text-right">
-            {data.outputs.slice(0, 2).map((output, index) => (
-              <div key={index} className="text-muted-foreground">
-                {output.name}
-              </div>
-            ))}
-            {data.outputs.length > 2 && (
-              <div className="text-muted-foreground">+{data.outputs.length - 2}</div>
-            )}
-          </div>
+          <span className="text-[10px] text-muted-foreground uppercase tracking-wider truncate leading-tight mt-0.5">
+            {data.nodeType.replace('-', ' ')}
+          </span>
         </div>
 
-        {/* Configuration Summary */}
-        {Object.keys(data.config).length > 0 && (
-          <div className="mt-3 pt-2 border-t">
-            <div className="flex flex-wrap gap-1">
-              {Object.entries(data.config).slice(0, 3).map(([key, value]) => (
-                <Badge key={key} variant="secondary" className="text-xs">
-                  {key}: {String(value).length > 10 ? `${String(value).slice(0, 10)}...` : value}
-                </Badge>
-              ))}
-              {Object.keys(data.config).length > 3 && (
-                <Badge variant="outline" className="text-xs">
-                  +{Object.keys(data.config).length - 3}
-                </Badge>
-              )}
-            </div>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+        {/* Actions Menu (Visible on Hover/Selected) */}
+        <div className={`
+          opacity-0 group-hover:opacity-100 transition-opacity
+          ${selected ? 'opacity-100' : ''}
+        `}>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-6 w-6 -mr-1">
+                <MoreHorizontal className="w-4 h-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); /* Run logic */ }}>
+                <Play className="w-4 h-4 mr-2" /> Run Node
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); /* Duplicate logic */ }}>
+                <Copy className="w-4 h-4 mr-2" /> Duplicate
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="text-red-600 focus:text-red-600"
+                onClick={(e) => { e.stopPropagation(); data.onDelete(); }}
+              >
+                <Trash2 className="w-4 h-4 mr-2" /> Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </Card>
+
+      {/* Input Handles - Larger & Better Positioned */}
+      {data.inputs.map((input, index) => (
+        <Handle
+          key={input.id}
+          type="target"
+          position={Position.Left}
+          id={input.id}
+          className={`
+            !w-4 !h-4 !bg-background !border-2 !border-muted-foreground
+            hover:!border-primary hover:!bg-primary/20 transition-colors
+            !left-[-9px]
+          `}
+          style={{ top: '50%', transform: 'translateY(-50%)' }}
+        />
+      ))}
+
+      {/* Output Handles - Larger & Better Positioned */}
+      {data.outputs.map((output, index) => (
+        <Handle
+          key={output.id}
+          type="source"
+          position={Position.Right}
+          id={output.id}
+          className={`
+            !w-4 !h-4 !bg-background !border-2 !border-muted-foreground
+            hover:!border-primary hover:!bg-primary/20 transition-colors
+            !right-[-9px]
+          `}
+          style={{ top: '50%', transform: 'translateY(-50%)' }}
+        />
+      ))}
+    </div>
   );
 });
 
-BaseNodeComponent.displayName = 'BaseNodeComponent';
+BaseNodeComponent.displayName = 'BaseNode';
 
 export default BaseNodeComponent;

@@ -6,7 +6,7 @@ import (
 	"log"
 	"sync"
 
-	"github.com/citadel-agent/backend/internal/workflow/core/types"
+	"citadel-agent/backend/internal/workflow/core/types"
 )
 
 // Workflow represents a workflow with nodes and connections

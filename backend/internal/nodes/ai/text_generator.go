@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/citadel-agent/backend/internal/interfaces"
+	"citadel-agent/backend/internal/interfaces"
 )
 
 // TextGeneratorConfig represents the configuration for text generator AI node

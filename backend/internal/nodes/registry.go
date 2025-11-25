@@ -3,13 +3,13 @@ package nodes
 import (
 	"fmt"
 
-	"github.com/citadel-agent/backend/internal/interfaces"
-	"github.com/citadel-agent/backend/internal/nodes/ai"
-	"github.com/citadel-agent/backend/internal/nodes/database"
-	"github.com/citadel-agent/backend/internal/nodes/http"
-	"github.com/citadel-agent/backend/internal/nodes/integration"
-	"github.com/citadel-agent/backend/internal/nodes/security"
-	"github.com/citadel-agent/backend/internal/nodes/utility"
+	"citadel-agent/backend/internal/interfaces"
+	"citadel-agent/backend/internal/nodes/ai"
+	"citadel-agent/backend/internal/nodes/database"
+	"citadel-agent/backend/internal/nodes/http"
+	"citadel-agent/backend/internal/nodes/integration"
+	"citadel-agent/backend/internal/nodes/security"
+	"citadel-agent/backend/internal/nodes/utility"
 )
 
 // NodeType represents different types of nodes

@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/citadel-agent/backend/internal/nodes/base"
+	"citadel-agent/backend/internal/nodes/base"
 )
 
 // WebhookNode implements webhook trigger functionality

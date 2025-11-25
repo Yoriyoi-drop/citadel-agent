@@ -1,4 +1,4 @@
-module github.com/citadel-agent/backend
+module citadel-agent/backend
 
 go 1.23.0
 

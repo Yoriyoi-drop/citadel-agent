@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/citadel-agent/backend/internal/interfaces"
+	"citadel-agent/backend/internal/interfaces"
 )
 
 // NotificationChannel represents the type of notification channel

@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/citadel-agent/backend/internal/interfaces"
+	"citadel-agent/backend/internal/interfaces"
 )
 
 // HTTPRequestNode implements a node that makes HTTP requests

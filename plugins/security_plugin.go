@@ -13,7 +13,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/citadel-agent/backend/internal/plugins"
+	"citadel-agent/backend/internal/plugins"
 	"github.com/hashicorp/go-plugin"
 	"golang.org/x/crypto/bcrypt"
 )

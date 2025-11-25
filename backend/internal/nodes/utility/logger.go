@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/citadel-agent/backend/internal/interfaces"
+	"citadel-agent/backend/internal/interfaces"
 )
 
 // LoggerNode implements a node that logs data

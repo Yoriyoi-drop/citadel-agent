@@ -5,10 +5,10 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/citadel-agent/backend/internal/api/handlers"
-	httpnode "github.com/citadel-agent/backend/internal/nodes/http"
-	"github.com/citadel-agent/backend/internal/nodes/utility"
-	"github.com/citadel-agent/backend/internal/workflow/core/engine"
+	"citadel-agent/backend/internal/api/handlers"
+	httpnode "citadel-agent/backend/internal/nodes/http"
+	"citadel-agent/backend/internal/nodes/utility"
+	"citadel-agent/backend/internal/workflow/core/engine"
 )
 
 func main() {

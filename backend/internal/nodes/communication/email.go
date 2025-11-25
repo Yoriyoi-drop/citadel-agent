@@ -6,7 +6,7 @@ import (
 	"net/smtp"
 	"time"
 
-	"github.com/citadel-agent/backend/internal/nodes/base"
+	"citadel-agent/backend/internal/nodes/base"
 )
 
 // EmailNode implements email sending

@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/citadel-agent/backend/internal/nodes"
+	"citadel-agent/backend/internal/nodes"
 )
 
 func main() {

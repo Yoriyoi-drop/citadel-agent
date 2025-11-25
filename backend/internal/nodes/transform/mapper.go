@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/citadel-agent/backend/internal/nodes/base"
+	"citadel-agent/backend/internal/nodes/base"
 )
 
 // DataMapperNode implements data field mapping

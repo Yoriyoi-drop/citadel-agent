@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/citadel-agent/backend/internal/nodes/base"
+	"citadel-agent/backend/internal/nodes/base"
 )
 
 // OpenAINode implements OpenAI API integration

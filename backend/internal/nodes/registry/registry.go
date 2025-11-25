@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/citadel-agent/backend/internal/nodes/base"
+	"citadel-agent/backend/internal/nodes/base"
 )
 
 // NodeCreator is a function that creates a new node instance

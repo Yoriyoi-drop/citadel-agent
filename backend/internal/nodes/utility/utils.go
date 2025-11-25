@@ -4,7 +4,7 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/citadel-agent/backend/internal/nodes/base"
+	"citadel-agent/backend/internal/nodes/base"
 	"github.com/google/uuid"
 )
 

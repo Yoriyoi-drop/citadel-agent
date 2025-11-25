@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/citadel-agent/backend/internal/workflow/core/engine"
-	"github.com/citadel-agent/backend/internal/workflow/core/types"
+	"citadel-agent/backend/internal/workflow/core/engine"
+	"citadel-agent/backend/internal/workflow/core/types"
 )
 
 // NodeHandler handles node-related API requests

@@ -9,6 +9,8 @@ export interface BaseNode {
     outputs: NodePort[];
     config: Record<string, any>;
     status?: 'idle' | 'running' | 'success' | 'error';
+    outputData?: any;
+    error?: string;
   };
 }
 

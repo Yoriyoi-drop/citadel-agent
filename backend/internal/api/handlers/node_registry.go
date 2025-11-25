@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"github.com/citadel-agent/backend/internal/nodes/loader"
-	"github.com/citadel-agent/backend/internal/nodes/registry"
+	"citadel-agent/backend/internal/nodes/loader"
+	"citadel-agent/backend/internal/nodes/registry"
 	"github.com/gofiber/fiber/v2"
 )
 

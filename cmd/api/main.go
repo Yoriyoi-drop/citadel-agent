@@ -7,11 +7,11 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/citadel-agent/backend/internal/api"
-	"github.com/citadel-agent/backend/internal/startup"
-	"github.com/citadel-agent/backend/internal/temporal"
-	"github.com/citadel-agent/backend/internal/plugins"
-	"github.com/citadel-agent/backend/internal/workflow/core/engine"
+	"citadel-agent/backend/internal/api"
+	"citadel-agent/backend/internal/startup"
+	"citadel-agent/backend/internal/temporal"
+	"citadel-agent/backend/internal/plugins"
+	"citadel-agent/backend/internal/workflow/core/engine"
 )
 
 func main() {

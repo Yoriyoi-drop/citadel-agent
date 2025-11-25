@@ -6,10 +6,9 @@ import (
 	"fmt"
 	"log"
 
-	"./backend/internal/nodes/http"
-	"./backend/internal/nodes/utility"
-	"./backend/internal/workflow/core/engine"
-	"./backend/internal/workflow/core/types"
+	"citadel-agent/backend/internal/nodes/http"
+	"citadel-agent/backend/internal/nodes/utility"
+	"citadel-agent/backend/internal/workflow/core/engine"
 )
 
 // Demo function to show the workflow system working
@@ -19,10 +18,10 @@ func main() {
 
 	// Initialize the node registry
 	registry := engine.NewNodeTypeRegistry()
-	
+
 	// Register our nodes
 	registerDemoNodes(registry)
-	
+
 	// Create a simple workflow: HTTP Request -> Logger
 	workflow := &engine.Workflow{
 		ID:   "demo-workflow",
@@ -54,17 +53,17 @@ func main() {
 			},
 		},
 	}
-	
+
 	// Create executor and run the workflow
 	executor := engine.NewWorkflowExecutor(registry)
-	
+
 	// Execute the workflow
 	ctx := context.Background()
 	inputs := map[string]interface{}{
 		"demonstration": true,
 		"source":        "demo-script",
 	}
-	
+
 	fmt.Println("Executing demo workflow...")
 	results, err := executor.ExecuteWorkflow(ctx, workflow, inputs)
 	if err != nil {
@@ -72,12 +71,12 @@ func main() {
 	} else {
 		fmt.Println("Workflow executed successfully!")
 		fmt.Println("Results:")
-		
+
 		// Pretty print the results
 		resultBytes, _ := json.MarshalIndent(results, "", "  ")
 		fmt.Println(string(resultBytes))
 	}
-	
+
 	fmt.Println("=============================")
 	fmt.Println("Demo completed successfully!")
 	fmt.Println("The citadel Agent foundation is working correctly.")
@@ -87,22 +86,22 @@ func registerDemoNodes(registry *engine.NodeTypeRegistryImpl) {
 	// Register HTTP Request Node
 	httpMetadata := http.NewHTTPRequestNode().GetMetadata()
 	registry.RegisterNodeType("http_request", http.NewHTTPRequestNode, httpMetadata)
-	
+
 	// Register Logger Node
 	loggerMetadata := utility.NewLoggerNode().GetMetadata()
 	registry.RegisterNodeType("logger", utility.NewLoggerNode, loggerMetadata)
-	
+
 	// Register Data Transformer Node
 	transformerMetadata := utility.NewDataTransformerNode().GetMetadata()
 	registry.RegisterNodeType("data_transformer", utility.NewDataTransformerNode, transformerMetadata)
-	
+
 	// Register If/Else Node
 	ifelseMetadata := utility.NewIfElseNode().GetMetadata()
 	registry.RegisterNodeType("if_else", utility.NewIfElseNode, ifelseMetadata)
-	
+
 	// Register For Each Node
 	foreachMetadata := utility.NewForEachNode().GetMetadata()
 	registry.RegisterNodeType("for_each", utility.NewForEachNode, foreachMetadata)
-	
+
 	log.Printf("Registered %d node types for demo", len(registry.ListNodeTypes()))
 }

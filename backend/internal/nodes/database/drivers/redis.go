@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/redis/go-redis/v9"
-	"github.com/citadel-agent/backend/internal/nodes/database"
+	"citadel-agent/backend/internal/nodes/database"
 )
 
 // RedisDriver implements the Driver interface for Redis

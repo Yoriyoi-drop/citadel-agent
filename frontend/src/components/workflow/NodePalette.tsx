@@ -1,40 +1,52 @@
 "use client"
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNodeStore } from '@/stores/nodeStore';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { Search, Filter, Loader2 } from 'lucide-react';
 import { NodeType } from '@/types/workflow';
-import { CategoryIcon, NodeIconBadge } from '@/components/NodeIcon';
-import { getCategoryColor } from '@/config/nodeIcons';
+import { CategoryIcon } from '@/components/NodeIcon';
+import { NodeCard } from './NodeCard';
 
-
+const ITEMS_PER_PAGE = 20;
 
 export function NodePalette() {
   const { nodeTypes, searchNodeTypes, getNodeTypesByCategory, fetchNodes, isLoading } = useNodeStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
 
   useEffect(() => {
     fetchNodes();
   }, [fetchNodes]);
 
+  // Reset visible count when filter changes
+  useEffect(() => {
+    setVisibleCount(ITEMS_PER_PAGE);
+  }, [searchQuery, selectedCategory]);
+
   // Filter nodes based on search and category
-  const filteredNodes = searchQuery
-    ? searchNodeTypes(searchQuery)
-    : selectedCategory === 'all'
-      ? nodeTypes
-      : getNodeTypesByCategory(selectedCategory);
+  const filteredNodes = useMemo(() => {
+    return searchQuery
+      ? searchNodeTypes(searchQuery)
+      : selectedCategory === 'all'
+        ? nodeTypes
+        : getNodeTypesByCategory(selectedCategory);
+  }, [searchQuery, selectedCategory, nodeTypes, searchNodeTypes, getNodeTypesByCategory]);
+
+  // Get visible nodes
+  const visibleNodes = useMemo(() => {
+    return filteredNodes.slice(0, visibleCount);
+  }, [filteredNodes, visibleCount]);
 
   // Get unique categories
-  const categories = Array.from(new Set(nodeTypes.map(node => node.category)));
+  const categories = useMemo(() => {
+    return Array.from(new Set(nodeTypes.map(node => node.category)));
+  }, [nodeTypes]);
 
-  const handleDragStart = (event: React.DragEvent, nodeType: NodeType) => {
+  const handleDragStart = useCallback((event: React.DragEvent, nodeType: NodeType) => {
     event.dataTransfer.setData('application/reactflow', JSON.stringify({
       nodeType: nodeType.id,
       label: nodeType.name,
@@ -44,6 +56,10 @@ export function NodePalette() {
       config: nodeType.config
     }));
     event.dataTransfer.effectAllowed = 'move';
+  }, []);
+
+  const handleLoadMore = () => {
+    setVisibleCount(prev => prev + ITEMS_PER_PAGE);
   };
 
   return (
@@ -70,11 +86,9 @@ export function NodePalette() {
             size="sm"
             onClick={() => setSelectedCategory('all')}
           >
-            All ({nodeTypes.length})
+            All
           </Button>
           {categories.map((category) => {
-            const count = nodeTypes.filter(n => n.category === category).length;
-
             return (
               <Button
                 key={category}
@@ -85,7 +99,6 @@ export function NodePalette() {
               >
                 <CategoryIcon category={category} size={14} useColor={false} />
                 <span className="capitalize">{category}</span>
-                <span className="text-xs">({count})</span>
               </Button>
             );
           })}
@@ -102,97 +115,36 @@ export function NodePalette() {
             </div>
           ) : filteredNodes.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              <p>No nodes found</p>
-            </div>
-          ) : (
-            filteredNodes.map((nodeType) => {
-              return (
-                <Card
-                  key={nodeType.id}
-                  className="cursor-grab active:cursor-grabbing hover:shadow-md transition-shadow"
-                  draggable
-                  onDragStart={(e) => handleDragStart(e, nodeType)}
-                >
-                  <CardHeader className="pb-2">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center space-x-3">
-                        <NodeIconBadge
-                          type={nodeType.id}
-                          category={nodeType.category}
-                          size={20}
-                          showBackground={true}
-                        />
-                        <CardTitle className="text-sm">{nodeType.name}</CardTitle>
-                      </div>
-                      <Badge
-                        variant="outline"
-                        className="text-xs"
-                        style={{
-                          borderColor: getCategoryColor(nodeType.category),
-                          color: getCategoryColor(nodeType.category)
-                        }}
-                      >
-                        {nodeType.category}
-                      </Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <CardDescription className="text-xs mb-3">
-                      {nodeType.description}
-                    </CardDescription>
-
-                    {/* Inputs/Outputs */}
-                    <div className="space-y-2">
-                      {nodeType.inputs.length > 0 && (
-                        <div className="flex items-center space-x-2">
-                          <span className="text-xs text-muted-foreground">Inputs:</span>
-                          <div className="flex space-x-1">
-                            {nodeType.inputs.slice(0, 3).map((input, index) => (
-                              <Badge key={index} variant="secondary" className="text-xs">
-                                {input.name}
-                              </Badge>
-                            ))}
-                            {nodeType.inputs.length > 3 && (
-                              <Badge variant="secondary" className="text-xs">
-                                +{nodeType.inputs.length - 3}
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                      )}
-
-                      {nodeType.outputs.length > 0 && (
-                        <div className="flex items-center space-x-2">
-                          <span className="text-xs text-muted-foreground">Outputs:</span>
-                          <div className="flex space-x-1">
-                            {nodeType.outputs.slice(0, 3).map((output, index) => (
-                              <Badge key={index} variant="secondary" className="text-xs">
-                                {output.name}
-                              </Badge>
-                            ))}
-                            {nodeType.outputs.length > 3 && (
-                              <Badge variant="secondary" className="text-xs">
-                                +{nodeType.outputs.length - 3}
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-
-          {filteredNodes.length === 0 && (
-            <div className="text-center py-8 text-muted-foreground">
               <Filter className="w-8 h-8 mx-auto mb-2" />
               <p>No nodes found</p>
-              <p className="text-sm">Try adjusting your search or filter</p>
+              <p className="text-sm mb-4">Try adjusting your search or filter</p>
+              <Button variant="outline" size="sm" onClick={() => fetchNodes()}>
+                Refresh Nodes
+              </Button>
             </div>
+          ) : (
+            <>
+              {visibleNodes.map((nodeType) => (
+                <NodeCard
+                  key={nodeType.id}
+                  nodeType={nodeType}
+                  onDragStart={handleDragStart}
+                />
+              ))}
+
+              {visibleCount < filteredNodes.length && (
+                <Button
+                  variant="ghost"
+                  className="w-full mt-2"
+                  onClick={handleLoadMore}
+                >
+                  Load More ({filteredNodes.length - visibleCount} remaining)
+                </Button>
+              )}
+            </>
           )}
         </div>
-      </ScrollArea>
-    </div>
+      </ScrollArea >
+    </div >
   );
 }

@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/citadel-agent/backend/internal/interfaces"
+	"citadel-agent/backend/internal/interfaces"
 )
 
 // IfElseNode implements a node that evaluates conditions and returns different outputs

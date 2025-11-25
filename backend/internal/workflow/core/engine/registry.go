@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/citadel-agent/backend/internal/workflow/core/types"
+	"citadel-agent/backend/internal/workflow/core/types"
 )
 
 // NodeTypeRegistryImpl implements NodeTypeRegistry

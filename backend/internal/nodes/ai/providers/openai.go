@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/citadel-agent/backend/internal/nodes/ai"
+	"citadel-agent/backend/internal/nodes/ai"
 )
 
 // OpenAIProvider implements the AI Provider interface for OpenAI

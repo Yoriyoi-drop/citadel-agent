@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useWorkflowStore } from '@/stores/workflowStore';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -116,8 +118,132 @@ const stats = [
   }
 ];
 
+// Mock workflow data with nodes and edges
+const mockWorkflowData: Record<string, { nodes: any[], edges: any[] }> = {
+  '1': { // Customer Data Processing
+    nodes: [
+      {
+        id: 'trigger-1',
+        type: 'webhook',
+        position: { x: 100, y: 100 },
+        data: { label: 'Webhook Trigger', inputs: [], outputs: [{ id: 'out-1', name: 'output', type: 'object' }], config: { method: 'POST', path: '/customer-data' } }
+      },
+      {
+        id: 'transform-1',
+        type: 'transform',
+        position: { x: 400, y: 100 },
+        data: { label: 'Format Data', inputs: [{ id: 'in-1', name: 'input', type: 'object' }], outputs: [{ id: 'out-1', name: 'output', type: 'object' }], config: { script: 'return { ...input, processed: true };' } }
+      },
+      {
+        id: 'db-1',
+        type: 'database',
+        position: { x: 700, y: 100 },
+        data: { label: 'Save to DB', inputs: [{ id: 'in-1', name: 'input', type: 'object' }], outputs: [], config: { table: 'customers', operation: 'insert' } }
+      }
+    ],
+    edges: [
+      { id: 'e1-2', source: 'trigger-1', target: 'transform-1', sourceHandle: 'out-1', targetHandle: 'in-1' },
+      { id: 'e2-3', source: 'transform-1', target: 'db-1', sourceHandle: 'out-1', targetHandle: 'in-1' }
+    ]
+  },
+  '2': { // Email Campaign Automation
+    nodes: [
+      {
+        id: 'schedule-1',
+        type: 'schedule',
+        position: { x: 100, y: 100 },
+        data: { label: 'Daily Schedule', inputs: [], outputs: [{ id: 'out-1', name: 'output', type: 'object' }], config: { cron: '0 9 * * *' } }
+      },
+      {
+        id: 'db-read-1',
+        type: 'database',
+        position: { x: 400, y: 100 },
+        data: { label: 'Get Subscribers', inputs: [{ id: 'in-1', name: 'input', type: 'object' }], outputs: [{ id: 'out-1', name: 'output', type: 'array' }], config: { query: 'SELECT * FROM subscribers WHERE active = true' } }
+      },
+      {
+        id: 'email-1',
+        type: 'email',
+        position: { x: 700, y: 100 },
+        data: { label: 'Send Email', inputs: [{ id: 'in-1', name: 'recipients', type: 'array' }], outputs: [], config: { subject: 'Daily Update', template: 'newsletter' } }
+      }
+    ],
+    edges: [
+      { id: 'e1-2', source: 'schedule-1', target: 'db-read-1', sourceHandle: 'out-1', targetHandle: 'in-1' },
+      { id: 'e2-3', source: 'db-read-1', target: 'email-1', sourceHandle: 'out-1', targetHandle: 'in-1' }
+    ]
+  },
+  '3': { // Report Generation
+    nodes: [
+      {
+        id: 'trigger-1',
+        type: 'webhook',
+        position: { x: 100, y: 100 },
+        data: { label: 'Generate Request', inputs: [], outputs: [{ id: 'out-1', name: 'output', type: 'object' }], config: { method: 'POST', path: '/generate-report' } }
+      },
+      {
+        id: 'api-1',
+        type: 'http-request',
+        position: { x: 400, y: 50 },
+        data: { label: 'Fetch Analytics', inputs: [{ id: 'in-1', name: 'input', type: 'object' }], outputs: [{ id: 'out-1', name: 'output', type: 'object' }], config: { url: 'https://api.analytics.com/data', method: 'GET' } }
+      },
+      {
+        id: 'api-2',
+        type: 'http-request',
+        position: { x: 400, y: 200 },
+        data: { label: 'Fetch Sales', inputs: [{ id: 'in-1', name: 'input', type: 'object' }], outputs: [{ id: 'out-1', name: 'output', type: 'object' }], config: { url: 'https://api.sales.com/data', method: 'GET' } }
+      },
+      {
+        id: 'transform-1',
+        type: 'transform',
+        position: { x: 700, y: 125 },
+        data: { label: 'Merge Data', inputs: [{ id: 'in-1', name: 'analytics', type: 'object' }, { id: 'in-2', name: 'sales', type: 'object' }], outputs: [{ id: 'out-1', name: 'report', type: 'object' }], config: { script: 'return { ...analytics, ...sales };' } }
+      },
+      {
+        id: 'file-1',
+        type: 'file-save',
+        position: { x: 1000, y: 125 },
+        data: { label: 'Save Report', inputs: [{ id: 'in-1', name: 'content', type: 'object' }], outputs: [], config: { filename: 'report.pdf', format: 'pdf' } }
+      }
+    ],
+    edges: [
+      { id: 'e1-2', source: 'trigger-1', target: 'api-1', sourceHandle: 'out-1', targetHandle: 'in-1' },
+      { id: 'e1-3', source: 'trigger-1', target: 'api-2', sourceHandle: 'out-1', targetHandle: 'in-1' },
+      { id: 'e2-4', source: 'api-1', target: 'transform-1', sourceHandle: 'out-1', targetHandle: 'in-1' },
+      { id: 'e3-4', source: 'api-2', target: 'transform-1', sourceHandle: 'out-1', targetHandle: 'in-2' },
+      { id: 'e4-5', source: 'transform-1', target: 'file-1', sourceHandle: 'out-1', targetHandle: 'in-1' }
+    ]
+  }
+};
+
 export default function Dashboard() {
   const [selectedTab, setSelectedTab] = useState('overview');
+  const router = useRouter();
+  const { setCurrentWorkflow } = useWorkflowStore();
+
+  const handleEditWorkflow = (workflow: any) => {
+    // Get mock data for this workflow if available
+    const mockData = mockWorkflowData[workflow.id] || { nodes: [], edges: [] };
+
+    // Populate store with template data
+    setCurrentWorkflow({
+      id: workflow.id,
+      name: workflow.name,
+      description: workflow.description,
+      nodes: mockData.nodes,
+      edges: mockData.edges,
+      settings: {
+        autoSave: true,
+        errorHandling: 'stop',
+        retryCount: 3
+      },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      version: 1,
+      isActive: workflow.status === 'active'
+    });
+
+    router.push(`/workflows/${workflow.id}`);
+  };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -221,10 +347,20 @@ export default function Dashboard() {
                           </div>
                         </div>
                         <div className="flex items-center space-x-2">
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => handleEditWorkflow(workflow)}
+                          >
                             <Eye className="w-4 h-4" />
                           </Button>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => handleEditWorkflow(workflow)}
+                          >
                             <Edit className="w-4 h-4" />
                           </Button>
                         </div>
@@ -307,11 +443,19 @@ export default function Dashboard() {
                         </div>
                       </div>
                       <div className="flex space-x-2">
-                        <Button variant="ghost" size="sm">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEditWorkflow(workflow)}
+                        >
                           <Eye className="w-4 h-4 mr-2" />
                           View
                         </Button>
-                        <Button variant="ghost" size="sm">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEditWorkflow(workflow)}
+                        >
                           <Edit className="w-4 h-4 mr-2" />
                           Edit
                         </Button>

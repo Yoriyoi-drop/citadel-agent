@@ -16,9 +16,7 @@ export const metadata: Metadata = {
   description: "Modern workflow automation platform with visual node-based editor",
   keywords: ["workflow", "automation", "n8n", "node-based", "visual programming"],
   authors: [{ name: "FlowForge Team" }],
-  icons: {
-    icon: "https://z-cdn.chatglm.cn/z-ai/static/logo.svg",
-  },
+
   openGraph: {
     title: "FlowForge - Workflow Automation Platform",
     description: "Modern workflow automation platform with visual node-based editor",

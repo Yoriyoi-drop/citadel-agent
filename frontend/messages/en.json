@@ -1,0 +1,70 @@
+{
+    "common": {
+        "loading": "Loading...",
+        "save": "Save",
+        "cancel": "Cancel",
+        "delete": "Delete",
+        "edit": "Edit",
+        "close": "Close",
+        "search": "Search",
+        "filter": "Filter",
+        "all": "All",
+        "settings": "Settings",
+        "back": "Back",
+        "next": "Next",
+        "previous": "Previous",
+        "refresh": "Refresh"
+    },
+    "workflow": {
+        "title": "Workflow",
+        "newWorkflow": "New Workflow",
+        "execute": "Execute",
+        "executing": "Executing...",
+        "executeNode": "Execute Node",
+        "running": "Running...",
+        "nodes": "Nodes",
+        "connections": "Connections",
+        "status": "Status",
+        "draft": "Draft",
+        "active": "Active",
+        "version": "Version",
+        "allChangesSaved": "All changes saved"
+    },
+    "node": {
+        "palette": "Node Palette",
+        "editor": "Node Editor",
+        "parameters": "Parameters",
+        "outputData": "Output Data",
+        "configuration": "Configuration",
+        "label": "Label",
+        "description": "Description",
+        "noOutputData": "No output data available",
+        "runToSeeResults": "Run the node to see results",
+        "noConfig": "No specific configuration available for this node type",
+        "noNodesFound": "No nodes found",
+        "adjustSearch": "Try adjusting your search or filter",
+        "loadMore": "Load More ({count} remaining)"
+    },
+    "error": {
+        "executionFailed": "Execution failed due to network error",
+        "somethingWentWrong": "Something went wrong",
+        "tryAgain": "Try again"
+    },
+    "categories": {
+        "trigger": "Trigger",
+        "action": "Action",
+        "transform": "Transform",
+        "utility": "Utility",
+        "ai": "AI",
+        "database": "Database",
+        "communication": "Communication"
+    },
+    "config": {
+        "url": "URL",
+        "method": "Method",
+        "path": "Path",
+        "table": "Table",
+        "operation": "Operation",
+        "required": "Required"
+    }
+}

@@ -1,0 +1,16 @@
+{
+    "name": "Citadel Agent",
+    "short_name": "Citadel",
+    "description": "Visual workflow automation platform",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#3B82F6",
+    "icons": [
+        {
+            "src": "/icon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml"
+        }
+    ]
+}

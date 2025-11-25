@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/citadel-agent/backend/internal/interfaces"
+	"citadel-agent/backend/internal/interfaces"
 )
 
 // DataTransformerNode implements a node that transforms data

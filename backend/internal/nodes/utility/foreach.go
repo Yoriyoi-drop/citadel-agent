@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/citadel-agent/backend/internal/interfaces"
+	"citadel-agent/backend/internal/interfaces"
 )
 
 // ForEachNode implements a node that iterates over a collection

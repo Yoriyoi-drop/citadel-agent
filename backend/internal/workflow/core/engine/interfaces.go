@@ -3,7 +3,7 @@ package engine
 import (
 	"context"
 
-	"github.com/citadel-agent/backend/internal/workflow/core/types"
+	"citadel-agent/backend/internal/workflow/core/types"
 )
 
 // Storage interface for storing and retrieving workflow data

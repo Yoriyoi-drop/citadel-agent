@@ -3,7 +3,7 @@ package handlers
 import (
 	"time"
 
-	"github.com/citadel-agent/backend/internal/auth"
+	"citadel-agent/backend/internal/auth"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"gorm.io/gorm"

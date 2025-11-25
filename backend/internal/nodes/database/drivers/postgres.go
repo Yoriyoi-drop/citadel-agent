@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/citadel-agent/backend/internal/nodes/database"
+	"citadel-agent/backend/internal/nodes/database"
 )
 
 // PostgresDriver implements the Driver interface for PostgreSQL

@@ -11,10 +11,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Save, 
-  Play, 
-  Settings, 
+import {
+  Save,
+  Play,
+  Settings,
   ArrowLeft,
   GitBranch,
   Clock,
@@ -35,6 +35,11 @@ export default function WorkflowEditor() {
   useEffect(() => {
     // Load workflow data based on ID
     if (workflowId) {
+      // If we already have the workflow in store, don't reload mock data
+      if (currentWorkflow?.id === workflowId) {
+        return;
+      }
+
       // Mock data - in real app, this would be an API call
       const mockWorkflow = {
         id: workflowId,
@@ -52,14 +57,14 @@ export default function WorkflowEditor() {
         version: 1,
         isActive: true
       };
-      
+
       setCurrentWorkflow(mockWorkflow);
     }
-  }, [workflowId, setCurrentWorkflow]);
+  }, [workflowId, setCurrentWorkflow, currentWorkflow?.id]);
 
   const handleSave = async () => {
     if (!currentWorkflow) return;
-    
+
     setIsSaving(true);
     try {
       // Simulate API call
@@ -76,7 +81,7 @@ export default function WorkflowEditor() {
 
   const handleRun = async () => {
     if (!currentWorkflow) return;
-    
+
     setIsRunning(true);
     try {
       // Simulate workflow execution
@@ -119,7 +124,7 @@ export default function WorkflowEditor() {
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back
           </Button>
-          
+
           <div className="flex items-center space-x-3">
             <GitBranch className="w-5 h-5 text-primary" />
             <div>
@@ -150,7 +155,7 @@ export default function WorkflowEditor() {
             <Settings className="w-4 h-4 mr-2" />
             Settings
           </Button>
-          
+
           <Button
             variant="outline"
             size="sm"
@@ -160,7 +165,7 @@ export default function WorkflowEditor() {
             <Save className="w-4 h-4 mr-2" />
             {isSaving ? 'Saving...' : 'Save'}
           </Button>
-          
+
           <Button
             size="sm"
             onClick={handleRun}
@@ -188,7 +193,7 @@ export default function WorkflowEditor() {
                   rows={3}
                 />
               </div>
-              
+
               <div>
                 <Label htmlFor="errorHandling">Error Handling</Label>
                 <select
@@ -207,7 +212,7 @@ export default function WorkflowEditor() {
                   <option value="retry">Retry on Error</option>
                 </select>
               </div>
-              
+
               <div>
                 <Label htmlFor="retryCount">Retry Count</Label>
                 <Input
@@ -242,7 +247,7 @@ export default function WorkflowEditor() {
             <span>Connections: {currentWorkflow.edges.length}</span>
             <span>Status: {currentWorkflow.isActive ? 'Active' : 'Inactive'}</span>
           </div>
-          
+
           <div className="flex items-center space-x-4">
             {isRunning && (
               <div className="flex items-center space-x-2">
@@ -250,14 +255,14 @@ export default function WorkflowEditor() {
                 <span>Running workflow...</span>
               </div>
             )}
-            
+
             {isSaving && (
               <div className="flex items-center space-x-2">
                 <Save className="w-4 h-4" />
                 <span>Saving...</span>
               </div>
             )}
-            
+
             <div className="flex items-center space-x-2">
               <CheckCircle className="w-4 h-4 text-green-500" />
               <span>All changes saved</span>

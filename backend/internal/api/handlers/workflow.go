@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"github.com/citadel-agent/backend/internal/workflow/core/engine"
+	"citadel-agent/backend/internal/workflow/core/engine"
 )
 
 // WorkflowHandler handles workflow-related API requests

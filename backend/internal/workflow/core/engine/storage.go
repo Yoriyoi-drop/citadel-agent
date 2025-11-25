@@ -3,7 +3,7 @@ package engine
 import (
 	"sync"
 
-	"github.com/citadel-agent/backend/internal/workflow/core/types"
+	"citadel-agent/backend/internal/workflow/core/types"
 )
 
 

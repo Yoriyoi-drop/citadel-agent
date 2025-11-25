@@ -3,8 +3,8 @@ package factory
 import (
 	"fmt"
 
-	"github.com/citadel-agent/backend/internal/nodes/base"
-	"github.com/citadel-agent/backend/internal/nodes/registry"
+	"citadel-agent/backend/internal/nodes/base"
+	"citadel-agent/backend/internal/nodes/registry"
 )
 
 // Factory creates node instances

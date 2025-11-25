@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/citadel-agent/backend/internal/nodes/ai"
+	"citadel-agent/backend/internal/nodes/ai"
 )
 
 // LlamaProvider implements the AI Provider interface for local Llama models

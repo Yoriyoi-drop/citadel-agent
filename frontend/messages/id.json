@@ -1,0 +1,70 @@
+{
+    "common": {
+        "loading": "Memuat...",
+        "save": "Simpan",
+        "cancel": "Batal",
+        "delete": "Hapus",
+        "edit": "Edit",
+        "close": "Tutup",
+        "search": "Cari",
+        "filter": "Filter",
+        "all": "Semua",
+        "settings": "Pengaturan",
+        "back": "Kembali",
+        "next": "Selanjutnya",
+        "previous": "Sebelumnya",
+        "refresh": "Segarkan"
+    },
+    "workflow": {
+        "title": "Workflow",
+        "newWorkflow": "Workflow Baru",
+        "execute": "Jalankan",
+        "executing": "Menjalankan...",
+        "executeNode": "Jalankan Node",
+        "running": "Berjalan...",
+        "nodes": "Node",
+        "connections": "Koneksi",
+        "status": "Status",
+        "draft": "Draf",
+        "active": "Aktif",
+        "version": "Versi",
+        "allChangesSaved": "Semua perubahan tersimpan"
+    },
+    "node": {
+        "palette": "Palet Node",
+        "editor": "Editor Node",
+        "parameters": "Parameter",
+        "outputData": "Data Output",
+        "configuration": "Konfigurasi",
+        "label": "Label",
+        "description": "Deskripsi",
+        "noOutputData": "Tidak ada data output",
+        "runToSeeResults": "Jalankan node untuk melihat hasil",
+        "noConfig": "Tidak ada konfigurasi khusus untuk tipe node ini",
+        "noNodesFound": "Node tidak ditemukan",
+        "adjustSearch": "Coba sesuaikan pencarian atau filter Anda",
+        "loadMore": "Muat Lebih ({count} tersisa)"
+    },
+    "error": {
+        "executionFailed": "Eksekusi gagal karena kesalahan jaringan",
+        "somethingWentWrong": "Terjadi kesalahan",
+        "tryAgain": "Coba lagi"
+    },
+    "categories": {
+        "trigger": "Pemicu",
+        "action": "Aksi",
+        "transform": "Transformasi",
+        "utility": "Utilitas",
+        "ai": "AI",
+        "database": "Database",
+        "communication": "Komunikasi"
+    },
+    "config": {
+        "url": "URL",
+        "method": "Metode",
+        "path": "Path",
+        "table": "Tabel",
+        "operation": "Operasi",
+        "required": "Wajib diisi"
+    }
+}

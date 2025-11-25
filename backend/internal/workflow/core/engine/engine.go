@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/citadel-agent/backend/internal/interfaces"
-	"github.com/citadel-agent/backend/internal/workflow/core/types"
+	"citadel-agent/backend/internal/interfaces"
+	"citadel-agent/backend/internal/workflow/core/types"
 	"github.com/google/uuid"
 )
 

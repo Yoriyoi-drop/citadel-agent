@@ -12,7 +12,7 @@ import (
 	_ "github.com/lib/pq"              // PostgreSQL driver
 	_ "github.com/mattn/go-sqlite3"    // SQLite driver
 
-	"github.com/citadel-agent/backend/internal/interfaces"
+	"citadel-agent/backend/internal/interfaces"
 )
 
 // DatabaseType represents the type of database

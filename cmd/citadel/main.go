@@ -16,8 +16,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/citadel-agent/backend/internal/workflow/models"
-	"github.com/citadel-agent/backend/internal/workflow/engine"
+	"citadel-agent/backend/internal/workflow/models"
+	"citadel-agent/backend/internal/workflow/engine"
 )
 
 func main() {
